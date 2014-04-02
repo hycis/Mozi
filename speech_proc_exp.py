@@ -27,6 +27,45 @@ print('smartNN_DATA_PATH = ' + os.environ['smartNN_DATA_PATH'])
 print('smartNN_SAVE_PATH = ' + os.environ['smartNN_SAVE_PATH'])
 
 
+def mlp():
+     
+    data = P276_Spec(preprocess = None, 
+                    batch_size = 100,
+                    num_batches = None, 
+                    train_ratio = 5, 
+                    test_ratio = 1,
+                    iter_class = 'SequentialSubsetIterator')
+    
+    mlp = MLP(input_dim = data.feature_size())
+    mlp.add_layer(RELU(dim=100, name='h1_layer', W=None, b=None))
+    mlp.add_layer(RELU(dim= data.target_size(), name='output_layer', W=None, b=None))
+    
+    learning_rule = LearningRule(max_norm = 0.5,
+                                learning_rate = 0.01,
+                                momentum = 0.1,
+                                momentum_type = 'normal',
+                                weight_decay = 0,
+                                cost = Cost(type='mse'),
+                                dropout = 1,
+                                stopping_criteria = {'max_epoch' : 100, 
+                                                    'epoch_look_back' : 3, 
+                                                    'accu_increase' : 0.001}
+                                )
+    
+    log = Log(experiment_id = 'testing',
+            description = 'This experiment is to test the model',
+            save_outputs = True,
+            save_hyperparams = True,
+            save_model = True,
+            send_to_database = 'Database_Name.db')
+    
+    train_object = TrainObject(model = mlp,
+                                dataset = data,
+                                learning_rule = learning_rule,
+                                log = log)
+    train_object.run()
+
+
 def spec_autoencoder():
     
     learning_rule = LearningRule(max_norm = 1,
@@ -199,11 +238,9 @@ def spec_stacked_AE():
                             log = log)
     
     train_object.run()
-    
-def unpick():
-    
+        
 
     
 if __name__ == '__main__':
-    spec_autoencoder()
+    mlp()
 #     spec_stacked_AE()   

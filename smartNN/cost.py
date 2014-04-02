@@ -53,5 +53,9 @@ class Cost(object):
     
     def _cost_mse(self, y, y_pred):
         return T.mean(T.sqr(y - y_pred))
+    
+    def _cost_error(self, y, y_pred):
+        return T.mean(T.neq(y_pred.argmax(axis=1), y.argmax(axis=1)), dtype=theano.config.floatX)
+    
         
     

@@ -38,8 +38,29 @@ class Layer(object):
         RETURN:
             A list of tuples of [('name_a', var_a), ('name_b', var_b)] whereby dim(var_b)=0 
         """
-        raise NotImplementedError(str(type(self))+" does not implement _test_layer_stats.")
+#         length_sqr_sum = (self.W ** 2).sum(axis=1)
+#     
+#         max_length_sqr = T.max(length_sqr_sum)
+#         max_length = T.sqrt(max_length_sqr)
+        
+        w_len = T.sqrt((self.W ** 2).sum(axis=1))
+        max_length = T.max(w_len)
+        mean_length = T.mean(w_len)
+        min_length = T.min(w_len)
 
+
+#         mean_length_sqr = T.mean(length_sqr_sum)
+#         mean_length = T.sqrt(mean_length_sqr)
+#         
+#         min_length_sqr = T.min(length_sqr_sum)
+#         min_length = T.sqrt(min_length_sqr)
+        
+        return [('max_length', max_length),
+                ('mean_length', mean_length),
+                ('min_length', min_length), 
+                ('max', T.max(layer_output)), 
+                ('min', T.min(layer_output))]
+                
     def _train_layer_stats(self, layer_output):
         """
         DESCRIPTION:
@@ -50,7 +71,7 @@ class Layer(object):
         RETURN:
             A list of tuples of [('name_a', var_a), ('name_b', var_b)] whereby dim(var_b)=0 
         """
-        raise NotImplementedError(str(type(self))+" does not implement _train_layer_stats.")
+        return self._test_layer_stats(layer_output)
 
 
     
@@ -66,15 +87,7 @@ class Linear(Layer):
  
     # This is called every batch, the final cout will be the mean of all batches in an epoch
     def _test_layer_stats(self, layer_output):
-        max_norm_sqr = self.W ** 2
-        max_norm_sqr = T.max(max_norm_sqr.sum(axis=1))
-#         mean_norm_sqr = T.mean(max_norm_sqr.sum(axis=1))
-        max_norm = T.sqrt(max_norm_sqr)
-#         mean_norm = T.sqrt(mean_norm_sqr)
-        return [('max_norm', max_norm),
-#                 ('mean_norm', mean_norm), 
-                ('max', T.max(layer_output)), 
-                ('min', T.min(layer_output))]
+        return super(Linear, self)._test_layer_stats(layer_output)
 
     
     def _train_layer_stats(self, layer_output):
@@ -93,14 +106,7 @@ class Sigmoid(Layer):
  
     # This is called every batch, the final cout will be the mean of all batches in an epoch
     def _test_layer_stats(self, layer_output):
-        max_norm_sqr = self.W ** 2
-        max_norm_sqr = T.max(max_norm_sqr.sum(axis=1))
-#         mean_norm_sqr = T.mean(max_norm_sqr.sum(axis=1))
-        max_norm = T.sqrt(max_norm_sqr)
-#         mean_norm = T.sqrt(mean_norm_sqr)
-        return [('max_norm', max_norm),
-                ('max', T.max(layer_output)), 
-                ('min', T.min(layer_output))]
+        return super(Sigmoid, self)._test_layer_stats(layer_output)
     
     def _train_layer_stats(self, layer_output):
         return self._test_layer_stats(layer_output)
@@ -119,15 +125,7 @@ class RELU(Layer):
  
     # This is called every batch, the final cout will be the mean of all batches in an epoch
     def _test_layer_stats(self, layer_output):
-        max_norm_sqr = self.W ** 2
-        max_norm_sqr = T.max(max_norm_sqr.sum(axis=1))
-#         mean_norm_sqr = T.mean(max_norm_sqr.sum(axis=1), axis=0)
-        max_norm = T.sqrt(max_norm_sqr)
-#         mean_norm = T.sqrt(mean_norm_sqr)
-        return [('max_norm', max_norm),
-#                 ('mean_norm', mean_norm), 
-                ('max', T.max(layer_output)), 
-                ('min', T.min(layer_output))]
+        return super(RELU, self)._test_layer_stats(layer_output)
     
     def _train_layer_stats(self, layer_output):
         return self._test_layer_stats(layer_output)
@@ -147,15 +145,7 @@ class Softmax(Layer):
  
     # This is called every batch, the final cout will be the mean of all batches in an epoch
     def _test_layer_stats(self, layer_output):
-        max_norm_sqr = self.W ** 2
-        max_norm_sqr = T.max(max_norm_sqr.sum(axis=1))
-#         mean_norm_sqr = T.mean(max_norm_sqr.sum(axis=1))
-        max_norm = T.sqrt(max_norm_sqr)
-#         mean_norm = T.sqrt(mean_norm_sqr)
-        return [('max_norm', max_norm),
-#                 ('mean_norm', mean_norm), 
-                ('max', T.max(layer_output)), 
-                ('min', T.min(layer_output))]
+        return super(Softmax, self)._test_layer_stats(layer_output)
     
     def _train_layer_stats(self, layer_output):
         return self._test_layer_stats(layer_output)

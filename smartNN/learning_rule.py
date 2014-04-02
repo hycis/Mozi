@@ -9,9 +9,10 @@ class LearningRule(object):
                     weight_decay = 0,
                     cost = Cost(type='nll'),
                     dropout = 1,
-                    stopping_criteria = {'max_epoch' : 100, 
+                    stopping_criteria = {'max_epoch' : 100,
+                                        'cost' : Cost(type='error'), 
                                         'epoch_look_back' : None, 
-                                        'accu_increase' : None}):
+                                        'error_decrease' : None}):
                                         
         self.max_norm = max_norm
         self.learning_rate = learning_rate

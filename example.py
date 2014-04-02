@@ -52,7 +52,7 @@ def mlp():
     
     mlp = MLP(input_dim = mnist.feature_size())
     mlp.add_layer(RELU(dim=100, name='h1_layer', W=None, b=None))
-    mlp.add_layer(Linear(dim=10, name='output_layer', W=None, b=None))
+    mlp.add_layer(RELU(dim= mnist.target_size(), name='output_layer', W=None, b=None))
     
     learning_rule = LearningRule(max_norm = 0.1,
                                 learning_rate = 0.01,
@@ -62,8 +62,9 @@ def mlp():
                                 cost = Cost(type='mse'),
                                 dropout = 1,
                                 stopping_criteria = {'max_epoch' : 100, 
-                                                    'epoch_look_back' : 3, 
-                                                    'accu_increase' : 0.05}
+                                                    'epoch_look_back' : 3,
+                                                    'cost' : Cost(type='mse'), 
+                                                    'error_decrease' : 0.0001}
                                 )
     
     log = Log(experiment_id = 'testing',
@@ -81,16 +82,17 @@ def mlp():
     
 def autoencoder():
     
-    learning_rule = LearningRule(max_norm = 2,
-                            learning_rate = 0.1,
+    learning_rule = LearningRule(max_norm = 0.1,
+                            learning_rate = 0.01,
                             momentum = 0.01,
                             momentum_type = 'normal',
                             weight_decay = 0,
                             cost = Cost(type='mse'),
                             dropout = 0,
-                            stopping_criteria = {'max_epoch' : 20, 
-                                                'epoch_look_back' : None, 
-                                                'accu_increase' : None}
+                            stopping_criteria = {'max_epoch' : 20,
+                                                'cost' : Cost(type='mse'),
+                                                'epoch_look_back' : None,
+                                                'error_decrease' : None}
                             )
     
     mnist = Mnist(preprocess = None, 
@@ -104,19 +106,19 @@ def autoencoder():
     train = mnist.get_train()
     mnist.set_train(train.X, train.X)
     
-    mnist.valid = None
-    mnist.test = None
+#     mnist.valid = None
+#     mnist.test = None
     
-#     valid = mnist.get_valid()
-#     mnist.set_valid(valid.X, valid.X)
-#     
-#     test = mnist.get_test()
-#     mnist.set_test(test.X, test.X)
+    valid = mnist.get_valid()
+    mnist.set_valid(valid.X, valid.X)
+    
+    test = mnist.get_test()
+    mnist.set_test(test.X, test.X)
     
     mlp = MLP(input_dim = mnist.feature_size(), rand_seed=None)
     h1_layer = RELU(dim=60, name='h1_layer', W=None, b=None)
     mlp.add_layer(h1_layer)
-    mlp.add_layer(Sigmoid(dim=28*28, name='output_layer', W=h1_layer.W.T, b=None))
+    mlp.add_layer(Sigmoid(dim=mnist.target_size(), name='output_layer', W=h1_layer.W.T, b=None))
 
     log = Log(experiment_id = 'testing',
             description = 'This experiment is about autoencoder',
@@ -256,6 +258,7 @@ def stacked_autoencoder():
 
 def savenpy():
     import glob
+    import itertools
     os.environ['smartNN_DATA_PATH'] = '/Applications/VCTK/data'
     im_dir = os.environ['smartNN_DATA_PATH'] + '/inter-module/mcep/England/p276'
     
@@ -283,11 +286,11 @@ def savenpy():
 
 
 if __name__ == '__main__':
-    autoencoder()
+#     autoencoder()
 #     mlp()
 #     stacked_autoencoder()
 #     spec()
-#     savenpy()
+    savenpy()
 
                                 
                                 

@@ -1,5 +1,6 @@
 import smartNN.datasets.iterator as iter
-
+import logging
+log = logging.getLogger(__name__)
 
 class IterMatrix(object):
 
@@ -31,6 +32,12 @@ class Dataset(object):
         self.train = train
         self.valid = valid
         self.test = test
+        
+        if self.train is None:
+            logger.warning('Train set should not be empty')
+        if self.test is None:
+            logger.warning('Test set should not be empty, it is needed for saving' + \
+                            ' the best model')
         
     def get_train(self):
         return self.train

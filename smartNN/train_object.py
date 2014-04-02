@@ -87,11 +87,11 @@ class TrainObject():
                             - self.learning_rule.learning_rate * gparam)]
                 
                 # applying max_norm regularisation
-                if param.name[0] is 'W' and self.learning_rule.max_norm > 0:
+                if param.name[0] is 'W' and self.learning_rule.max_norm is not None:
                     W_update = param + delta
                     w_len = T.sqrt((W_update ** 2).sum(axis=1))
                     divisor = (w_len <= self.learning_rule.max_norm) + \
-                            (w_len > self.learning_rule.max_norm) * w_len
+                            (w_len > self.learning_rule.max_norm) * w_len / self.learning_rule.max_norm
                     W_update = W_update / divisor.reshape(((divisor.shape[0]),1))
                     train_updates += [(param, W_update)]
                 
@@ -112,10 +112,10 @@ class TrainObject():
         
         log.info('..begin compiling functions')
 
-        train_positives = self.learning_rule.cost.positives(train_y, train_y_pred)
+        train_stopping_cost = self.learning_rule.stopping_criteria['cost'].get_cost(train_y, train_y_pred)
         
         self.training = theano.function(inputs=[train_x, train_y], 
-                                            outputs=(train_positives, train_cost), 
+                                            outputs=(train_stopping_cost, train_cost), 
                                             updates=train_updates,
                                             on_unused_input='warn')
         
@@ -135,11 +135,11 @@ class TrainObject():
                 
         #-------------------------[ test functions ]--------------------------#
 
-        test_positives = self.learning_rule.cost.positives(test_y, test_y_pred)
+        test_stopping_cost = self.learning_rule.stopping_criteria['cost'].get_cost(test_y, test_y_pred)
         test_cost = self.learning_rule.cost.get_cost(test_y, test_y_pred)
                                           
         self.testing = theano.function(inputs=[test_x, test_y], 
-                                            outputs=(test_positives, test_cost),
+                                            outputs=(test_stopping_cost, test_cost),
                                             updates=test_stats_updates,
                                             on_unused_input='warn')
         
@@ -152,17 +152,17 @@ class TrainObject():
         valid_set = self.dataset.get_valid()
         test_set = self.dataset.get_test()
         
-        best_train_accu = 0.
-        best_valid_accu = 0.
-        best_test_accu = 0.
+        best_train_error = float("inf")
+        best_valid_error = float("inf")
+        best_test_error = float("inf")
         
-        mean_train_accu = 0.
-        mean_valid_accu = 0.
-        mean_test_accu = 0.
+        mean_train_error = float("inf")
+        mean_valid_error = float("inf")
+        mean_test_error = float("inf")
         
-        mean_train_cost = 0.
-        mean_valid_cost = 0.
-        mean_test_cost = 0.
+        mean_train_cost = float("inf")
+        mean_valid_cost = float("inf")
+        mean_test_cost = float("inf")
         
         train_stats_names = []
         train_stats_values = []
@@ -174,10 +174,10 @@ class TrainObject():
         test_stats_values = []
         
         epoch = 1
-        accu_inc = 0
+        error_dcr = 0
         self.best_epoch_so_far = 0               
         
-        while (self.continue_learning(epoch, accu_inc)):
+        while (self.continue_learning(epoch, error_dcr)):
 
             start_time = time.time()
             
@@ -197,26 +197,27 @@ class TrainObject():
                 
                 num_examples = 0
                 total_cost = 0.
-                total_positives = 0. 
+                total_stopping_cost = 0. 
 
                 train_stats_names = ['train_' + name for name in self.train_stats_names]
                 train_stats_values = np.zeros(len(train_stats_names), dtype=theano.config.floatX)
                 
                 for idx in train_set:
-                    positives, cost = self.training(train_set.X[idx], train_set.y[idx])
+                    stopping_cost, cost = self.training(train_set.X[idx], train_set.y[idx])
+
                     total_cost += cost * len(idx)
-                    total_positives += positives
+                    total_stopping_cost += stopping_cost * len(idx)
                     num_examples += len(idx)
                     
                     train_stats_values += len(idx) * get_shared_values(self.train_stats_shared)
                     
-                mean_train_accu = total_positives / num_examples
+                mean_train_error = total_stopping_cost / num_examples
                 mean_train_cost = total_cost / num_examples
                 
                 train_stats_values /= num_examples
                 
-                if mean_train_accu > best_train_accu:
-                    best_train_accu = mean_train_accu
+                if mean_train_error < best_train_error:
+                    best_train_error = mean_train_error
                 
             #=====================[ Validating Progress ]=====================#
             if valid_set is not None:
@@ -234,28 +235,28 @@ class TrainObject():
                                     
                 num_examples = 0
                 total_cost = 0.
-                total_positives = 0.
+                total_stopping_cost = 0. 
                 
                 valid_stats_names = ['valid_' + name for name in self.test_stats_names] 
                 valid_stats_values = np.zeros(len(valid_stats_names), dtype=theano.config.floatX)
                 
                 for idx in valid_set:
-                
-                    positives, cost = self.testing(valid_set.X[idx], valid_set.y[idx])
+                    stopping_cost, cost = self.testing(train_set.X[idx], train_set.y[idx])
+
                     total_cost += cost * len(idx)
-                    total_positives += positives
+                    total_stopping_cost += stopping_cost * len(idx)
                     num_examples += len(idx)
                     
                     valid_stats_values += len(idx) * get_shared_values(self.test_stats_shared)
                
-                mean_valid_accu = total_positives / num_examples
+                mean_valid_error = total_stopping_cost / num_examples
                 mean_valid_cost = total_cost / num_examples
                 
                 valid_stats_values /= num_examples
                 
-                if mean_valid_accu - best_valid_accu > 0:
-                    accu_inc = mean_valid_accu - best_valid_accu
-                    best_valid_accu = mean_valid_accu
+                if best_valid_error - mean_valid_error > 0:
+                    error_dcr = best_valid_error - mean_valid_error
+                    best_valid_error = mean_valid_error
             
             #======================[ Testing Progress ]=======================#
             if test_set is not None:
@@ -273,28 +274,28 @@ class TrainObject():
                         
                 num_examples = 0
                 total_cost = 0.
-                total_positives = 0. 
+                total_stopping_cost = 0. 
                 
                 test_stats_names = ['test_' + name for name in self.test_stats_names]
                 test_stats_values = np.zeros(len(test_stats_names), dtype=theano.config.floatX)
 
                 for idx in test_set:
-                
-                    positives, cost = self.testing(test_set.X[idx], test_set.y[idx])
+                    stopping_cost, cost = self.testing(train_set.X[idx], train_set.y[idx])
+
                     total_cost += cost * len(idx)
-                    total_positives += positives
+                    total_stopping_cost += stopping_cost * len(idx)
                     num_examples += len(idx)
                     
                     test_stats_values += len(idx) * get_shared_values(self.test_stats_shared)
 
                 test_stats_values /= num_examples
     
-                mean_test_accu = total_positives / num_examples
+                mean_test_error = total_stopping_cost / num_examples
                 mean_test_cost = total_cost / num_examples
             
-                if mean_test_accu > best_test_accu:
+                if mean_test_error < best_test_error:
                 
-                    best_test_accu = mean_test_accu
+                    best_test_error = mean_test_error
                 
                     if self.log.save_model:
                         self.log.save_model(self.model)
@@ -307,9 +308,9 @@ class TrainObject():
 #                     TODO
 #                     if self.send_to_database:
 #                         self.log._send_to_database(self.learning_rule,
-#                                                     best_train_accu,
-#                                                     best_valid_accu,
-#                                                     best_test_accu)
+#                                                     best_train_error,
+#                                                     best_valid_error,
+#                                                     best_test_error)
             
             end_time = time.time()
             
@@ -320,17 +321,18 @@ class TrainObject():
                 merged_valid = merge_lists(valid_stats_names, valid_stats_values)
                 merged_test = merge_lists(test_stats_names, test_stats_values)
             
-                outputs = [('epoch',epoch),
+                stopping_cost_type = self.learning_rule.stopping_criteria['cost'].type
+                outputs = [('epoch', epoch),
                             ('runtime(s)', int(end_time-start_time)),
-                            ('mean_train_cost',mean_train_cost),
-                            ('mean_valid_cost',mean_valid_cost),
-                            ('mean_test_cost',mean_test_cost),
-                            ('mean_train_accu',mean_train_accu),
-                            ('mean_valid_accu',mean_valid_accu),
-                            ('mean_test_accu',mean_test_accu),
-                            ('best_train_accu',best_train_accu),
-                            ('best_valid_accu',best_valid_accu),
-                            ('best_test_accu',best_test_accu)]
+                            ('mean_train_' + self.learning_rule.cost.type, mean_train_cost),
+                            ('mean_valid_' + self.learning_rule.cost.type, mean_valid_cost),
+                            ('mean_test_' + self.learning_rule.cost.type, mean_test_cost),
+                            ('mean_train_' + stopping_cost_type, mean_train_error),
+                            ('mean_valid_' + stopping_cost_type, mean_valid_error),
+                            ('mean_test_' + stopping_cost_type, mean_test_error),
+                            ('best_train_' + stopping_cost_type, best_train_error),
+                            ('best_valid_' + stopping_cost_type, best_valid_error),
+                            ('best_test_' + stopping_cost_type, best_test_error)]
                             
                 outputs += merged_train + merged_valid + merged_test
             
@@ -338,16 +340,15 @@ class TrainObject():
                 
             epoch += 1
             
-    def continue_learning(self, epoch, accu_inc):
-    
+    def continue_learning(self, epoch, error_dcr):
+
         if epoch > self.learning_rule.stopping_criteria['max_epoch']:
             return False
         
-        elif self.learning_rule.stopping_criteria['accu_increase'] is None or \
+        elif self.learning_rule.stopping_criteria['error_decrease'] is None or \
             self.learning_rule.stopping_criteria['epoch_look_back'] is None:
             return True
-            
-        elif accu_inc >= self.learning_rule.stopping_criteria['accu_increase']:
+        elif error_dcr >= self.learning_rule.stopping_criteria['error_decrease']:
             self.best_epoch_so_far = epoch
             return True
         
