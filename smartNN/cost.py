@@ -49,10 +49,14 @@ class Cost(object):
         return getattr(self, '_cost_' + self.type)(y, y_pred)
     
     def _cost_nll(self, y, y_pred):
-        return -T.mean(T.log(y_pred)[T.arange(y.shape[0]), y.argmin(axis=1)])
+        return -T.mean(T.log(y_pred) * y, dtype=theano.config.floatX)
     
     def _cost_mse(self, y, y_pred):
         return T.mean(T.sqr(y - y_pred))
+        
+    def _cost_entropy(self, y, y_pred):        
+        L = - T.sum(y * T.log(y_pred) + (1-y) * T.log(1-y_pred), axis=1, dtype=theano.config.floatX)
+        return T.mean(L)
     
     def _cost_error(self, y, y_pred):
         return T.mean(T.neq(y_pred.argmax(axis=1), y.argmax(axis=1)), dtype=theano.config.floatX)

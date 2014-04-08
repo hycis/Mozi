@@ -65,9 +65,11 @@ class MLP(object):
             
         return input_state, train_layers_stats
         
-    def fprop(self, input_state):
+    def fprop(self, input_values):
+        input_state = T.matrix('X', dtype=theano.config.floatX)
         output, stats = self.test_fprop(input_state)
-        return output
+        f = theano.function([input_state], output)
+        return f(input_values)
 
     def get_layers(self):
         return self.layers

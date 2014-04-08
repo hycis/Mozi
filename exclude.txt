@@ -1,0 +1,5 @@
+data/
+database/
+save/
+.git/
+images/

@@ -70,8 +70,8 @@ class TrainObject():
         train_x = T.matrix('train_x')
         train_y = T.matrix('train_y')
         
-        assert self.learning_rule.momentum_type is 'normal' or \
-                self.learning_rule.momentum_type is 'nesterov', \
+        assert self.learning_rule.momentum_type == 'normal' or \
+                self.learning_rule.momentum_type == 'nesterov', \
                 'momentum is not normal | nesterov'
         
         train_updates = []
@@ -86,12 +86,13 @@ class TrainObject():
                 train_updates += [(delta, self.learning_rule.momentum * delta 
                             - self.learning_rule.learning_rate * gparam)]
                 
-                # applying max_norm regularisation
-                if param.name[0] is 'W' and self.learning_rule.max_norm is not None:
+                # applying max_col_norm regularisation
+                if param.name[0] is 'W' and self.learning_rule.max_col_norm is not None:
                     W_update = param + delta
                     w_len = T.sqrt((W_update ** 2).sum(axis=1))
-                    divisor = (w_len <= self.learning_rule.max_norm) + \
-                            (w_len > self.learning_rule.max_norm) * w_len / self.learning_rule.max_norm
+                    divisor = (w_len <= self.learning_rule.max_col_norm) + \
+                            (w_len > self.learning_rule.max_col_norm) * w_len / \
+                            self.learning_rule.max_col_norm
                     W_update = W_update / divisor.reshape(((divisor.shape[0]),1))
                     train_updates += [(param, W_update)]
                 
@@ -115,9 +116,9 @@ class TrainObject():
         train_stopping_cost = self.learning_rule.stopping_criteria['cost'].get_cost(train_y, train_y_pred)
         
         self.training = theano.function(inputs=[train_x, train_y], 
-                                            outputs=(train_stopping_cost, train_cost), 
-                                            updates=train_updates,
-                                            on_unused_input='warn')
+                                        outputs=(train_stopping_cost, train_cost), 
+                                        updates=train_updates,
+                                        on_unused_input='warn')
         
         log.info('..training function compiled')
         
@@ -139,9 +140,9 @@ class TrainObject():
         test_cost = self.learning_rule.cost.get_cost(test_y, test_y_pred)
                                           
         self.testing = theano.function(inputs=[test_x, test_y], 
-                                            outputs=(test_stopping_cost, test_cost),
-                                            updates=test_stats_updates,
-                                            on_unused_input='warn')
+                                        outputs=(test_stopping_cost, test_cost),
+                                        updates=test_stats_updates,
+                                        on_unused_input='warn')
         
         log.info('..testing function compiled')
         
@@ -177,7 +178,7 @@ class TrainObject():
         error_dcr = 0
         self.best_epoch_so_far = 0               
         
-        while (self.continue_learning(epoch, error_dcr)):
+        while (self.continue_learning(epoch, error_dcr, best_valid_error)):
 
             start_time = time.time()
             
@@ -293,30 +294,37 @@ class TrainObject():
                 mean_test_error = total_stopping_cost / num_examples
                 mean_test_cost = total_cost / num_examples
             
+                #======[ save model, save hyperparams, send to database ]=====#
                 if mean_test_error < best_test_error:
                 
                     best_test_error = mean_test_error
-                
-                    if self.log.save_model:
-                        self.log.save_model(self.model)
+
+                    if self.log is not None and self.log.save_model:
+                        self.log._save_model(self.model)
                         log.info('..model saved')
                 
-                    if self.log.save_hyperparams:
-                        self.log.save_hyperparams(self.learning_rule)
+                    if self.log is not None and self.log.save_hyperparams:
+                        self.log._save_hyperparams(self.learning_rule)
                         log.info('..hyperparams saved')
 
-#                     TODO
-#                     if self.send_to_database:
-#                         self.log._send_to_database(self.learning_rule,
-#                                                     best_train_error,
-#                                                     best_valid_error,
-#                                                     best_test_error)
+                    if self.log is not None and self.log.send_to_database:
+                        self.log._send_to_database(self.learning_rule,
+                                                    best_train_error,
+                                                    best_valid_error,
+                                                    best_test_error,
+                                                    self.dataset.batch_size,
+                                                    len(self.model.layers),
+                                                    str([layer.dim for layer in self.model.layers]))
+                                                    
+                        log.info('..sent to database: %s:%s' % (self.log.send_to_database, 
+                                                                self.log.experiment_id))
+
             
             end_time = time.time()
             
             #=====================[ log outputs to file ]=====================#
-            if self.log.save_outputs:
-            
+            if self.log is not None and self.log.save_outputs:
+
                 merged_train = merge_lists(train_stats_names, train_stats_values)
                 merged_valid = merge_lists(valid_stats_names, valid_stats_values)
                 merged_test = merge_lists(test_stats_names, test_stats_values)
@@ -336,19 +344,22 @@ class TrainObject():
                             
                 outputs += merged_train + merged_valid + merged_test
             
-                self.log.save_outputs(outputs)
-                
+                self.log._save_outputs(outputs)
+
             epoch += 1
             
-    def continue_learning(self, epoch, error_dcr):
+            
+    def continue_learning(self, epoch, error_dcr, best_valid_error):
 
         if epoch > self.learning_rule.stopping_criteria['max_epoch']:
             return False
         
-        elif self.learning_rule.stopping_criteria['error_decrease'] is None or \
+        elif self.learning_rule.stopping_criteria['percent_decrease'] is None or \
             self.learning_rule.stopping_criteria['epoch_look_back'] is None:
             return True
-        elif error_dcr >= self.learning_rule.stopping_criteria['error_decrease']:
+            
+        elif np.abs(error_dcr * 1.0 / best_valid_error) \
+            >= self.learning_rule.stopping_criteria['percent_decrease']:
             self.best_epoch_so_far = epoch
             return True
         
@@ -358,6 +369,8 @@ class TrainObject():
         
         else:
             return True
+    
+    
     
             
                 

@@ -8,10 +8,12 @@ from smartNN.datasets.dataset import IterMatrix, Dataset
 
 class Mnist(Dataset):
     
-    def __init__(self, preprocess=None, binarize=False,  
-                batch_size=100, num_batches=None, 
-                train_ratio=5, valid_ratio=1,
-                iter_class='ShuffledSequentialSubsetIterator'):
+    def __init__(self, iter_class='SequentialSubsetIterator', batch_size=100, num_batches=None,
+                preprocessor=None, binarize=False, train_ratio=5, valid_ratio=1, rng=None):
+                
+        self.preprocessor = preprocessor
+        self.batch_size = batch_size
+        self.iter_class = iter_class
         
         im_dir = os.environ['smartNN_DATA_PATH'] + '/mnist/'
         
@@ -46,11 +48,20 @@ class Mnist(Dataset):
         
         train_X = train_X[num_valid:]
         train_y = train_y[num_valid:]
+                
+        
+        train = IterMatrix(train_X, train_y, batch_size, num_batches, iter_class,
+                            preprocessor, rng=None)
+                    
 
-        self.train = IterMatrix(train_X, train_y, iter_class, batch_size, num_batches)
-        self.valid = IterMatrix(valid_X, valid_y, iter_class, batch_size)
-        self.test = IterMatrix(test_X, test_y, iter_class, batch_size)
+        valid = IterMatrix(valid_X, valid_y, batch_size, num_batches, iter_class,
+                            preprocessor, rng=None)
 
-        super(Mnist, self).__init__(train=self.train, valid=self.valid, test=self.test)
+
+        test = IterMatrix(test_X, test_y, batch_size, num_batches, iter_class,
+                            preprocessor, rng=None)
+
+        super(Mnist, self).__init__(train=train, valid=valid, test=test)
+
         
      
