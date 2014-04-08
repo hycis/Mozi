@@ -46,7 +46,7 @@ def mlp():
                                 momentum_type = 'normal',
                                 weight_decay = 0,
                                 cost = Cost(type='mse'),
-                                dropout = 1,
+                                dropout_below = 1,
                                 stopping_criteria = {'max_epoch' : 100, 
                                                     'epoch_look_back' : 3, 
                                                     'accu_increase' : 0.001}
@@ -74,7 +74,7 @@ def spec_autoencoder():
                             momentum_type = 'normal',
                             weight_decay = 0,
                             cost = Cost(type='mse'),
-                            dropout = 0,
+                            dropout_below = 0,
                             stopping_criteria = {'max_epoch' : 10, 
                                                 'epoch_look_back' : None, 
                                                 'accu_increase' : None}
@@ -138,7 +138,7 @@ def spec_stacked_AE():
                             momentum_type = 'normal',
                             weight_decay = 0,
                             cost = Cost(type='mse'),
-                            dropout = 0,
+                            dropout_below = 0,
                             stopping_criteria = {'max_epoch' : 10, 
                                                 'epoch_look_back' : None, 
                                                 'accu_increase' : None}

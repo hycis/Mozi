@@ -8,7 +8,7 @@ class Layer(object):
     Abstract Class
     """
 
-    def __init__(self, dim, name, W=None, b=None, dropout=None):  
+    def __init__(self, dim, name, W=None, b=None, dropout_below=None):  
         """
         DESCRIPTION:
             This is an abstract layer class
@@ -17,14 +17,14 @@ class Layer(object):
             name(string): name of the layer
             W(tensor variable): Weight of 2D tensor matrix
             b(tensor variable): bias of 2D tensor matrix
-            dropout(int): probability of the inputs from the layer below been masked out
+            dropout_below: probability of the inputs from the layer below been masked out
         """    
          
         self.dim = dim
         self.name = name
         self.W = W
         self.b = b
-        self.dropout = dropout
+        self.dropout_below = dropout_below
         self.theano_rand = RandomStreams()
         
         if self.W is not None and self.W.name is None:
@@ -46,10 +46,9 @@ class Layer(object):
                 state_below: 1d array of inputs from layer below
         """
     
-        if self.dropout is not None:
-            assert self.dropout >= 0 and self.dropout <= 1, 'dropout is not in range [0,1]'
-            state_below = self.theano_rand.binomial(size=(self.dim,), 
-                                                n=1, p=(1-self.dropout),
+        if self.dropout_below is not None:
+            assert self.dropout_below >= 0 and self.dropout_below <= 1, 'dropout_below is not in range [0,1]'
+            state_below = self.theano_rand.binomial(ndim=self.dim, n=1, p=(1-self.dropout_below),
                                                 dtype=theano.config.floatX) * state_below
         
         return T.dot(state_below, self.W) + self.b

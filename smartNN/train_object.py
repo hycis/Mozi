@@ -46,20 +46,20 @@ class TrainObject():
         
         prev_layer_dim = self.model.input_dim
         for layer in self.model.layers:
-            if layer.W.__class__.__name__ is 'TensorSharedVariable':
+            if layer.W.__class__.__name__ == 'TensorSharedVariable':
                 params += [layer.W]
                 deltas += [theano.shared(np.zeros((prev_layer_dim, layer.dim), 
                                         dtype=theano.config.floatX))]
             
-            elif layer.W.__class__.__name__ is not 'TensorSharedVariable':            
+            elif layer.W.__class__.__name__ != 'TensorSharedVariable':            
                 log.warning(layer.W.name + ' is ' + layer.W.__class__.__name__ + 
                             ' but not TensorSharedVariable.')
 
-            if layer.b.__class__.__name__ is 'TensorSharedVariable':
+            if layer.b.__class__.__name__ == 'TensorSharedVariable':
                 params += [layer.b]
                 deltas += [theano.shared(np.zeros(layer.dim, dtype=theano.config.floatX))]
             
-            elif layer.b.__class__.__name__ is not 'TensorSharedVariable':            
+            elif layer.b.__class__.__name__ != 'TensorSharedVariable':            
                 log.warning(layer.b.name + ' is ' + layer.b.__class__.__name__ + 
                             ' but not TensorSharedVariable.')
             
@@ -76,7 +76,7 @@ class TrainObject():
         
         train_updates = []
         
-        if self.learning_rule.momentum_type is 'normal':
+        if self.learning_rule.momentum_type == 'normal':
 
             train_y_pred, train_layers_stats = self.model.train_fprop(train_x)            
             train_cost = self.learning_rule.cost.get_cost(train_y, train_y_pred)
@@ -87,7 +87,7 @@ class TrainObject():
                             - self.learning_rule.learning_rate * gparam)]
                 
                 # applying max_col_norm regularisation
-                if param.name[0] is 'W' and self.learning_rule.max_col_norm is not None:
+                if param.name[0] == 'W' and self.learning_rule.max_col_norm is not None:
                     W_update = param + delta
                     w_len = T.sqrt((W_update ** 2).sum(axis=1))
                     divisor = (w_len <= self.learning_rule.max_col_norm) + \
@@ -99,7 +99,7 @@ class TrainObject():
                 else:
                     train_updates += [(param, param + delta)]
             
-        elif self.learning_rule.momentum_type is 'nesterov':
+        elif self.learning_rule.momentum_type == 'nesterov':
             raise NotImplementedError('nesterov not implemented yet')
         
         #----[ append updates of stats from each layer to train updates ]-----#

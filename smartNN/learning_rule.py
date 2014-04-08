@@ -8,7 +8,7 @@ class LearningRule(object):
                     momentum_type = 'normal',
                     weight_decay = 0,
                     cost = Cost(type='nll'),
-                    dropout = 1,
+                    dropout_below = 1,
                     stopping_criteria = {'max_epoch' : 100,
                                         'cost' : Cost(type='error'), 
                                         'epoch_look_back' : None, 
