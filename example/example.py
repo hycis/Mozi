@@ -303,12 +303,12 @@ def savenpy():
     files = glob.glob(im_dir + '/*.spec')
     
     size = 0
-    data = np.asarray([], dtype='<f4')
+    data = []
     count = 0
     for f in files:
         with open(f) as fb:
             clip = np.fromfile(fb, dtype='<f4', count=-1)
-            data = itertools.chain(data, clip)
+            data.extend(clip)
 #             data[0:0] = clip
 
         print('..done ' + f)
@@ -317,9 +317,9 @@ def savenpy():
 
     print(os.path.exists(im_dir))
     with open(im_dir + '/p276.npy', 'wb') as f:
-        np.save(f, list(data))
-    import pdb
-    pdb.set_trace()
+        np.save(f, data)
+
+    print('merge successfully')
     
 def test():
     from smartNN.utils.database_utils import display_database 
@@ -398,9 +398,9 @@ if __name__ == '__main__':
 #     mlp()
 #     stacked_autoencoder()
 #     spec()
-#     savenpy()
+    savenpy()
 #     test()
-    unpickle_mlp('stacked_AE4_full_20140407_0456_57461100')
+#     unpickle_mlp('stacked_AE4_full_20140407_0456_57461100')
 #     test_AE()
                                 
                                 
