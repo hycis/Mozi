@@ -8,13 +8,8 @@ from smartNN.datasets.dataset import IterMatrix, Dataset
 
 class Mnist(Dataset):
     
-    def __init__(self, iter_class='SequentialSubsetIterator', batch_size=100, num_batches=None,
-                preprocessor=None, binarize=False, train_ratio=5, valid_ratio=1, rng=None):
+    def __init__(self, binarize=False, train_ratio=5, valid_ratio=1, **kwargs):
                 
-        self.preprocessor = preprocessor
-        self.batch_size = batch_size
-        self.iter_class = iter_class
-        
         im_dir = os.environ['smartNN_DATA_PATH'] + '/mnist/'
         
         train_X = read_mnist_images(im_dir + 'train-images-idx3-ubyte', dtype='float32')
@@ -49,19 +44,10 @@ class Mnist(Dataset):
         train_X = train_X[num_valid:]
         train_y = train_y[num_valid:]
                 
-        
-        train = IterMatrix(train_X, train_y, batch_size, num_batches, iter_class,
-                            preprocessor, rng=None)
-                    
 
-        valid = IterMatrix(valid_X, valid_y, batch_size, num_batches, iter_class,
-                            preprocessor, rng=None)
-
-
-        test = IterMatrix(test_X, test_y, batch_size, num_batches, iter_class,
-                            preprocessor, rng=None)
-
-        super(Mnist, self).__init__(train=train, valid=valid, test=test)
+        super(Mnist, self).__init__(train=[train_X, train_y], 
+                                    valid=[valid_X, valid_y],
+                                    test=[test_X, test_y], **kwargs)
 
         
      

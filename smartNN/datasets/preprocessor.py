@@ -53,8 +53,6 @@ class Preprocessor(object):
             can_fit: If True, the Preprocessor can adapt internal parameters
                      based on the contents of dataset. Otherwise it must not
                      fit any parameters, or must re-use old ones.
-                     Subclasses should still have this default to False, so
-                     that the behavior of the preprocessors is uniform.
 
             Typical usage:
                 # Learn PCA preprocessing and apply it to the training set
@@ -82,7 +80,7 @@ class Preprocessor(object):
         Do any necessary prep work to be able to support the "inverse" method
         later. Default implementation is no-op.
         """
-
+        raise NotImplementedError(str(type(self))+" does not implement an invert method.")
 
 class ExamplewisePreprocessor(Preprocessor):
     """
@@ -102,10 +100,9 @@ class ExamplewisePreprocessor(Preprocessor):
     def as_block(self):
         raise NotImplementedError(str(type(self))+" does not implement as_block.")
 
-
 class Standardize(ExamplewisePreprocessor):
     """Subtracts the mean and divides by the standard deviation."""
-    def __init__(self, global_mean=False, global_std=False, std_eps=1e-4, can_fit=False):
+    def __init__(self, global_mean=False, global_std=False, std_eps=1e-4, can_fit=True):
         """
         Initialize a Standardize preprocessor.
 
@@ -141,8 +138,8 @@ class Standardize(ExamplewisePreprocessor):
             if self._mean is None or self._std is None:
                 raise ValueError("can_fit is False, but Standardize object "
                                  "has no stored mean or standard deviation")
-        new = (X - self._mean) / (self._std_eps + self._std)
-        return new
+        X = (X - self._mean) / (self._std_eps + self._std)
+        return X
 
     def as_block(self):
         if self._mean is None or self._std is None:
@@ -151,5 +148,84 @@ class Standardize(ExamplewisePreprocessor):
         return ExamplewiseAddScaleTransform(add=-self._mean,
                                             multiply=self._std ** -1)
 
+
+class GlobalContrastNormalize(Preprocessor):
+                              
+    """
+    Global contrast normalizes by (optionally) subtracting the mean
+    across features and then normalizes by either the vector norm
+    or the standard deviation (across features, for each example).
+
+    Parameters
+    ----------
+    X : ndarray, 2-dimensional
+        Design matrix with examples indexed on the first axis and
+        features indexed on the second.
+
+    scale : float, optional
+        Multiply features by this const.
+
+    subtract_mean : bool, optional
+        Remove the mean across features/pixels before normalizing.
+        Defaults to `False`.
+
+    use_std : bool, optional
+        Normalize by the per-example standard deviation across features
+        instead of the vector norm. Defaults to `False`.
+
+    sqrt_bias : float, optional
+        Fudge factor added inside the square root. Defaults to 0.
+
+    min_divisor : float, optional
+        If the divisor for an example is less than this value,
+        do not apply it. Defaults to `1e-8`.
+    """
+    
+    def __init__(self, scale=1., subtract_mean=False, use_std=True,
+                sqrt_bias=0., min_divisor=1e-8):
+                
+        self.scale = scale
+        self.subtract_mean = subtract_mean
+        self.use_std = use_std
+        self.sqrt_bias = sqrt_bias
+        self.min_divisor = min_divisor
+
+    def apply(self, X):
+        """
+        Returns
+        -------
+        Xp : ndarray, 2-dimensional
+            The contrast-normalized features.
+
+        Notes
+        -----
+        `sqrt_bias` = 10 and `use_std = True` (and defaults for all other
+        parameters) corresponds to the preprocessing used in [1].
+
+        .. [1] A. Coates, H. Lee and A. Ng. "An Analysis of Single-Layer
+           Networks in Unsupervised Feature Learning". AISTATS 14, 2011.
+           http://www.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf
+        """
+        assert X.ndim == 2, "X.ndim must be 2"
+        scale = float(scale)
+        # Note: this is per-example mean across pixels, not the
+        # per-pixel mean across examples. So it is perfectly fine
+        # to subtract this without worrying about whether the current
+        # object is the train, valid, or test set.
+        mean = X.mean(axis=1)
+        if self.subtract_mean:
+            X = X - mean[:, np.newaxis]  # Makes a copy.
+        else:
+            X = X.copy()
+        if self.use_std:
+            # ddof=1 simulates MATLAB's var() behaviour, which is what Adam
+            # Coates' code does.
+            normalizers = numpy.sqrt(self.sqrt_bias + X.var(axis=1, ddof=1)) / scale
+        else:
+            normalizers = numpy.sqrt(self.sqrt_bias + (X ** 2).sum(axis=1)) / scale
+        # Don't normalize by anything too small.
+        normalizers[normalizers < self.min_divisor] = 1.
+        X /= normalizers[:, numpy.newaxis]  # Does not make a copy.
+        return X
 
 

@@ -44,22 +44,31 @@ from smartNN.train_object import TrainObject
 from smartNN.cost import Cost
 from smartNN.datasets.preprocessor import Standardize
 
-from smartNN.datasets.spec import P276_Spec
+from smartNN.datasets.spec import P276
 
 
 def mlp():
      
-    mnist = Mnist(preprocessor = Standardize(can_fit=True), 
-                    binarize = False,
-                    batch_size = 100,
-                    num_batches = None, 
-                    train_ratio = 5, 
-                    valid_ratio = 1,
-                    iter_class = 'SequentialSubsetIterator')
+#     data = Mnist(preprocessor = Standardize(can_fit=True), 
+#                     binarize = False,
+#                     batch_size = 100,
+#                     num_batches = None, 
+#                     train_ratio = 5, 
+#                     valid_ratio = 1,
+#                     iter_class = 'SequentialSubsetIterator')
+
+    data = P276(preprocessor = GlobalContrastNormalize(),
+                batch_size = 100,
+                num_batches = None, 
+                train_ratio = 5, 
+                valid_ratio = 1,
+                test_ratio = 1,
+                iter_class = 'SequentialSubsetIterator')
+                                    
     
-    mlp = MLP(input_dim = mnist.feature_size())
+    mlp = MLP(input_dim = data.feature_size())
     mlp.add_layer(RELU(dim=10, name='h1_layer', W=None, b=None))
-    mlp.add_layer(RELU(dim= mnist.target_size(), name='output_layer', W=None, b=None))
+    mlp.add_layer(RELU(dim= data.target_size(), name='output_layer', W=None, b=None))
     
     learning_rule = LearningRule(max_col_norm = 0.1,
                                 learning_rate = 0.01,
@@ -81,7 +90,7 @@ def mlp():
             send_to_database = 'Database_Name.db')
     
     train_object = TrainObject(model = mlp,
-                                dataset = mnist,
+                                dataset = data,
                                 learning_rule = learning_rule,
                                 log = log)
     train_object.run()
@@ -100,7 +109,7 @@ def autoencoder():
                                                 'percent_decrease' : 0.001}
                             )
     
-    mnist = Mnist(preprocessor = None, 
+    data = Mnist(preprocessor = None, 
                     binarize = False,
                     batch_size = 100,
                     num_batches = None, 
@@ -108,19 +117,19 @@ def autoencoder():
                     valid_ratio = 1,
                     iter_class = 'SequentialSubsetIterator')
     
-    train = mnist.get_train()
-    mnist.set_train(train.X, train.X)
+    train = data.get_train()
+    data.set_train(train.X, train.X)
     
-    valid = mnist.get_valid()
-    mnist.set_valid(valid.X, valid.X)
+    valid = data.get_valid()
+    data.set_valid(valid.X, valid.X)
     
-    test = mnist.get_test()
-    mnist.set_test(test.X, test.X)
+    test = data.get_test()
+    data.set_test(test.X, test.X)
     
-    mlp = MLP(input_dim = mnist.feature_size(), rand_seed=None)
+    mlp = MLP(input_dim = data.feature_size(), rand_seed=None)
     h1_layer = RELU(dim=100, name='h1_layer', W=None, b=None)
     mlp.add_layer(h1_layer)
-    mlp.add_layer(Sigmoid(dim=mnist.target_size(), name='output_layer', W=h1_layer.W.T, b=None))
+    mlp.add_layer(Sigmoid(dim=data.target_size(), name='output_layer', W=h1_layer.W.T, b=None))
 
     log = Log(experiment_id = 'AE',
             description = 'This experiment is about autoencoder',
@@ -130,7 +139,7 @@ def autoencoder():
             send_to_database = 'Database_Name.db')
     
     train_object = TrainObject(model = mlp,
-                                dataset = mnist,
+                                dataset = data,
                                 learning_rule = learning_rule,
                                 log = log)
                                 
@@ -294,32 +303,27 @@ def stacked_autoencoder():
     train_object.run()
     print('..Training Done')
 
-def savenpy():
+def savenpy(folder_path):
     import glob
     import itertools
-    os.environ['smartNN_DATA_PATH'] = '/Applications/VCTK/data'
-    im_dir = os.environ['smartNN_DATA_PATH'] + '/inter-module/mcep/England/p276'
     
-    files = glob.glob(im_dir + '/*.spec')
-    
-    size = 0
+    files = glob.glob(folder_path + '/*.spec')
+    size = len(files)
     data = []
     count = 0
     for f in files:
         with open(f) as fb:
             clip = np.fromfile(fb, dtype='<f4', count=-1)
             data.extend(clip)
-#             data[0:0] = clip
 
-        print('..done ' + f)
+        print(str(count) + '/' + str(size) + '..done '  + f)
         
         count += 1
 
-    print(os.path.exists(im_dir))
     with open(im_dir + '/p276.npy', 'wb') as f:
         np.save(f, data)
 
-    print('merge successfully')
+    print('all finished successfully')
     
 def test():
     from smartNN.utils.database_utils import display_database 
@@ -395,10 +399,10 @@ def test_AE():
 
 if __name__ == '__main__':
 #     autoencoder()
-#     mlp()
+    mlp()
 #     stacked_autoencoder()
 #     spec()
-    savenpy()
+#     savenpy('/home/zhenzhou/VCTK/data/inter-module/mcep/England/Laura')
 #     test()
 #     unpickle_mlp('stacked_AE4_full_20140407_0456_57461100')
 #     test_AE()

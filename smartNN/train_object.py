@@ -46,26 +46,30 @@ class TrainObject():
         
         prev_layer_dim = self.model.input_dim
         for layer in self.model.layers:
-            if layer.W.__class__.__name__ == 'TensorSharedVariable':
+            if layer.W.__class__.__name__ == 'TensorSharedVariable' or \
+                layer.W.__class__.__name__ == 'CudaNdarraySharedVariable':
                 params += [layer.W]
                 deltas += [theano.shared(np.zeros((prev_layer_dim, layer.dim), 
                                         dtype=theano.config.floatX))]
             
-            elif layer.W.__class__.__name__ != 'TensorSharedVariable':            
+            else:            
                 log.warning(layer.W.name + ' is ' + layer.W.__class__.__name__ + 
                             ' but not TensorSharedVariable.')
 
-            if layer.b.__class__.__name__ == 'TensorSharedVariable':
+            if layer.b.__class__.__name__ == 'TensorSharedVariable' or \
+                layer.b.__class__.__name__ == 'CudaNdarraySharedVariable':
                 params += [layer.b]
                 deltas += [theano.shared(np.zeros(layer.dim, dtype=theano.config.floatX))]
             
-            elif layer.b.__class__.__name__ != 'TensorSharedVariable':            
+            else:            
                 log.warning(layer.b.name + ' is ' + layer.b.__class__.__name__ + 
                             ' but not TensorSharedVariable.')
             
             prev_layer_dim = layer.dim
         
         #=====================[ training params updates ]=====================#            
+        
+        log.info("..number of update params ", len(params))
         
         train_x = T.matrix('train_x')
         train_y = T.matrix('train_y')
@@ -332,15 +336,15 @@ class TrainObject():
                 stopping_cost_type = self.learning_rule.stopping_criteria['cost'].type
                 outputs = [('epoch', epoch),
                             ('runtime(s)', int(end_time-start_time)),
-                            ('mean_train_' + self.learning_rule.cost.type, mean_train_cost),
-                            ('mean_valid_' + self.learning_rule.cost.type, mean_valid_cost),
-                            ('mean_test_' + self.learning_rule.cost.type, mean_test_cost),
-                            ('mean_train_' + stopping_cost_type, mean_train_error),
-                            ('mean_valid_' + stopping_cost_type, mean_valid_error),
-                            ('mean_test_' + stopping_cost_type, mean_test_error),
-                            ('best_train_' + stopping_cost_type, best_train_error),
-                            ('best_valid_' + stopping_cost_type, best_valid_error),
-                            ('best_test_' + stopping_cost_type, best_test_error)]
+                            ('mean_train_cost_' + self.learning_rule.cost.type, mean_train_cost),
+                            ('mean_train_error_' + stopping_cost_type, mean_train_error),
+                            ('best_train_error_' + stopping_cost_type, best_train_error),
+                            ('mean_valid_cost_' + self.learning_rule.cost.type, mean_valid_cost),
+                            ('mean_valid_error_' + stopping_cost_type, mean_valid_error),
+                            ('best_valid_error_' + stopping_cost_type, best_valid_error),
+                            ('mean_test_cost_' + self.learning_rule.cost.type, mean_test_cost),
+                            ('mean_test_error_' + stopping_cost_type, mean_test_error),
+                            ('best_test_error_' + stopping_cost_type, best_test_error)]
                             
                 outputs += merged_train + merged_valid + merged_test
             
