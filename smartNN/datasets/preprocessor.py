@@ -171,7 +171,7 @@ class GlobalContrastNormalize(Preprocessor):
 
     use_std : bool, optional
         Normalize by the per-example standard deviation across features
-        instead of the vector norm. Defaults to `False`.
+        instead of the vector norm.
 
     sqrt_bias : float, optional
         Fudge factor added inside the square root. Defaults to 0.
@@ -181,7 +181,7 @@ class GlobalContrastNormalize(Preprocessor):
         do not apply it. Defaults to `1e-8`.
     """
     
-    def __init__(self, scale=1., subtract_mean=False, use_std=True,
+    def __init__(self, scale=1., subtract_mean=False, use_std=False,
                 sqrt_bias=0., min_divisor=1e-8):
                 
         self.scale = scale
@@ -207,7 +207,7 @@ class GlobalContrastNormalize(Preprocessor):
            http://www.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf
         """
         assert X.ndim == 2, "X.ndim must be 2"
-        scale = float(scale)
+        scale = float(self.scale)
         # Note: this is per-example mean across pixels, not the
         # per-pixel mean across examples. So it is perfectly fine
         # to subtract this without worrying about whether the current
@@ -220,12 +220,12 @@ class GlobalContrastNormalize(Preprocessor):
         if self.use_std:
             # ddof=1 simulates MATLAB's var() behaviour, which is what Adam
             # Coates' code does.
-            normalizers = numpy.sqrt(self.sqrt_bias + X.var(axis=1, ddof=1)) / scale
+            normalizers = np.sqrt(self.sqrt_bias + X.var(axis=1, ddof=1)) / scale
         else:
-            normalizers = numpy.sqrt(self.sqrt_bias + (X ** 2).sum(axis=1)) / scale
+            normalizers = np.sqrt(self.sqrt_bias + (X ** 2).sum(axis=1)) / scale
         # Don't normalize by anything too small.
         normalizers[normalizers < self.min_divisor] = 1.
-        X /= normalizers[:, numpy.newaxis]  # Does not make a copy.
+        X /= normalizers[:, np.newaxis]  # Does not make a copy.
         return X
 
 

@@ -103,9 +103,9 @@ def autoencoder():
                             momentum_type = 'normal',
                             weight_decay = 0,
                             cost = Cost(type='entropy'),
-                            stopping_criteria = {'max_epoch' : 500,
+                            stopping_criteria = {'max_epoch' : 10,
                                                 'cost' : Cost(type='entropy'),
-                                                'epoch_look_back' : 30,
+                                                'epoch_look_back' : 3,
                                                 'percent_decrease' : 0.001}
                             )
     
@@ -336,6 +336,8 @@ def unpickle_mlp(model):
     from PIL.Image import fromarray
     
     with open(os.environ['smartNN_SAVE_PATH'] + '/' + model + '/model.pkl', 'rb') as f:
+        import pdb
+        pdb.set_trace()
         mlp = cPickle.load(f)
     
     data = Mnist(preprocessor = None, 
@@ -363,8 +365,6 @@ def unpickle_mlp(model):
     new_im.save(NNdir + '/images/' + model + '_reconstruct.jpeg')
     print('reconstruct image saved. Opening image..') 
     new_im.show()
-    import pdb
-    pdb.set_trace()
 
 def test_AE():
 
@@ -384,6 +384,7 @@ def test_AE():
                     rng = None)
                     
     with open(os.environ['smartNN_SAVE_PATH'] + '/' + AE1 + '/model.pkl', 'rb') as f:
+
         mlp1 = cPickle.load(f)
     
     mlp1.pop_layer(-1)
@@ -399,12 +400,12 @@ def test_AE():
 
 if __name__ == '__main__':
 #     autoencoder()
-    mlp()
+#     mlp()
 #     stacked_autoencoder()
 #     spec()
 #     savenpy('/home/zhenzhou/VCTK/data/inter-module/mcep/England/Laura')
 #     test()
-#     unpickle_mlp('stacked_AE4_full_20140407_0456_57461100')
+    unpickle_mlp('stacked_AE5_20140410_0529_15719628')
 #     test_AE()
                                 
                                 

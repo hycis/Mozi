@@ -54,7 +54,7 @@ class TrainObject():
             
             else:            
                 log.warning(layer.W.name + ' is ' + layer.W.__class__.__name__ + 
-                            ' but not TensorSharedVariable.')
+                            ' but not SharedVariable.')
 
             if layer.b.__class__.__name__ == 'TensorSharedVariable' or \
                 layer.b.__class__.__name__ == 'CudaNdarraySharedVariable':
@@ -63,13 +63,13 @@ class TrainObject():
             
             else:            
                 log.warning(layer.b.name + ' is ' + layer.b.__class__.__name__ + 
-                            ' but not TensorSharedVariable.')
+                            ' but not SharedVariable.')
             
             prev_layer_dim = layer.dim
         
         #=====================[ training params updates ]=====================#            
         
-        log.info("..number of update params ", len(params))
+        log.info("..number of update params: " + str(len(params)))
         
         train_x = T.matrix('train_x')
         train_y = T.matrix('train_y')
