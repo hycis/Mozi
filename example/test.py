@@ -30,11 +30,22 @@ def processnpy(filepath):
 
         import pdb
         pdb.set_trace()
+        
+def testpreproc(path):
+    from smartNN.datasets.preprocessor import Scale
+    import numpy as np
+    pre = Scale()
+    with open(path) as f:
+        X = np.load(f)
+    X = pre.apply(X)
+    import pdb
+    pdb.set_trace()
     
 
 if __name__ == '__main__':
 
-    savenpy('/RQusagers/hycis/smartNN/data/Laura')
- 
+#     savenpy('/RQusagers/hycis/smartNN/data/Laura')
+#     testpreproc('/Applications/VCTK/data/inter-module/mcep/England/p276/p276.npy')
+    testpreproc('/data/lisa/exp/wuzhen/smartNN/data/p276/p276.npy')
 #     processnpy('/Applications/VCTK/data/inter-module/mcep/England/p276/p276.npy')  
 

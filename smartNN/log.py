@@ -75,10 +75,10 @@ class Log:
                     'learning_rate REAL,' +
                     'max_col_norm INTEGER,' +
                     'momentum REAL,' + 
-                    'momentum_type VARCHAR,' + 
-                    'num_layers INT,' +
-                    'layers_struct TEXT,' + 
+                    'momentum_type VARCHAR,' +
                     'batch_size INTEGER,' + 
+                    'num_layers INTEGER,' +
+                    'layers_struct TEXT,' + 
                     'result_cost_type TEXT,' + 
                     'train_result REAL,' +
                     'valid_result REAL,' +

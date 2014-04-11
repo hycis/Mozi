@@ -246,7 +246,7 @@ class TrainObject():
                 valid_stats_values = np.zeros(len(valid_stats_names), dtype=theano.config.floatX)
                 
                 for idx in valid_set:
-                    stopping_cost, cost = self.testing(train_set.X[idx], train_set.y[idx])
+                    stopping_cost, cost = self.testing(valid_set.X[idx], valid_set.y[idx])
 
                     total_cost += cost * len(idx)
                     total_stopping_cost += stopping_cost * len(idx)
@@ -285,7 +285,7 @@ class TrainObject():
                 test_stats_values = np.zeros(len(test_stats_names), dtype=theano.config.floatX)
 
                 for idx in test_set:
-                    stopping_cost, cost = self.testing(train_set.X[idx], train_set.y[idx])
+                    stopping_cost, cost = self.testing(test_set.X[idx], test_set.y[idx])
 
                     total_cost += cost * len(idx)
                     total_stopping_cost += stopping_cost * len(idx)

@@ -47,7 +47,7 @@ from smartNN.datasets.preprocessor import Standardize, GCN
 from smartNN.datasets.spec import P276
 
 
-def mlp():
+def mlp(state, channel):
      
 #     data = Mnist(preprocessor = Standardize(can_fit=True), 
 #                     binarize = False,
@@ -84,7 +84,7 @@ def mlp():
                                 momentum_type = 'normal',
                                 weight_decay = 0,
                                 cost = Cost(type='mse'),
-                                stopping_criteria = {'max_epoch' : 100, 
+                                stopping_criteria = {'max_epoch' : 5, 
                                                     'epoch_look_back' : 3,
                                                     'cost' : Cost(type='mse'), 
                                                     'percent_decrease' : 0.001}

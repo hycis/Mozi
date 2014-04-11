@@ -47,7 +47,7 @@ class Preprocessor(object):
         in the dataset.
     """
 
-    def apply(self, dataset):
+    def apply(self, X):
         """
             dataset: The dataset to act on.
             can_fit: If True, the Preprocessor can adapt internal parameters
@@ -229,3 +229,50 @@ class GCN(Preprocessor):
         return X
 
 
+class Scale(Preprocessor):
+
+    """
+    Scale the input into a range
+
+    Parameters
+    ----------
+    X : ndarray, 2-dimensional
+        numpy matrix with examples indexed on the first axis and
+        features indexed on the second.
+    
+    scale_range : size 2 list
+        set the upper bound and lower bound after scaling
+    
+    buffer : float
+        the buffer on the upper lower bound such that [L+buffer, U-buffer]
+    """
+
+
+    def __init__(self, scale_range=[0,1], buffer=1e-8):
+    
+        self.scale_range = scale_range
+        self.buffer = buffer
+        assert scale_range[0] + buffer < scale_range[1] - buffer, \
+                'the lower bound is larger than the upper bound'
+        
+    def apply(self, X):
+        
+        min = X.min()
+        max = X.max()
+        width = max - min
+        assert width > 0, 'the max is not bigger than the min'
+        scale = (self.scale_range[1] - self.scale_range[0] - 2 * self.buffer) / width
+        X = scale * (X - min)
+        X = X + self.scale_range[0] + self.buffer
+        
+        return X
+        
+            
+        
+        
+        
+        
+        
+        
+        
+    

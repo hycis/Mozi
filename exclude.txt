@@ -3,3 +3,4 @@ database/
 save/
 .git/
 images/
+*.pyc

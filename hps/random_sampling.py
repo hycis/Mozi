@@ -54,7 +54,11 @@ def cmd_line_embed(cmd, config):
 
 
 def get_cmd(model, mem, use_gpu, host):
-    cmd = 'jobdispatch --file=commands.txt --exp_dir=%s --mem=%s'%(model, mem)
+    cmd = 'jobdispatch --file=commands.txt --exp_dir=%s'%model
+    
+    if mem:
+        cmd += ' --mem=%s '%mem
+    
     if 'umontreal' in host:
         # Lisa cluster.
         cmd += ' --condor '
@@ -93,7 +97,6 @@ if __name__=='__main__':
                                              be launched.''')
 
     parser.add_argument('-m', '--memory', type=int, dest='mem',
-                        default=2000, 
                         help='''Memory usage limit by job in MB.''')
 
     parser.add_argument('-c', '--number_concurrent_jobs', type=int,
@@ -114,13 +117,13 @@ if __name__=='__main__':
     exps_by_model = {}
 
     ######### MODEL #########
-    model = 'autoencoder'
+    model = 'AE'
     jobs_folder = 'jobs'
     #########################
 
     host = socket.gethostname()
     print 'Host = ', host
-    # TODO: Hardcoded model name.
+    # TODO: Hardcoded model name.        
 
     if args.n_concur_jobs:
         host = 'local'
@@ -155,14 +158,14 @@ if __name__=='__main__':
         exps_by_model[model].append(exp_cmd)
 
     f.close()
-#     import pdb
-#     pdb.set_trace()
+    import pdb
+    pdb.set_trace()
     #print '====cmd====', cmd
     os.chdir(jobs_folder)
     #print '==args.n_concur_jobs', args.n_concur_jobs
     
-    import pdb
-    pdb.set_trace()
+#     import pdb
+#     pdb.set_trace()
     
     if not args.n_concur_jobs:
         os.system(cmd)
@@ -175,8 +178,8 @@ if __name__=='__main__':
         commands = exps_by_model[model]
         #print '====commands====', commands
         
-        import pdb
-        pdb.set_trace()
+#         import pdb
+#         pdb.set_trace()
 
         for command in commands:
             if n_job_simult < args.n_concur_jobs:
@@ -212,4 +215,3 @@ if __name__=='__main__':
                     more_jobs = False
                     break
         print 'All jobs finished running.'
-

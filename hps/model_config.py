@@ -2,15 +2,15 @@ from jobman import DD, flatten
 
 model_config = DD({
         # One hidden layer Autoencoder
-        'autoencoder' : DD({
+        'AE' : DD({
         
             'mlp' : DD({
-                    'rand_seed'             : 123
+                    'rand_seed'             : ((123, 1000000), int)
                     }), # end mlp
             
             'log' : DD({
-                    'experiment_id'         : 'AE8',
-                    'description'           : 'This autoencoder has GCN preprocessing with sigmoid internal units',
+                    'experiment_id'         : 'AE9',
+                    'description'           : 'This autoencoder has Scale preprocessing with Sigmoid internal units',
                     'save_outputs'          : True,
                     'save_hyperparams'      : True,
                     'save_model'            : True,
@@ -26,9 +26,9 @@ model_config = DD({
                     'cost'                  : 'entropy',
                     'stopping_criteria'     : DD({
                                                 'max_epoch'         : 100,
-                                                'epoch_look_back'   : 3,
+                                                'epoch_look_back'   : 5,
                                                 'cost'              : 'entropy',
-                                                'percent_decrease'  : 0.005
+                                                'percent_decrease'  : 0.01
                                                 }) # end stopping_criteria
                     }), # end learning_rule
                     
@@ -48,7 +48,8 @@ model_config = DD({
                         
             'dataset' : DD({
                     'type'                  : 'P276',
-                    'preprocessor'          : 'GCN',
+                    'preprocessor'          : 'Scale',
+#                     'preprocessor'          : 'GCN',
 #                     'preprocessor'          : 'Standardize',
                     'feature_size'          : 2049,
                     'batch_size'            : ((32, 200), int),
