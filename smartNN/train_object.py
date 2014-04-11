@@ -318,7 +318,8 @@ class TrainObject():
                                                     best_test_error,
                                                     self.dataset.batch_size,
                                                     len(self.model.layers),
-                                                    str([layer.dim for layer in self.model.layers]))
+                                                    str([layer.dim for layer in self.model.layers]),
+                                                    epoch)
                                                     
                         self.log.logger.info('..sent to database: %s:%s' % (self.log.send_to_database, 
                                                                 self.log.experiment_id))

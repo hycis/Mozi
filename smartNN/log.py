@@ -63,7 +63,7 @@ class Log:
     
     def _send_to_database(self, learning_rule, train_error, 
                         valid_error, test_error, batch_size, 
-                        num_layers, layers_struct):
+                        num_layers, layers_struct, epoch):
                         
         conn = sqlite3.connect(os.environ['smartNN_DATABASE_PATH'] + 
                                 '/' + self.send_to_database)
@@ -82,11 +82,12 @@ class Log:
                     'result_cost_type TEXT,' + 
                     'train_result REAL,' +
                     'valid_result REAL,' +
-                    'test_result REAL);')
+                    'test_result REAL,' +
+                    'epoch);')
         
         if self.first_time_record:
 
-            cur.execute('INSERT INTO ' + self.experiment_id + ' VALUES(?,?,?,?,?,?,?,?,?,?,?,?);', 
+            cur.execute('INSERT INTO ' + self.experiment_id + ' VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?);', 
                         [self.exp_dir_name, 
                         learning_rule.learning_rate,
                         learning_rule.max_col_norm,
@@ -98,7 +99,8 @@ class Log:
                         result_cost_type,
                         train_error,
                         valid_error,
-                        test_error])
+                        test_error,
+                        epoch])
             self.first_time_record = False
             
         else:
@@ -113,7 +115,9 @@ class Log:
                         'result_cost_type = ?,' + 
                         'train_result = ?,' +
                         'valid_result = ?,' +
-                        "test_result = ? WHERE momentum_type='%s'"%self.exp_dir_name,
+                        'test_result = ?,' +
+                        'epoch = ? ' +
+                        "WHERE experiment_dir='%s'"%self.exp_dir_name,
                         [learning_rule.learning_rate,
                         learning_rule.max_col_norm,
                         learning_rule.momentum,
@@ -124,7 +128,8 @@ class Log:
                         result_cost_type,
                         train_error,
                         valid_error,
-                        test_error
+                        test_error,
+                        epoch
                         ])
         
         conn.commit()        

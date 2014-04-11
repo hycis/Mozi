@@ -90,7 +90,7 @@ def mlp(state, channel):
                                                     'percent_decrease' : 0.001}
                                 )
     
-    log = Log(experiment_id = 'lahlah',
+    log = Log(experiment_id = 'lahlah2',
             description = 'This experiment is to test the model',
             save_outputs = True,
             save_hyperparams = True,
