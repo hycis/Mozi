@@ -149,7 +149,7 @@ class Standardize(ExamplewisePreprocessor):
                                             multiply=self._std ** -1)
 
 
-class GlobalContrastNormalize(Preprocessor):
+class GCN(Preprocessor):
                               
     """
     Global contrast normalizes by (optionally) subtracting the mean

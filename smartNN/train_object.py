@@ -37,7 +37,7 @@ class TrainObject():
     
     def _setup(self):
         
-        log.info('..begin setting up train object')
+        self.log.logger.info( '..begin setting up train object')
         
         #===================[ build params and deltas list ]==================#
         
@@ -53,7 +53,7 @@ class TrainObject():
                                         dtype=theano.config.floatX))]
             
             else:            
-                log.warning(layer.W.name + ' is ' + layer.W.__class__.__name__ + 
+                self.log.logger.info(layer.W.name + ' is ' + layer.W.__class__.__name__ + 
                             ' but not SharedVariable.')
 
             if layer.b.__class__.__name__ == 'TensorSharedVariable' or \
@@ -62,14 +62,14 @@ class TrainObject():
                 deltas += [theano.shared(np.zeros(layer.dim, dtype=theano.config.floatX))]
             
             else:            
-                log.warning(layer.b.name + ' is ' + layer.b.__class__.__name__ + 
+                self.log.logger.info(layer.b.name + ' is ' + layer.b.__class__.__name__ + 
                             ' but not SharedVariable.')
             
             prev_layer_dim = layer.dim
         
         #=====================[ training params updates ]=====================#            
         
-        log.info("..number of update params: " + str(len(params)))
+        self.log.logger.info("..number of update params: " + str(len(params)))
         
         train_x = T.matrix('train_x')
         train_y = T.matrix('train_y')
@@ -115,7 +115,7 @@ class TrainObject():
         
         #-------------------------[ train functions ]-------------------------#
         
-        log.info('..begin compiling functions')
+        self.log.logger.info('..begin compiling functions')
 
         train_stopping_cost = self.learning_rule.stopping_criteria['cost'].get_cost(train_y, train_y_pred)
         
@@ -124,7 +124,7 @@ class TrainObject():
                                         updates=train_updates,
                                         on_unused_input='warn')
         
-        log.info('..training function compiled')
+        self.log.logger.info('..training function compiled')
         
         #======================[ testing params updates ]=====================#
 
@@ -148,7 +148,7 @@ class TrainObject():
                                         updates=test_stats_updates,
                                         on_unused_input='warn')
         
-        log.info('..testing function compiled')
+        self.log.logger.info('..testing function compiled')
         
                 
     def run(self):
@@ -189,7 +189,7 @@ class TrainObject():
             #======================[ Training Progress ]======================#
             if train_set is not None:
                 
-                log.info('..training in progress')
+                self.log.logger.info('..training ' + self.dataset.__class__.__name__ + ' in progress')
 
                 assert train_set.feature_size() == self.model.input_dim and \
                         train_set.target_size() == self.model.layers[-1].dim, \
@@ -227,7 +227,7 @@ class TrainObject():
             #=====================[ Validating Progress ]=====================#
             if valid_set is not None:
 
-                log.info('..validating in progress')
+                self.log.logger.info('..validating ' + self.dataset.__class__.__name__ + ' in progress')
 
                 assert valid_set.feature_size() == self.model.input_dim and \
                         valid_set.target_size() == self.model.layers[-1].dim, \
@@ -266,7 +266,7 @@ class TrainObject():
             #======================[ Testing Progress ]=======================#
             if test_set is not None:
             
-                log.info('..testing in progress')
+                self.log.logger.info('..testing ' + self.dataset.__class__.__name__ + ' in progress')
 
                 assert test_set.feature_size() == self.model.input_dim and \
                         test_set.target_size() == self.model.layers[-1].dim, \
@@ -305,11 +305,11 @@ class TrainObject():
 
                     if self.log is not None and self.log.save_model:
                         self.log._save_model(self.model)
-                        log.info('..model saved')
+                        self.log.logger.info('..model saved')
                 
                     if self.log is not None and self.log.save_hyperparams:
                         self.log._save_hyperparams(self.learning_rule)
-                        log.info('..hyperparams saved')
+                        self.log.logger.info('..hyperparams saved')
 
                     if self.log is not None and self.log.send_to_database:
                         self.log._send_to_database(self.learning_rule,
@@ -320,7 +320,7 @@ class TrainObject():
                                                     len(self.model.layers),
                                                     str([layer.dim for layer in self.model.layers]))
                                                     
-                        log.info('..sent to database: %s:%s' % (self.log.send_to_database, 
+                        self.log.logger.info('..sent to database: %s:%s' % (self.log.send_to_database, 
                                                                 self.log.experiment_id))
 
             
@@ -373,6 +373,8 @@ class TrainObject():
         
         else:
             return True
+    
+
     
     
     
