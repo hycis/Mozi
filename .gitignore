@@ -1,3 +1,4 @@
 #ignores all compiled files
 *.pyc
 !.gitignore
+.DS_Store
