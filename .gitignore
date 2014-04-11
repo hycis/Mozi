@@ -1,0 +1,3 @@
+#ignores all compiled files
+*.pyc
+!.gitignore

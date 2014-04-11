@@ -42,7 +42,7 @@ from smartNN.learning_rule import LearningRule
 from smartNN.log import Log
 from smartNN.train_object import TrainObject
 from smartNN.cost import Cost
-from smartNN.datasets.preprocessor import Standardize
+from smartNN.datasets.preprocessor import Standardize, GCN
 
 from smartNN.datasets.spec import P276
 
@@ -57,14 +57,22 @@ def mlp():
 #                     valid_ratio = 1,
 #                     iter_class = 'SequentialSubsetIterator')
 
-    data = P276(preprocessor = GlobalContrastNormalize(),
-                batch_size = 100,
-                num_batches = None, 
-                train_ratio = 5, 
-                valid_ratio = 1,
-                test_ratio = 1,
-                iter_class = 'SequentialSubsetIterator')
-                                    
+#     data = P276(train_ratio = 5, 
+#                 valid_ratio = 1,
+#                 test_ratio = 1,
+#                 feature_size = 2049,
+#                 preprocessor = GCN(),
+#                 batch_size = 100,
+#                 num_batches = None, 
+#                 iter_class = 'SequentialSubsetIterator')
+    
+    data = Mnist(preprocessor = None, 
+                    binarize = False,
+                    batch_size = 100,
+                    num_batches = None, 
+                    train_ratio = 5, 
+                    valid_ratio = 1,
+                    iter_class = 'SequentialSubsetIterator')
     
     mlp = MLP(input_dim = data.feature_size())
     mlp.add_layer(RELU(dim=10, name='h1_layer', W=None, b=None))
@@ -78,11 +86,11 @@ def mlp():
                                 cost = Cost(type='mse'),
                                 stopping_criteria = {'max_epoch' : 100, 
                                                     'epoch_look_back' : 3,
-                                                    'cost' : Cost(type='error'), 
+                                                    'cost' : Cost(type='mse'), 
                                                     'percent_decrease' : 0.001}
                                 )
     
-    log = Log(experiment_id = 'testing2',
+    log = Log(experiment_id = 'lahlah',
             description = 'This experiment is to test the model',
             save_outputs = True,
             save_hyperparams = True,
@@ -94,6 +102,8 @@ def mlp():
                                 learning_rule = learning_rule,
                                 log = log)
     train_object.run()
+    return channel.COMPLETE
+
     
 def autoencoder():
     
@@ -334,10 +344,9 @@ def unpickle_mlp(model):
     import cPickle
     from pylearn2.utils.image import tile_raster_images
     from PIL.Image import fromarray
+    from smartNN.datasets.preprocessor import GCN, Standardize
     
     with open(os.environ['smartNN_SAVE_PATH'] + '/' + model + '/model.pkl', 'rb') as f:
-        import pdb
-        pdb.set_trace()
         mlp = cPickle.load(f)
     
     data = Mnist(preprocessor = None, 
@@ -350,9 +359,12 @@ def unpickle_mlp(model):
                     rng = None)
     
     test = data.get_test()
+#     prep = Standardize()
+    prep = GCN(use_std = False)
+    test.X = prep.apply(test.X)
     
     orig_array = tile_raster_images(X = test.X[0:100], img_shape=(28,28), tile_shape=(10,10), 
-                                    tile_spacing=(0, 0), scale_rows_to_unit_interval=True, output_pixel_vals=True)
+                                    tile_spacing=(5, 5), scale_rows_to_unit_interval=True, output_pixel_vals=True)
     orig_im = fromarray(orig_array)
     orig_im.save(NNdir + '/images/' + model + '_orig.jpeg')
     print('orig image saved. Opening image..')
@@ -400,12 +412,12 @@ def test_AE():
 
 if __name__ == '__main__':
 #     autoencoder()
-#     mlp()
+    mlp()
 #     stacked_autoencoder()
 #     spec()
 #     savenpy('/home/zhenzhou/VCTK/data/inter-module/mcep/England/Laura')
 #     test()
-    unpickle_mlp('stacked_AE5_20140410_0529_15719628')
+#     unpickle_mlp('stacked_AE5_20140410_0707_50423148')
 #     test_AE()
                                 
                                 
