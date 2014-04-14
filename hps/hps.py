@@ -1,110 +1,199 @@
-
-from jobman import DD, expand, flatten
-
-import smartNN.layer as layer
-
-from smartNN.mlp import MLP
-from smartNN.layer import RELU, Sigmoid, Softmax, Linear
-from smartNN.datasets.mnist import Mnist
-from smartNN.datasets.spec import P276
-from smartNN.learning_rule import LearningRule
-from smartNN.log import Log
-from smartNN.train_object import TrainObject
-from smartNN.cost import Cost
-import smartNN.datasets.preprocessor as preproc
-
+# -*- coding: utf-8 -*-
+import argparse
+import multiprocessing
+import numpy
+import numpy.random as rng
 import os
+import socket
+import sys
+import time
+from jobman import DD, flatten
+from datetime import datetime
 
-class AE_HPS:
 
-    def __init__(self, state):
-        self.state = state
+sys.path.insert(0, os.getcwd())
+from model_config import model_config
+
+def worker(num, cmd):
+    """worker function"""
+    print 'Worker %s' %num
+    os.system(cmd)
+    return
 
 
-    def run(self):
-        log = self.build_log()
-        dataset = self.build_dataset()
-        
-        train = dataset.get_train()
-        dataset.set_train(train.X, train.X)
+def exp_sampling(((low,high),t)):
+    low = numpy.log(low)
+    high = numpy.log(high)
+    return t(numpy.exp(rng.uniform(low,high)))
+
+
+def cmd_line_embed(cmd, config):
+    for key in config:
+        if type(config[key])==type(()):
+            type_val = config[key][1]
+            if type_val == int:
+                min_val, max_val = config[key][0]
+                val = rng.randint(min_val, max_val)
+            elif type_val == float:
+                val = exp_sampling(config[key])
+            else:
+                raise NotImplementedError('type %s not supported!'%type_val)
+            cmd += key + '=' + `val` + ' '
+        elif type(config[key])==type([]):
+            v = str(config[key]).replace(' ', '')
+            cmd += key + '=' + str(v) + ' '
+        else:
+            cmd += key + '=' + `config[key]` + ' '
+    return cmd
+
+
+def get_cmd(model, mem, use_gpu, queue, host):
+    dt = datetime.now()
+    dt = dt.strftime('%Y%m%d_%H%M_%S%f')
+    cmd = 'jobdispatch --file=commands.txt --exp_dir=%s_%s'%(model,dt)
     
-        valid = dataset.get_valid()
-        dataset.set_valid(valid.X, valid.X)
+    if mem:
+        cmd += ' --mem=%s '%mem
     
-        test = dataset.get_test()
-        dataset.set_test(test.X, test.X)
-        
-        learning_rule = self.build_learning_rule()
-        mlp = self.build_mlp(dataset)
-        train_obj = TrainObject(log = log, 
-                                dataset = dataset, 
-                                learning_rule = learning_rule, 
-                                model = mlp)
-        train_obj.run()
-        
-        
-    def build_log(self):
-        log = Log(experiment_id = self.state.log.experiment_id,
-                description = self.state.log.description,
-                save_outputs = self.state.log.save_outputs,
-                save_hyperparams = self.state.log.save_hyperparams,
-                save_model = self.state.log.save_model,
-                send_to_database = self.state.log.send_to_database)
-        return log
+    if queue:
+        cmd += ' --queue=%s '%queue
     
-    def build_dataset(self):
+    if 'umontreal' in host:
+        # Lisa cluster.
+        cmd += ' --condor '
+        if mem is None:
+            cmd += ' --mem=10000 '
+    elif 'ip05' in host:
+        # Mammouth cluster.
+        cmd += ' --bqtools '
+    elif 'briaree1' in host:
+        # Briaree cluster.
+        if use_gpu:
+            cmd += ' --gpu --env=THEANO_FLAGS=device=gpu '
+        else:
+            cmd += ' --env=THEANO_FLAGS=floatX=float32 '
+    else:
+        host = 'local'
+    return cmd
+
+
+if __name__=='__main__':
+
+    parser = argparse.ArgumentParser(description='''Train mlps by launching
+        jobs on clusters or locally.''')
+
+    parser.add_argument('-g', '--use_gpu', action='store_true',
+                        help='''Models will be trained with gpus''')
+    
+    parser.add_argument('-q', '--queue',
+                        help='''The queue to insert the jobs''')
+
+    parser.add_argument('-n', '--total_number_jobs', type=int, dest='n_jobs',
+                        default=1, help='''The total number of jobs that will
+                                             be launched.''')
+
+    parser.add_argument('-m', '--memory', type=int, dest='mem',
+                        help='''Memory usage limit by job in MB.''')
+
+    parser.add_argument('-c', '--number_concurrent_jobs', type=int,
+                        dest='n_concur_jobs',
+                        help='''If this option is used, then jobs will be
+                                launched locally and it specifies the
+                                number of concurrent jobs that can
+                                running at the same time at most.''')
+    
+    parser.add_argument('-r', '--record', action='store_true',
+                       help='''If this option is used, then the outputs from
+                               terminal will be saved into file''')
+    # TODO: ajouter assert pour s'assurer que lorsqu'on lance des jobs avec gpu, seulement
+    # 1 job puisse etre lance localement.
+    args = parser.parse_args()
+    print args
+    cmds = []
+    exps_by_model = {}
+
+    ######### MODEL #########
+    model = 'AE'
+    jobs_folder = 'jobs'
+    #########################
+
+    host = socket.gethostname()
+    print 'Host = ', host
+    # TODO: Hardcoded model name.        
+
+    if args.n_concur_jobs:
+        host = 'local'
+    cmd = get_cmd(model, args.mem, args.use_gpu, args.queue, host)
+    if not os.path.exists(jobs_folder):
+        os.mkdir(jobs_folder)
+    f = open('jobs/commands.txt','w')
+
+    print '..commands: ', cmd
+
+    for i in range(args.n_jobs):
+        # TODO: do not hardcode the common options!
+        if args.record:
+            print('..outputs of job (' + str(i) + ') will be recorded')
+            exp_cmd = 'jobman -r cmdline experiment.experiment '
+        else:
+            exp_cmd = 'jobman cmdline experiment.experiment '
         
-        dataset = None
+        print exp_cmd
+
+        if 'ip05' in host:
+            exp_cmd = 'THEANO_FLAGS=floatX=float32 ' + exp_cmd
+        if args.use_gpu and host == 'local':
+            exp_cmd = 'THEANO_FLAGS=device=gpu ' + exp_cmd
+
+        exp_cmd = cmd_line_embed(exp_cmd, flatten(model_config[model]))
+        f.write(exp_cmd+'\n')
+        exps_by_model.setdefault(model, [])
+        exps_by_model[model].append(exp_cmd)
+
+    f.close()
+
+    os.chdir(jobs_folder)
     
-        preprocessor = None if self.state.dataset.preprocessor is None else \
-                       getattr(preproc, self.state.dataset.preprocessor)()
-        
-        if self.state.dataset.type == 'Mnist':
-            dataset = Mnist(preprocessor = preprocessor,
-                            binarize = self.state.dataset.binarize,
-                            batch_size = self.state.dataset.batch_size,
-                            num_batches = self.state.dataset.num_batches,
-                            train_ratio = self.state.dataset.train_ratio,
-                            valid_ratio = self.state.dataset.valid_ratio,
-                            iter_class = self.state.dataset.iter_class)
-                            
-        elif self.state.dataset.type == 'P276':
-            dataset = P276(preprocessor = preprocessor,
-                            feature_size = self.state.dataset.feature_size,
-                            batch_size = self.state.dataset.batch_size,
-                            num_batches = self.state.dataset.num_batches,
-                            train_ratio = self.state.dataset.train_ratio,
-                            valid_ratio = self.state.dataset.valid_ratio,
-                            test_ratio = self.state.dataset.test_ratio,
-                            iter_class = self.state.dataset.iter_class)
-        return dataset
+    print '..commands: ', cmd
     
-    def build_learning_rule(self):
-        learning_rule = LearningRule(max_col_norm = self.state.learning_rule.max_col_norm,
-                                    learning_rate = self.state.learning_rule.learning_rate,
-                                    momentum = self.state.learning_rule.momentum,
-                                    momentum_type = self.state.learning_rule.momentum_type,
-                                    weight_decay = self.state.learning_rule.weight_decay,
-                                    cost = Cost(type = self.state.learning_rule.cost),
-                                    stopping_criteria = {'max_epoch' : self.state.learning_rule.stopping_criteria.max_epoch,
-                                                        'epoch_look_back' : self.state.learning_rule.stopping_criteria.epoch_look_back,
-                                                        'cost' : Cost(type=self.state.learning_rule.stopping_criteria.cost),
-                                                        'percent_decrease' : self.state.learning_rule.stopping_criteria.percent_decrease})
-        return learning_rule
-    
-    def build_mlp(self, dataset):
-    
-        mlp = MLP(input_dim = dataset.feature_size())
-        hidden_layer = getattr(layer, self.state.hidden_layer.type)(dim=self.state.hidden_layer.dim, 
-                                                                    name=self.state.hidden_layer.name,
-                                                                    dropout_below=self.state.hidden_layer.dropout_below)
-        mlp.add_layer(hidden_layer)
-        
-        output_layer = getattr(layer, self.state.output_layer.type)(dim=dataset.target_size(), 
-                                                                    name=self.state.output_layer.name,
-                                                                    W=hidden_layer.W.T,
-                                                                    dropout_below=self.state.output_layer.dropout_below)
-        mlp.add_layer(output_layer)
-        return mlp
-             
-                    
+    if not args.n_concur_jobs:
+        os.system(cmd)
+    else:
+        print 'Jobs will be run locally.'
+        print '%s jobs will be run simultaneously.'%args.n_concur_jobs
+        n_jobs = 0
+        n_job_simult = 0
+        jobs = []
+        commands = exps_by_model[model]
+
+        for command in commands:
+            if n_job_simult < args.n_concur_jobs:
+                assert len(jobs) <= args.n_concur_jobs
+                print command
+                p = multiprocessing.Process(target=worker, args=(n_jobs, command))
+                jobs.append((n_jobs, p))
+                p.start()
+                n_jobs += 1
+                n_job_simult += 1
+                
+            else:
+                ready_for_more = False
+                while not ready_for_more:
+                    for j_i, j in enumerate(jobs):
+                        if 'stopped' in str(j[1]):
+                            print 'Job %s finished' %j[0]
+                            jobs.pop(j_i)
+                            n_job_simult -= 1
+                            ready_for_more = True
+                            break
+
+        more_jobs = True
+        while more_jobs:
+            for j_i, j in enumerate(jobs):
+                if 'stopped' in str(j[1]):
+                    print 'Job %s finished' %j[0]
+                    jobs.pop(j_i)
+                if len(jobs) == 0:
+                    more_jobs = False
+                    break
+        print 'All jobs finished running.'

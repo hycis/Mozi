@@ -312,14 +312,16 @@ class TrainObject():
                         self.log.logger.info('..hyperparams saved')
 
                     if self.log is not None and self.log.send_to_database:
-                        self.log._send_to_database(self.learning_rule,
-                                                    best_train_error,
-                                                    best_valid_error,
-                                                    best_test_error,
-                                                    self.dataset.batch_size,
-                                                    len(self.model.layers),
-                                                    str([layer.dim for layer in self.model.layers]),
-                                                    epoch)
+                        self.log._send_to_database(epoch,
+                                                self.dataset.__class__.__name__,
+                                                self.learning_rule,
+                                                best_train_error,
+                                                best_valid_error,
+                                                best_test_error,
+                                                self.dataset.batch_size,
+                                                len(self.model.layers),
+                                                str([layer.dim for layer in self.model.layers]),
+                                                self.dataset.preprocessor.__class__.__name__)
                                                     
                         self.log.logger.info('..sent to database: %s:%s' % (self.log.send_to_database, 
                                                                 self.log.experiment_id))

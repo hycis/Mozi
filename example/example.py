@@ -57,22 +57,16 @@ def mlp(state, channel):
 #                     valid_ratio = 1,
 #                     iter_class = 'SequentialSubsetIterator')
 
-#     data = P276(train_ratio = 5, 
-#                 valid_ratio = 1,
-#                 test_ratio = 1,
-#                 feature_size = 2049,
-#                 preprocessor = GCN(),
-#                 batch_size = 100,
-#                 num_batches = None, 
-#                 iter_class = 'SequentialSubsetIterator')
+    data = P276(feature_size=2049, train_ratio=8, 
+                    valid_ratio=1, test_ratio=1)
     
-    data = Mnist(preprocessor = None, 
-                    binarize = False,
-                    batch_size = 100,
-                    num_batches = None, 
-                    train_ratio = 5, 
-                    valid_ratio = 1,
-                    iter_class = 'SequentialSubsetIterator')
+#     data = Mnist(preprocessor = None, 
+#                     binarize = False,
+#                     batch_size = 100,
+#                     num_batches = None, 
+#                     train_ratio = 5, 
+#                     valid_ratio = 1,
+#                     iter_class = 'SequentialSubsetIterator')
     
     mlp = MLP(input_dim = data.feature_size())
     mlp.add_layer(RELU(dim=10, name='h1_layer', W=None, b=None))
@@ -316,6 +310,7 @@ def stacked_autoencoder():
 def savenpy(folder_path):
     import glob
     import itertools
+    import matplotlib.pyplot as plt
     
     files = glob.glob(folder_path + '/*.spec')
     size = len(files)
@@ -323,14 +318,18 @@ def savenpy(folder_path):
     count = 0
     for f in files:
         with open(f) as fb:
+            print('..file: ', f)
             clip = np.fromfile(fb, dtype='<f4', count=-1)
             data.extend(clip)
-
+            plt.plot(clip[50:2049])
+            plt.show()
+            import pdb
+            pdb.set_trace()
         print(str(count) + '/' + str(size) + '..done '  + f)
         
         count += 1
 
-    with open(im_dir + '/p276.npy', 'wb') as f:
+    with open(folder_path + '/p276.npy', 'wb') as f:
         np.save(f, data)
 
     print('all finished successfully')
@@ -346,7 +345,7 @@ def unpickle_mlp(model):
     from PIL.Image import fromarray
     from smartNN.datasets.preprocessor import GCN, Standardize
     
-    with open(os.environ['smartNN_SAVE_PATH'] + '/' + model + '/model.pkl', 'rb') as f:
+    with open(os.environ['smartNN_SAVE_PATH'] + '/log/' + model + '/model.pkl', 'rb') as f:
         mlp = cPickle.load(f)
     
     data = Mnist(preprocessor = None, 
@@ -374,9 +373,26 @@ def unpickle_mlp(model):
     new_array = tile_raster_images(X = new_X[0:100], img_shape=(28,28), tile_shape=(10,10), 
                                     tile_spacing=(0, 0), scale_rows_to_unit_interval=True, output_pixel_vals=True)
     new_im = fromarray(new_array)
+    import pdb
+    pdb.set_trace()
     new_im.save(NNdir + '/images/' + model + '_reconstruct.jpeg')
     print('reconstruct image saved. Opening image..') 
     new_im.show()
+
+def plot_spec(model):
+    
+    from smartNN.datasets.preprocessor import GCN, Scale
+    
+    with open(os.environ['smartNN_SAVE_PATH'] + '/log/' + model + '/model.pkl', 'rb') as f:
+        mlp = cPickle.load(f)
+    
+    data = P276(feature_size=2049, train_ratio=8, 
+                valid_ratio=1, test_ratio=1)
+    
+    test = data.get_test()
+    test.X = prep.apply(test.X)
+    
+    
 
 def test_AE():
 
@@ -412,12 +428,12 @@ def test_AE():
 
 if __name__ == '__main__':
 #     autoencoder()
-    mlp()
+#     mlp()
 #     stacked_autoencoder()
 #     spec()
-#     savenpy('/home/zhenzhou/VCTK/data/inter-module/mcep/England/Laura')
+#     savenpy('/Applications/VCTK/data/inter-module/mcep/England/p276')
 #     test()
-#     unpickle_mlp('stacked_AE5_20140410_0707_50423148')
+    unpickle_mlp('stacked_AE5_20140410_0707_50423148')
 #     test_AE()
                                 
                                 

@@ -19,12 +19,16 @@ class Log:
         
         dt = datetime.now()
         dt = dt.strftime('%Y%m%d_%H%M_%S%f')
-        save_dir = os.environ['smartNN_SAVE_PATH']
+        save_dir = os.environ['smartNN_SAVE_PATH'] + '/log'
+        
+        if not os.path.exists(save_dir):
+            os.mkdir(save_dir)
+        
         self.exp_dir = save_dir + '/' + experiment_id + '_' + dt
         self.exp_dir_name = os.path.split(self.exp_dir)[-1]
 
-    
-        os.mkdir(self.exp_dir)
+        if not os.path.exists(self.exp_dir):
+            os.mkdir(self.exp_dir)
     
         if save_outputs:
             self.logger = logging.getLogger(__name__)
@@ -61,9 +65,9 @@ class Log:
         with open(self.exp_dir+'/hyperparams.pkl', 'wb') as pkl_file:
             cPickle.dump(learning_rule, pkl_file)      
     
-    def _send_to_database(self, learning_rule, train_error, 
+    def _send_to_database(self, epoch, dataset, learning_rule, train_error, 
                         valid_error, test_error, batch_size, 
-                        num_layers, layers_struct, epoch):
+                        num_layers, layers_struct, preprocessor):
                         
         conn = sqlite3.connect(os.environ['smartNN_DATABASE_PATH'] + 
                                 '/' + self.send_to_database)
@@ -72,6 +76,7 @@ class Log:
         
         cur.execute('CREATE TABLE IF NOT EXISTS ' + self.experiment_id + 
                     '(experiment_dir TEXT PRIMARY KEY NOT NULL,' +
+                    'dataset TEXT,' +                     
                     'learning_rate REAL,' +
                     'max_col_norm INTEGER,' +
                     'momentum REAL,' + 
@@ -79,16 +84,19 @@ class Log:
                     'batch_size INTEGER,' + 
                     'num_layers INTEGER,' +
                     'layers_struct TEXT,' + 
-                    'result_cost_type TEXT,' + 
-                    'train_result REAL,' +
-                    'valid_result REAL,' +
-                    'test_result REAL,' +
+                    'preprocessor TEXT,' +
+                    'error_type TEXT,' + 
+                    'train_error REAL,' +
+                    'valid_error REAL,' +
+                    'test_error REAL,' +
                     'epoch);')
         
         if self.first_time_record:
 
-            cur.execute('INSERT INTO ' + self.experiment_id + ' VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?);', 
-                        [self.exp_dir_name, 
+            cur.execute('INSERT INTO ' + self.experiment_id + 
+                        ' VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);', 
+                        [self.exp_dir_name,
+                        dataset, 
                         learning_rule.learning_rate,
                         learning_rule.max_col_norm,
                         learning_rule.momentum,
@@ -96,6 +104,7 @@ class Log:
                         batch_size,
                         num_layers,
                         layers_struct,
+                        preprocessor,
                         result_cost_type,
                         train_error,
                         valid_error,
@@ -105,26 +114,30 @@ class Log:
             
         else:
             cur.execute('UPDATE ' + self.experiment_id + ' SET ' + 
+                        'dataset = ?,' +                     
                         'learning_rate = ?,' +
                         'max_col_norm = ?,' +
                         'momentum = ?,' + 
-                        'momentum_type = ?,' + 
-                        'num_layers = ?,' +
-                        'layers_struct = ?,' + 
+                        'momentum_type = ?,' +
                         'batch_size = ?,' + 
-                        'result_cost_type = ?,' + 
-                        'train_result = ?,' +
-                        'valid_result = ?,' +
-                        'test_result = ?,' +
+                        'num_layers = ?,' +
+                        'layers_struct = ?,' +
+                        'preprocessor = ?,' + 
+                        'error_type = ?,' + 
+                        'train_error = ?,' +
+                        'valid_error = ?,' +
+                        'test_error = ?,' +
                         'epoch = ? ' +
                         "WHERE experiment_dir='%s'"%self.exp_dir_name,
-                        [learning_rule.learning_rate,
+                        [dataset,
+                        learning_rule.learning_rate,
                         learning_rule.max_col_norm,
                         learning_rule.momentum,
                         learning_rule.momentum_type,
                         batch_size,
                         num_layers,
                         layers_struct,
+                        preprocessor,
                         result_cost_type,
                         train_error,
                         valid_error,

@@ -238,7 +238,13 @@ class Scale(Preprocessor):
     ----------
     X : ndarray, 2-dimensional
         numpy matrix with examples indexed on the first axis and
-        features indexed on the second.
+        features indexed on the second. 
+    
+    global_max : real
+        the maximum value of the whole dataset. If not provided, global_max is set to X.max()
+        
+    global_min : real
+        the minimum value of the whole dataset. If not provided, global_min is set to X.min()
     
     scale_range : size 2 list
         set the upper bound and lower bound after scaling
@@ -248,21 +254,23 @@ class Scale(Preprocessor):
     """
 
 
-    def __init__(self, scale_range=[0,1], buffer=1e-8):
+    def __init__(self, global_max=None, global_min=None, scale_range=[0,1], buffer=1e-8):
     
         self.scale_range = scale_range
         self.buffer = buffer
+        self.max = global_max
+        self.min = global_min
         assert scale_range[0] + buffer < scale_range[1] - buffer, \
                 'the lower bound is larger than the upper bound'
         
     def apply(self, X):
-        
-        min = X.min()
-        max = X.max()
-        width = max - min
+    
+        self.max = self.max if self.max is not None else X.max()
+        self.min = self.min if self.min is not None else X.min()
+        width = self.max - self.min
         assert width > 0, 'the max is not bigger than the min'
         scale = (self.scale_range[1] - self.scale_range[0] - 2 * self.buffer) / width
-        X = scale * (X - min)
+        X = scale * (X - self.min)
         X = X + self.scale_range[0] + self.buffer
         
         return X

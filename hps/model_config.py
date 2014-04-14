@@ -9,8 +9,8 @@ model_config = DD({
                     }), # end mlp
             
             'log' : DD({
-                    'experiment_id'         : 'AE9',
-                    'description'           : 'This autoencoder has Scale preprocessing with Sigmoid internal units',
+                    'experiment_id'         : 'Mnist',
+                    'description'           : 'This_autoencoder_has_Scale_preprocessing_with_Sigmoid_internal_units',
                     'save_outputs'          : True,
                     'save_hyperparams'      : True,
                     'save_model'            : True,
@@ -26,42 +26,38 @@ model_config = DD({
                     'cost'                  : 'entropy',
                     'stopping_criteria'     : DD({
                                                 'max_epoch'         : 100,
-                                                'epoch_look_back'   : 5,
+                                                'epoch_look_back'   : 10,
                                                 'cost'              : 'entropy',
-                                                'percent_decrease'  : 0.01
+                                                'percent_decrease'  : 0.001
                                                 }) # end stopping_criteria
                     }), # end learning_rule
                     
             #===========================[ Dataset ]===========================#            
 #             'dataset' : DD({
 #                     'type'                  : 'Mnist',
-#                     'preprocessor'          : 'GCN',
+#                     'train_valid_test_ratio': [8, 1, 1],
+#                     'preprocessor'          : 'Scale',
 # #                     'preprocessor'          : 'Standardize',
-#                     'binarize'              : False,
 #                     'batch_size'            : 100,
 #                     'num_batches'           : None,
-#                     'train_ratio'           : 5,
-#                     'valid_ratio'           : 1,
 #                     'iter_class'            : 'SequentialSubsetIterator',
 #                     'rng'                   : None
 #                     }), # end dataset
                         
             'dataset' : DD({
                     'type'                  : 'P276',
+                    'feature_size'          : 2049,
+                    'train_valid_test_ratio': [8, 1, 1],
                     'preprocessor'          : 'Scale',
 #                     'preprocessor'          : 'GCN',
 #                     'preprocessor'          : 'Standardize',
-                    'feature_size'          : 2049,
                     'batch_size'            : ((32, 200), int),
                     'num_batches'           : None,
-                    'train_ratio'           : 5,
-                    'valid_ratio'           : 1,
-                    'test_ratio'            : 1,
                     'iter_class'            : 'SequentialSubsetIterator',
                     'rng'                   : None
                     }), # end dataset
-#========================================================================================# 
-                                                  
+                    
+            #============================[ Layers ]===========================#               
             'hidden_layer' : DD({
                     'name'                  : 'hidden_layer',
                     'type'                  : 'Sigmoid',

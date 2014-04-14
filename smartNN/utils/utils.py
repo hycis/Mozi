@@ -1,6 +1,6 @@
 import theano
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 def split_list(tuple_list):
     """
@@ -80,11 +80,46 @@ def duplicate_param(name, tensor_list):
             return True
         
     return False
+
+
+def tile_raster_graphs(orig, reconstruct, tile_shape, tile_spacing=(0.1,0.1), 
+                        slice=(0,-1), axis=None, legend=True):
+    """
+    DESCRIPTION:
+        compare the original and the reconstructed examples by plot them on the same graph
+    PARAM:
+        orig / reconstruct : 2d numpy array of axis label [example, feature]
+        tile_shape : tuple
+        tile_spacing : tuple
+        slice : index [start:end]
+            gives the range of values in the example to plot
+        axis : list [x_min, x_max, y_min, y_max]
+            sets the bounds of the x and y axis  
+    RETURN:
+        matplotlib.plot object  
+    """
     
+    assert orig.shape == reconstruct.shape, 'orig ' + str(orig.shape) + ' and reconstruct ' + \
+        str(reconstruct.shape) + ' shapes are different'
     
-    
-    
-    
+    # make a little extra space between the subplots
+    plt.subplots_adjust(wspace=tile_spacing[0], hspace=tile_spacing[1])
+     
+    num_examples = orig.shape[0]
+    if num_examples > tile_shape[0] * tile_shape[1]:
+        num_examples = tile_shape[0] * tile_shape[1]
+
+    for i in xrange(0, num_examples):    
+        plt.subplot(tile_shape[0], tile_shape[1], i+1)
+        plt.plot(orig[i][slice[0]:slice[1]], 'b-', label='orig')
+        plt.plot(reconstruct[i][slice[0]:slice[1]], 'g-', label='AE reconstruct')
+        if legend:
+            plt.legend(loc='best')
+        if axis is None:
+            plt.axis('tight')
+        else:
+            plt.axis(axis)
+    return plt    
     
 
 

@@ -8,7 +8,7 @@ from smartNN.datasets.dataset import IterMatrix, Dataset
 
 class Mnist(Dataset):
     
-    def __init__(self, binarize=False, train_ratio=5, valid_ratio=1, **kwargs):
+    def __init__(self, **kwargs):
                 
         im_dir = os.environ['smartNN_DATA_PATH'] + '/mnist/'
         
@@ -21,6 +21,8 @@ class Mnist(Dataset):
         train_X = train_X.reshape(train_X.shape[0], train_X.shape[1] * train_X.shape[2])
         test_X = test_X.reshape(test_X.shape[0], test_X.shape[1] * test_X.shape[2])
 
+        X = np.concatenate((train_X, test_X), axis=0)
+
         train_y_tmp = np.zeros((train_X.shape[0], 10), dtype=theano.config.floatX)
         test_y_tmp = np.zeros((test_X.shape[0], 10), dtype=theano.config.floatX)
         
@@ -30,24 +32,12 @@ class Mnist(Dataset):
         for i in xrange(test_X.shape[0]):
             test_y_tmp[i, test_y[i]] = 1
         
-        
         train_y = train_y_tmp
         test_y = test_y_tmp
         
-        num_examples = train_X.shape[0]
-        num_valid = np.floor(valid_ratio * 1.0 / (valid_ratio + train_ratio) 
-                                * num_examples).astype('int')
-                
-        valid_X = train_X[:num_valid]
-        valid_y = train_y[:num_valid]
-        
-        train_X = train_X[num_valid:]
-        train_y = train_y[num_valid:]
-                
+        y = np.concatenate((train_y, test_y), axis=0)                
 
-        super(Mnist, self).__init__(train=[train_X, train_y], 
-                                    valid=[valid_X, valid_y],
-                                    test=[test_X, test_y], **kwargs)
+        super(Mnist, self).__init__(X=X, y=y, **kwargs)
 
         
      

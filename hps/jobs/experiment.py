@@ -1,4 +1,4 @@
-from hps.hps import AE_HPS
+from hps.models import AE
 import os
 
 def experiment(state, channel):
@@ -20,7 +20,7 @@ def experiment(state, channel):
     print('smartNN_SAVE_PATH = ' + os.environ['smartNN_SAVE_PATH'])
     print('smartNN_DATABASE_PATH = ' + os.environ['smartNN_DATABASE_PATH'])
 
-    hps = AE_HPS(state)
+    hps = AE(state)
     hps.run()
     
     return channel.COMPLETE

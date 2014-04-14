@@ -12,15 +12,9 @@ class IterMatrix(object):
         self.batch_size = batch_size
         self.num_batches = num_batches
         self.iter_class = iter_class
-        self.rng = rng
-        
+        self.rng = rng        
         self.iterator = getattr(iter, self.iter_class)
-        self.preprocessor = preprocessor
-        
-        if preprocessor is not None:
-            logger.info('..applying preprocessing: ' + self.preprocessor.__class__.__name__)
-            self.X = self.preprocessor.apply(self.X)
-    
+
     def __iter__(self):
         return self.iterator(dataset_size=self.dataset_size(), 
                             batch_size=self.batch_size, 
@@ -45,47 +39,72 @@ class IterMatrix(object):
 
 class Dataset(object):
 
-    def __init__(self, train, valid, test,
-                preprocessor=None, iter_class='SequentialSubsetIterator', 
-                batch_size=100, num_batches=None, rng=None):
+    def __init__(self, X, y, train_valid_test_ratio = [8,1,1],
+                preprocessor=None, batch_size=100, num_batches=None,
+                iter_class='SequentialSubsetIterator', rng=None):
     
         ''' 
         DESCRIPTION: Interface that contains three IterMatrix
         PARAM:
-            train: list
-            valid: list
-            test: list    
+            X : 2d numpy of size [num_examples, num_features]
+            y : 2d numpy of size [num_examples, num_targets]
+            train_valid_test_ratio : list
+                the ratio to split the dataset   
         '''
-                
+        
+        assert len(train_valid_test_ratio) == 3, 'the size of list is not 3'
+        assert X.shape[0] == y.shape[0], 'the number of examples in input and target dont match'
+        
+        self.ratio = train_valid_test_ratio
         self.preprocessor = preprocessor
         self.iter_class = iter_class
         self.batch_size = batch_size
         self.num_batches = num_batches
         self.rng = rng
         
-        if train is None:
+        if preprocessor is not None:
+            logger.info('..applying preprocessing: ' + self.preprocessor.__class__.__name__)
+            X = self.preprocessor.apply(X)
+        
+        num_examples = X.shape[0]
+        total_ratio = sum(self.ratio)
+        num_train = int(self.ratio[0] * 1.0 * num_examples / total_ratio)
+        num_valid = int(self.ratio[1] * 1.0 * num_examples / total_ratio)
+                
+        train_X = X[:num_train]
+        train_y = y[:num_train]
+        
+        valid_X = X[num_train:num_train+num_valid]
+        valid_y = y[num_train:num_train+num_valid]
+        
+        test_X = X[num_train+num_valid:]
+        test_y = y[num_train+num_valid:]
+                
+        
+        if self.ratio[0] == 0:
             logger.warning('Train set is empty!')
             self.train = None
         else:
-            self.train = IterMatrix(train[0], train[1], preprocessor=self.preprocessor, 
-                                    iter_class=self.iter_class, batch_size=self.batch_size, 
+            self.train = IterMatrix(train_X, train_y, iter_class=self.iter_class, 
+                                    batch_size=self.batch_size, 
                                     num_batches=self.num_batches, rng=self.rng)
         
-        if valid is None:
+        if self.ratio[1] == 0:
             logger.warning('Valid set is empty! It is needed for stopping of training')
             self.valid = None
         else:
-            self.valid = IterMatrix(valid[0], valid[1], preprocessor=self.preprocessor, 
-                                    iter_class=self.iter_class, batch_size=self.batch_size, 
+            self.valid = IterMatrix(valid_X, valid_y, iter_class=self.iter_class, 
+                                    batch_size=self.batch_size, 
                                     num_batches=self.num_batches, rng=self.rng)
         
-        if test is None:
+        if self.ratio[2] == 0:
             logger.warning('Test set is empty! It is needed for saving the best model')
             self.test = None
         else:
-            self.test = IterMatrix(test[0], test[1], preprocessor=self.preprocessor, 
-                                    iter_class=self.iter_class, batch_size=self.batch_size, 
+            self.test = IterMatrix(test_X, test_y, iter_class=self.iter_class, 
+                                    batch_size=self.batch_size, 
                                     num_batches=self.num_batches, rng=self.rng)
+
         
     def get_train(self):
         return self.train
