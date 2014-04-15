@@ -12,7 +12,6 @@ class P276(Dataset):
     
     def __init__(self, feature_size=2049, **kwargs):
         
-#         data_dir = '/RQusagers/hycis/smartNN/data/p276'
         data_dir = os.environ['smartNN_DATA_PATH'] + '/p276'
         with open(data_dir + '/p276.npy') as f:
             data = np.load(f)

@@ -40,6 +40,8 @@ class Log:
             ch.setFormatter(formatter)
             self.logger.addHandler(ch)
             
+            self.logger.info('experiment_id: ' + self.experiment_id)
+            
             if description is not None:
                 self.logger.info('Description: ' + self.description)
         

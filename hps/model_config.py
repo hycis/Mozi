@@ -9,7 +9,7 @@ model_config = DD({
                     }), # end mlp
             
             'log' : DD({
-                    'experiment_id'         : 'Mnist',
+                    'experiment_id'         : 'AE15_Scale',
                     'description'           : 'This_autoencoder_has_Scale_preprocessing_with_Sigmoid_internal_units',
                     'save_outputs'          : True,
                     'save_hyperparams'      : True,

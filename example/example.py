@@ -45,59 +45,6 @@ from smartNN.cost import Cost
 from smartNN.datasets.preprocessor import Standardize, GCN
 
 from smartNN.datasets.spec import P276
-
-
-def mlp(state, channel):
-     
-#     data = Mnist(preprocessor = Standardize(can_fit=True), 
-#                     binarize = False,
-#                     batch_size = 100,
-#                     num_batches = None, 
-#                     train_ratio = 5, 
-#                     valid_ratio = 1,
-#                     iter_class = 'SequentialSubsetIterator')
-
-    data = P276(feature_size=2049, train_ratio=8, 
-                    valid_ratio=1, test_ratio=1)
-    
-#     data = Mnist(preprocessor = None, 
-#                     binarize = False,
-#                     batch_size = 100,
-#                     num_batches = None, 
-#                     train_ratio = 5, 
-#                     valid_ratio = 1,
-#                     iter_class = 'SequentialSubsetIterator')
-    
-    mlp = MLP(input_dim = data.feature_size())
-    mlp.add_layer(RELU(dim=10, name='h1_layer', W=None, b=None))
-    mlp.add_layer(RELU(dim= data.target_size(), name='output_layer', W=None, b=None))
-    
-    learning_rule = LearningRule(max_col_norm = 0.1,
-                                learning_rate = 0.01,
-                                momentum = 0.1,
-                                momentum_type = 'normal',
-                                weight_decay = 0,
-                                cost = Cost(type='mse'),
-                                stopping_criteria = {'max_epoch' : 5, 
-                                                    'epoch_look_back' : 3,
-                                                    'cost' : Cost(type='mse'), 
-                                                    'percent_decrease' : 0.001}
-                                )
-    
-    log = Log(experiment_id = 'lahlah2',
-            description = 'This experiment is to test the model',
-            save_outputs = True,
-            save_hyperparams = True,
-            save_model = True,
-            send_to_database = 'Database_Name.db')
-    
-    train_object = TrainObject(model = mlp,
-                                dataset = data,
-                                learning_rule = learning_rule,
-                                log = log)
-    train_object.run()
-    return channel.COMPLETE
-
     
 def autoencoder():
     

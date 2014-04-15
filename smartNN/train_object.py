@@ -32,12 +32,18 @@ class TrainObject():
         self.dataset = dataset
         self.learning_rule = learning_rule
         self.log = log
-    
+
+        self.log.logger.info( '..begin setting up train object')    
         self._setup()
-    
-    def _setup(self):
         
-        self.log.logger.info( '..begin setting up train object')
+    def _setup(self):
+
+        #================[ check output dim with target size ]================#
+
+        assert self.model.layers[-1].dim == self.dataset.target_size(), \
+                'output dim: ' + str(self.model.layers[-1].dim) + \
+                ', is not equal to target size: ' + str(self.dataset.target_size())
+        
         
         #===================[ build params and deltas list ]==================#
         
@@ -187,7 +193,7 @@ class TrainObject():
             start_time = time.time()
             
             #======================[ Training Progress ]======================#
-            if train_set is not None:
+            if train_set.dataset_size() > 0:
                 
                 self.log.logger.info('..training ' + self.dataset.__class__.__name__ + ' in progress')
 
@@ -225,7 +231,7 @@ class TrainObject():
                     best_train_error = mean_train_error
                 
             #=====================[ Validating Progress ]=====================#
-            if valid_set is not None:
+            if valid_set.dataset_size() > 0:
 
                 self.log.logger.info('..validating ' + self.dataset.__class__.__name__ + ' in progress')
 
@@ -264,7 +270,7 @@ class TrainObject():
                     best_valid_error = mean_valid_error
             
             #======================[ Testing Progress ]=======================#
-            if test_set is not None:
+            if test_set.dataset_size() > 0:
             
                 self.log.logger.info('..testing ' + self.dataset.__class__.__name__ + ' in progress')
 

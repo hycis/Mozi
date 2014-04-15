@@ -83,25 +83,22 @@ class Dataset(object):
         
         if self.ratio[0] == 0:
             logger.warning('Train set is empty!')
-            self.train = None
-        else:
-            self.train = IterMatrix(train_X, train_y, iter_class=self.iter_class, 
+
+        self.train = IterMatrix(train_X, train_y, iter_class=self.iter_class, 
                                     batch_size=self.batch_size, 
                                     num_batches=self.num_batches, rng=self.rng)
         
         if self.ratio[1] == 0:
             logger.warning('Valid set is empty! It is needed for stopping of training')
-            self.valid = None
-        else:
-            self.valid = IterMatrix(valid_X, valid_y, iter_class=self.iter_class, 
+
+        self.valid = IterMatrix(valid_X, valid_y, iter_class=self.iter_class, 
                                     batch_size=self.batch_size, 
                                     num_batches=self.num_batches, rng=self.rng)
         
         if self.ratio[2] == 0:
             logger.warning('Test set is empty! It is needed for saving the best model')
-            self.test = None
-        else:
-            self.test = IterMatrix(test_X, test_y, iter_class=self.iter_class, 
+
+        self.test = IterMatrix(test_X, test_y, iter_class=self.iter_class, 
                                     batch_size=self.batch_size, 
                                     num_batches=self.num_batches, rng=self.rng)
 

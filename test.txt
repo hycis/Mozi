@@ -1,0 +1,50 @@
+hycis@guillimin-p2.hpc.mcgill.ca
+
+mgc2sp -a 1.32237670707 -g 0 -m 59 -l 4096 -o 2 /Applications/VCTK/data/inter-module/mcep/England/p276/p276_002.mcep | x2x +fd > /Applications/VCTK/data/inter-module/mcep/England/p276/speciallity.spec.double ;;
+
+alpha = 0.8517 * sqrt()
+
+rate = 48000
+krate = echo "$rate / 1000"
+alpha = echo "0.8517 * sqrt ( a ( 0.06583 * $krate )) - 0.1916"
+a2df592ac0b48651a320e21456
+
+mnist_2014_0318_2015_12_123
+
+
+/home/jyamagishi/data/database/wav
+
+AE_20140406_1007_15609275
+
+scp -r wuzhen@elisa2.iro.umontreal.ca:/data/lisa/exp/wuzhen/smartNN/save/$EXP ~/Dropbox/CodingProjects/smartNN/save/
+
+scp -r wuzhen@elisa2.iro.umontreal.ca:/data/lisa/exp/wuzhen/Theano ~/Packages
+
+EXP=P276_20140412_1734_15034019
+scp -r hycis@briaree.calculquebec.ca:/RQusagers/hycis/smartNN/save/images/$EXP.png ~/Dropbox/CodingProjects/smartNN/save/images
+
+jobdispatch --gpu
+--gpu_enabled
+--machines=regexp
+--jobs_name
+--torque
+--machin=HOSTNAME
+
+scp -r hycis@
+
+
+
+jobdispatch --machine=node-f2-42 --jobs_name=testing --gpu --env=THEANO_FLAGS=device=gpu jobman cmdline experiment.experiment output_layer.name='output_layer' learning_rule.stopping_criteria.max_epoch=100 learning_rule.max_col_norm=1 dataset.iter_class='SequentialSubsetIterator' dataset.num_batches=None hidden_layer.dim=500 learning_rule.cost='entropy' log.description='This autoencoder has Scale preprocessing with Sigmoid internal units' log.save_hyperparams=True learning_rule.stopping_criteria.epoch_look_back=5 dataset.batch_size=100 dataset.rng=None learning_rule.learning_rate=0.015031739600175374 dataset.valid_ratio=1 learning_rule.momentum=0.011594789564695028 output_layer.type='Sigmoid' learning_rule.stopping_criteria.percent_decrease=0.01 learning_rule.weight_decay=0 log.save_outputs=True mlp.rand_seed=596251 log.send_to_database='Database_Name.db' hidden_layer.name='hidden_layer' hidden_layer.type='Sigmoid' log.experiment_id='AE9' learning_rule.stopping_criteria.cost='entropy dataset.train_ratio=5 learning_rule.momentum_type='normal' dataset.type='Mnist' dataset.binarize=False hidden_layer.dropout_below=None log.save_model=True dataset.preprocessor='GCN' output_layer.dropout_below=None
+
+
+Generating random.c
+/usr/local/bin/luajit: /usr/local/share/lua/5.1/cwrap/cinterface.lua:158: unknown type Generator
+stack traceback:
+	[C]: in function 'assert'
+	/usr/local/share/lua/5.1/cwrap/cinterface.lua:158: in function '__writeheaders'
+	/usr/local/share/lua/5.1/cwrap/cinterface.lua:36: in function 'wrap'
+	/tmp/luarocks_torch-scm-1-1937/torch7/random.lua:17: in main chunk
+	[C]: at 0x01019589b0
+make[2]: *** [random.c] Error 1
+make[1]: *** [CMakeFiles/torch.dir/all] Error 2
+make: *** [all] Error 2

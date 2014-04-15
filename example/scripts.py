@@ -97,8 +97,7 @@ def plot_compare_spec_results(model):
 #                     rng = None)
 
     print('..loading data from ' + model)
-    data = P276(feature_size=2049, train_ratio=8, 
-                    valid_ratio=1, test_ratio=1)
+    data = P276(feature_size=2049, train_valid_test_ratio=[8,1,1])
     
     test = data.get_test()
 #     prep = Standardize()
@@ -109,12 +108,30 @@ def plot_compare_spec_results(model):
     print('..fprop X')
     output = mlp.fprop(proc_test_X)
     print('..saving data')
-    plt = tile_raster_graphs(proc_test_X[100:110], output[100:110], slice=(0,-1),
-                            tile_shape=(10,1), tile_spacing=(0.1,0.1), legend=True)
+    plt = tile_raster_graphs(proc_test_X[133:134], output[133:134], slice=(0,-1),
+                            tile_shape=(2,1), tile_spacing=(0.1,0.1), legend=True)
     
     plt.savefig(os.environ['smartNN_SAVE_PATH'] + '/images/' + model + '.png')
     print('Saved Successfully')
 #     plt.show()
+
+def save_AE_output(model, preproc):
+    import cPickle
+    from PIL.Image import fromarray
+    import smartNN.datasets.preprocessor as proc
+    
+#     with open(os.environ['smartNN_SAVE_PATH'] + '/log/' + model + '/model.pkl', 'rb') as f:
+#         mlp = cPickle.load(f)
+    
+    prep = getattr(proc, preproc)()
+    
+#     print('..loading data from ' + model)
+#     data = P276(feature_size=2049, train_valid_test_ratio=[1,0,0])
+    data = Mnist(train_valid_test_ratio=[1,0,0])
+    train = data.get_train()
+
+
+    
     
     
 
@@ -125,4 +142,6 @@ if __name__ == '__main__':
 #     testpreproc('/data/lisa/exp/wuzhen/smartNN/data/p276/p276.npy')
 #     processnpy('/Applications/VCTK/data/inter-module/mcep/England/p276/p276.npy') 
 #     plot_compare_spec_results('P276_20140412_1734_15034019') 
-    plot_compare_spec_results('P276_20140412_1610_03669725')
+#     plot_compare_spec_results('P276_20140412_1610_03669725')
+#     plot_compare_spec_results('SPEC276_Full_Scale_20140414_1835_01089985')
+    save_AE_output(model=None, preproc='GCN')
