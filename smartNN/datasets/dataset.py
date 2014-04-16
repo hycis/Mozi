@@ -4,7 +4,7 @@ import smartNN.datasets.iterator as iter
 
 class IterMatrix(object):
 
-    def __init__(self, X, y, preprocessor=None, iter_class='SequentialSubsetIterator', 
+    def __init__(self, X, y, iter_class='SequentialSubsetIterator', 
                 batch_size=100, num_batches=None, rng=None):
 
         self.X = X
@@ -23,9 +23,6 @@ class IterMatrix(object):
     
     def set_iterator(self, iterator):
         self.iterator = iterator
-        
-    def apply_preprocessor(self, preprocessor):
-        self.X = preprocessor.apply(self.X)
     
     def dataset_size(self):
         return self.X.shape[0]

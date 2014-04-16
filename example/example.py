@@ -42,224 +42,18 @@ from smartNN.learning_rule import LearningRule
 from smartNN.log import Log
 from smartNN.train_object import TrainObject
 from smartNN.cost import Cost
-from smartNN.datasets.preprocessor import Standardize, GCN
+from smartNN.datasets.preprocessor import Standardize, GCN, Scale
 
 from smartNN.datasets.spec import P276
     
-def autoencoder():
-    
-    learning_rule = LearningRule(max_col_norm = None,
-                            learning_rate = 0.01,
-                            momentum = 0.1,
-                            momentum_type = 'normal',
-                            weight_decay = 0,
-                            cost = Cost(type='entropy'),
-                            stopping_criteria = {'max_epoch' : 10,
-                                                'cost' : Cost(type='entropy'),
-                                                'epoch_look_back' : 3,
-                                                'percent_decrease' : 0.001}
-                            )
-    
-    data = Mnist(preprocessor = None, 
-                    binarize = False,
-                    batch_size = 100,
-                    num_batches = None, 
-                    train_ratio = 5, 
-                    valid_ratio = 1,
-                    iter_class = 'SequentialSubsetIterator')
-    
-    train = data.get_train()
-    data.set_train(train.X, train.X)
-    
-    valid = data.get_valid()
-    data.set_valid(valid.X, valid.X)
-    
-    test = data.get_test()
-    data.set_test(test.X, test.X)
-    
-    mlp = MLP(input_dim = data.feature_size(), rand_seed=None)
-    h1_layer = RELU(dim=100, name='h1_layer', W=None, b=None)
-    mlp.add_layer(h1_layer)
-    mlp.add_layer(Sigmoid(dim=data.target_size(), name='output_layer', W=h1_layer.W.T, b=None))
 
-    log = Log(experiment_id = 'AE',
-            description = 'This experiment is about autoencoder',
-            save_outputs = True,
-            save_hyperparams = True,
-            save_model = True,
-            send_to_database = 'Database_Name.db')
-    
-    train_object = TrainObject(model = mlp,
-                                dataset = data,
-                                learning_rule = learning_rule,
-                                log = log)
-                                
-    train_object.run()
-    
-def stacked_autoencoder():
-
-    name = 'stacked_AE4'
-
-    #=====[ Train First layer of stack autoencoder ]=====#
-    print('Start training First Layer of AutoEncoder')
-
-    
-    log = Log(experiment_id = name + '_layer1',
-            description = 'This experiment is to test the model',
-            save_outputs = True,
-            save_hyperparams = True,
-            save_model = True,
-            send_to_database = 'Database_Name.db')
-    
-    learning_rule = LearningRule(max_col_norm = None,
-                                learning_rate = 0.01,
-                                momentum = 0.1,
-                                momentum_type = 'normal',
-                                weight_decay = 0,
-                                cost = Cost(type='entropy'),
-                                stopping_criteria = {'max_epoch' : 1000, 
-                                                    'epoch_look_back' : 10,
-                                                    'cost' : Cost(type='entropy'), 
-                                                    'percent_decrease' : 0.001}
-                                )
-
-    data = Mnist(preprocessor = None, 
-                    binarize = False,
-                    batch_size = 100,
-                    num_batches = None, 
-                    train_ratio = 5, 
-                    valid_ratio = 1,
-                    iter_class = 'SequentialSubsetIterator',
-                    rng = None)
-                    
-    train = data.get_train()
-    data.set_train(train.X, train.X)
-    
-    valid = data.get_valid()
-    data.set_valid(valid.X, valid.X)
-    
-    test = data.get_test()
-    data.set_test(test.X, test.X)
-
-#     data.valid = None
-#     data.test = None
-    
-    mlp = MLP(input_dim = data.feature_size(), rand_seed=None)
-
-    h1_layer = Sigmoid(dim=500, name='h1_layer', W=None, b=None)
-    mlp.add_layer(h1_layer)
-    h1_mirror = Sigmoid(dim = data.target_size(), name='h1_mirror', W=h1_layer.W.T, b=None)
-    mlp.add_layer(h1_mirror)
-
-    
-    train_object = TrainObject(model = mlp,
-                                dataset = data,
-                                learning_rule = learning_rule,
-                                log = log)
-                                
-    train_object.run()
-    
-    #=====[ Train Second Layer of autoencoder ]=====#
-    
-    log2 = Log(experiment_id = name + '_layer2',
-            description = 'This experiment is to test the model',
-            save_outputs = True,
-            save_hyperparams = True,
-            save_model = True,
-            send_to_database = 'Database_Name.db')
-    
-    learning_rule = LearningRule(max_col_norm = None,
-                            learning_rate = 0.01,
-                            momentum = 0.1,
-                            momentum_type = 'normal',
-                            weight_decay = 0,
-                            cost = Cost(type='entropy'),
-                            stopping_criteria = {'max_epoch' : 1000, 
-                                                'epoch_look_back' : 10,
-                                                'cost' : Cost(type='entropy'), 
-                                                'percent_decrease' : 0.001}
-                            )
-
-    
-    print('Start training Second Layer of AutoEncoder')
-    
-    mlp.pop_layer(-1)
-    reduced_train_X = np.abs(mlp.fprop(train.X))
-    reduced_valid_X = np.abs(mlp.fprop(valid.X))
-    reduced_test_X = np.abs(mlp.fprop(test.X))
-#     import pdb
-#     pdb.set_trace()
-    data.set_train(reduced_train_X, reduced_train_X)
-    data.set_valid(reduced_valid_X, reduced_valid_X)
-    data.set_test(reduced_test_X, reduced_test_X)
-    
-    # create a new mlp taking inputs from the encoded outputs of first autoencoder
-    mlp2 = MLP(input_dim = data.feature_size(), rand_seed=None)
-
-    
-    h2_layer = Sigmoid(dim=100, name='h2_layer', W=None, b=None)
-    mlp2.add_layer(h2_layer)
-    
-    h2_mirror = Sigmoid(dim=h1_layer.dim, name='h2_mirror', W=h2_layer.W.T, b=None)
-    mlp2.add_layer(h2_mirror)
-    
-              
-    train_object = TrainObject(model = mlp2,
-                            dataset = data,
-                            learning_rule = learning_rule,
-                            log = log2)
-    
-    train_object.run()
-    
-    #=====[ Fine Tuning ]=====#
-    
-    log3 = Log(experiment_id = name + '_full',
-            description = 'This experiment is to test the model',
-            save_outputs = True,
-            save_hyperparams = True,
-            save_model = True,
-            send_to_database = 'Database_Name.db')
-    
-    print('Fine Tuning')
-    
-    data = Mnist(preprocessor = None, 
-                binarize = False,
-                batch_size = 100,
-                num_batches = None, 
-                train_ratio = 5, 
-                valid_ratio = 1,
-                iter_class = 'SequentialSubsetIterator')
-    
-    train = data.get_train()
-    data.set_train(train.X, train.X)
-    
-    valid = data.get_valid()
-    data.set_valid(valid.X, valid.X)
-    
-    test = data.get_test()
-    data.set_test(test.X, test.X)
-    
-    mlp3 = MLP(input_dim = data.feature_size(), rand_seed=None)
-    mlp3.add_layer(h1_layer)
-    mlp3.add_layer(h2_layer)
-    mlp3.add_layer(h2_mirror)
-    mlp3.add_layer(h1_mirror)
-    
-    
-    train_object = TrainObject(model = mlp3,
-                            dataset = data,
-                            learning_rule = learning_rule,
-                            log = log3)
-    
-    train_object.run()
-    print('..Training Done')
 
 def savenpy(folder_path):
     import glob
     import itertools
     import matplotlib.pyplot as plt
     
-    files = glob.glob(folder_path + '/*.spec')
+    files = glob.glob(folder_path + '/*.spec.double')
     size = len(files)
     data = []
     count = 0
@@ -268,10 +62,10 @@ def savenpy(folder_path):
             print('..file: ', f)
             clip = np.fromfile(fb, dtype='<f4', count=-1)
             data.extend(clip)
-            plt.plot(clip[50:2049])
-            plt.show()
-            import pdb
-            pdb.set_trace()
+#             plt.plot(clip[50:2049])
+#             plt.show()
+#             import pdb
+#             pdb.set_trace()
         print(str(count) + '/' + str(size) + '..done '  + f)
         
         count += 1
@@ -371,16 +165,15 @@ def test_AE():
     output = mlp2.fprop(reduced_test_X)
     import pdb
     pdb.set_trace()
+
     
 
 if __name__ == '__main__':
-#     autoencoder()
-#     mlp()
-#     stacked_autoencoder()
 #     spec()
 #     savenpy('/Applications/VCTK/data/inter-module/mcep/England/p276')
+#     savenpy('/home/zhenzhou/VCTK/Research-Demo/fa-tts/STRAIGHT-TTS/tmp/England/p276')
 #     test()
-    unpickle_mlp('stacked_AE5_20140410_0707_50423148')
+#     unpickle_mlp('stacked_AE5_20140410_0707_50423148')
 #     test_AE()
                                 
                                 

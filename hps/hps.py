@@ -62,7 +62,7 @@ def get_cmd(model, mem, use_gpu, queue, host):
         # Lisa cluster.
         cmd += ' --condor '
         if mem is None:
-            cmd += ' --mem=10000 '
+            cmd += ' --mem=15000 '
     elif 'ip05' in host:
         # Mammouth cluster.
         cmd += ' --bqtools '
@@ -105,6 +105,9 @@ if __name__=='__main__':
     parser.add_argument('-r', '--record', action='store_true',
                        help='''If this option is used, then the outputs from
                                terminal will be saved into file''')
+                               
+    parser.add_argument('--model', help='''choose the model AE or AE_Two_Layers to run''')
+    
     # TODO: ajouter assert pour s'assurer que lorsqu'on lance des jobs avec gpu, seulement
     # 1 job puisse etre lance localement.
     args = parser.parse_args()
@@ -113,9 +116,13 @@ if __name__=='__main__':
     exps_by_model = {}
 
     ######### MODEL #########
-    model = 'AE'
+    print('..Model: ' + args.model)
+    assert args.model in ['AE', 'AE_Two_Layers']
+    model = args.model
     jobs_folder = 'jobs'
     #########################
+
+    exp_model = 'experiment.%s_exp'%model
 
     host = socket.gethostname()
     print 'Host = ', host
@@ -134,9 +141,9 @@ if __name__=='__main__':
         # TODO: do not hardcode the common options!
         if args.record:
             print('..outputs of job (' + str(i) + ') will be recorded')
-            exp_cmd = 'jobman -r cmdline experiment.experiment '
+            exp_cmd = 'jobman -r cmdline %s '%exp_model 
         else:
-            exp_cmd = 'jobman cmdline experiment.experiment '
+            exp_cmd = 'jobman cmdline %s '%exp_model
         
         print exp_cmd
 

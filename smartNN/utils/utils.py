@@ -82,13 +82,13 @@ def duplicate_param(name, tensor_list):
     return False
 
 
-def tile_raster_graphs(orig, reconstruct, tile_shape, tile_spacing=(0.1,0.1), 
+def tile_raster_graphs(dct_reconstruct, orig, reconstruct, tile_shape, tile_spacing=(0.1,0.1), 
                         slice=(0,-1), axis=None, legend=True):
     """
     DESCRIPTION:
         compare the original and the reconstructed examples by plot them on the same graph
     PARAM:
-        orig / reconstruct : 2d numpy array of axis label [example, feature]
+        orig / reconstruct / dct_reconstruct : 2d numpy array of axis label [example, feature]
         tile_shape : tuple
         tile_spacing : tuple
         slice : index [start:end]
@@ -113,6 +113,7 @@ def tile_raster_graphs(orig, reconstruct, tile_shape, tile_spacing=(0.1,0.1),
         plt.subplot(tile_shape[0], tile_shape[1], i+1)
         plt.plot(orig[i][slice[0]:slice[1]], 'b-', label='orig')
         plt.plot(reconstruct[i][slice[0]:slice[1]], 'g-', label='AE reconstruct')
+        plt.plot(dct_reconstruct[i][slice[0]:slice[1]], 'r-', label='DCT reconstruct')
         if legend:
             plt.legend(loc='best')
         if axis is None:

@@ -16,12 +16,25 @@ mnist_2014_0318_2015_12_123
 
 AE_20140406_1007_15609275
 
-scp -r wuzhen@elisa2.iro.umontreal.ca:/data/lisa/exp/wuzhen/smartNN/save/$EXP ~/Dropbox/CodingProjects/smartNN/save/
+===[pull images from lisa on my machine]===
+scp -r wuzhen@elisa2.iro.umontreal.ca:/data/lisa/exp/wuzhen/smartNN/save/images/$EXP.png ~/Dropbox/CodingProjects/smartNN/save/images
 
 scp -r wuzhen@elisa2.iro.umontreal.ca:/data/lisa/exp/wuzhen/Theano ~/Packages
 
+===[pull images from biaree on my machine]====
 EXP=P276_20140412_1734_15034019
 scp -r hycis@briaree.calculquebec.ca:/RQusagers/hycis/smartNN/save/images/$EXP.png ~/Dropbox/CodingProjects/smartNN/save/images
+
+scp -r hycis@briaree.calculquebec.ca:/RQusagers/hycis/smartNN/save/log/$EXP wuzhen@elisa2.iro.umontreal.ca:/data/lisa/exp/wuzhen/smartNN/save/log
+
+rsync -rvu ~/Dropbox/CodingProjects/smartNN/  zhenzhou@136.187.97.216:/home/zhenzhou/smartNN
+
+rsync -rvu /home/zhenzhou/VCTK/Research-Demo/fa-tts/STRAIGHT-TTS/tmp/England/p276 hycis@briaree.calculquebec.ca:/RQusagers/hycis/smartNN/data/p276_double
+
+rsync -rvu . wuzhen@elisa2.iro.umontreal.ca:/data/lisa/exp/wuzhen/smartNN/data/
+
+
+scp -r wuzhen@elisa2.iro.umontreal.ca:/data/lisa/exp/wuzhen/smartNN/save/log/AE15_2_GCN_20140415_0756_44509622 hycis@briaree.calculquebec.ca:/RQusagers/hycis/smartNN/save/log/
 
 jobdispatch --gpu
 --gpu_enabled

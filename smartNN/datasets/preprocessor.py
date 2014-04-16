@@ -141,13 +141,6 @@ class Standardize(ExamplewisePreprocessor):
         X = (X - self._mean) / (self._std_eps + self._std)
         return X
 
-    def as_block(self):
-        if self._mean is None or self._std is None:
-            raise  ValueError("can't convert %s to block without fitting"
-                              % self.__class__.__name__)
-        return ExamplewiseAddScaleTransform(add=-self._mean,
-                                            multiply=self._std ** -1)
-
 
 class GCN(Preprocessor):
                               
@@ -272,6 +265,16 @@ class Scale(Preprocessor):
         scale = (self.scale_range[1] - self.scale_range[0] - 2 * self.buffer) / width
         X = scale * (X - self.min)
         X = X + self.scale_range[0] + self.buffer
+        
+        return X
+    
+    def invert(self, X):
+        
+        width = self.max - self.min
+        assert width > 0, 'the max is not bigger than the min'
+        scale = width / (self.scale_range[1] - self.scale_range[0] - 2 * self.buffer)
+        X = scale * (X - self.scale_range[0] - self.buffer)
+        X = X + self.min
         
         return X
         

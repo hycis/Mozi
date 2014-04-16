@@ -6,12 +6,14 @@ import smartNN.layer as layer
 from smartNN.mlp import MLP
 from smartNN.layer import RELU, Sigmoid, Softmax, Linear
 from smartNN.datasets.mnist import Mnist
-from smartNN.datasets.spec import P276
+import smartNN.datasets.spec as spec
 from smartNN.learning_rule import LearningRule
 from smartNN.log import Log
 from smartNN.train_object import TrainObject
 from smartNN.cost import Cost
 import smartNN.datasets.preprocessor as preproc
+
+import cPickle
 
 import os
 
@@ -19,7 +21,6 @@ class AE:
 
     def __init__(self, state):
         self.state = state
-
 
     def run(self):
         log = self.build_log()
@@ -67,8 +68,9 @@ class AE:
                             iter_class = self.state.dataset.iter_class,
                             rng = self.state.dataset.rng)
                             
-        elif self.state.dataset.type == 'P276':
-            dataset = P276( feature_size = self.state.dataset.feature_size,
+        elif self.state.dataset.type[:4] == 'P276':
+            dataset = getattr(spec, self.state.dataset.type)(
+                            feature_size = self.state.dataset.feature_size,
                             train_valid_test_ratio = self.state.dataset.train_valid_test_ratio,
                             preprocessor = preprocessor,
                             batch_size = self.state.dataset.batch_size,
@@ -97,12 +99,55 @@ class AE:
                                                                     name=self.state.hidden_layer.name,
                                                                     dropout_below=self.state.hidden_layer.dropout_below)
         mlp.add_layer(hidden_layer)
-        
         output_layer = getattr(layer, self.state.output_layer.type)(dim=dataset.target_size(), 
                                                                     name=self.state.output_layer.name,
                                                                     W=hidden_layer.W.T,
                                                                     dropout_below=self.state.output_layer.dropout_below)
         mlp.add_layer(output_layer)
         return mlp
+
+class AE_Two_Layers(AE):
+
+    def __init__(self, state):
+        self.state = state
+        
+        
+    def run(self):
+        log = self.build_log()
+        dataset = self.build_dataset()
+        
+        train = dataset.get_train()
+        dataset.set_train(train.X, train.X)
+    
+        valid = dataset.get_valid()
+        dataset.set_valid(valid.X, valid.X)
+    
+        test = dataset.get_test()
+        dataset.set_test(test.X, test.X)
+        
+        learning_rule = self.build_learning_rule()
+    
+            
+        with open(os.environ['smartNN_SAVE_PATH'] + '/log/' + 
+                self.state.hidden1.model_name + '/model.pkl', 'rb') as f:
+            print('unpickling model: ' + self.state.hidden1.model_name)
+            h1 = cPickle.load(f)
+        
+        with open(os.environ['smartNN_SAVE_PATH'] + '/log/' + 
+                self.state.hidden2.model_name + '/model.pkl', 'rb') as f:
+            print('unpickling model: ' + self.state.hidden2.model_name)
+            h2 = cPickle.load(f)
+        
+        mlp = MLP(input_dim = dataset.feature_size())
+        mlp.add_layer(h1.layers[0])
+        mlp.add_layer(h2.layers[0])
+        mlp.add_layer(h2.layers[1])
+        mlp.add_layer(h1.layers[1])
+        
+        train_obj = TrainObject(log = log, 
+                                dataset = dataset, 
+                                learning_rule = learning_rule, 
+                                model = mlp)
+        train_obj.run()
              
                     
