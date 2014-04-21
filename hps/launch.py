@@ -69,7 +69,7 @@ def get_cmd(model, mem, use_gpu, queue, host):
     elif 'briaree1' in host:
         # Briaree cluster.
         if use_gpu:
-            cmd += ' --gpu --env=THEANO_FLAGS=device=gpu '
+            cmd += ' --gpu --env=THEANO_FLAGS=device=gpu,floatX=float32 '
         else:
             cmd += ' --env=THEANO_FLAGS=floatX=float32 '
     else:
@@ -150,7 +150,7 @@ if __name__=='__main__':
         if 'ip05' in host:
             exp_cmd = 'THEANO_FLAGS=floatX=float32 ' + exp_cmd
         if args.use_gpu and host == 'local':
-            exp_cmd = 'THEANO_FLAGS=device=gpu ' + exp_cmd
+            exp_cmd = 'THEANO_FLAGS=device=gpu,floatX=float32 ' + exp_cmd
 
         exp_cmd = cmd_line_embed(exp_cmd, flatten(model_config[model]))
         f.write(exp_cmd+'\n')

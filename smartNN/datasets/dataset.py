@@ -46,7 +46,7 @@ class Dataset(object):
             X : 2d numpy of size [num_examples, num_features]
             y : 2d numpy of size [num_examples, num_targets]
             train_valid_test_ratio : list
-                the ratio to split the dataset   
+                the ratio to split the dataset linearly   
         '''
         
         assert len(train_valid_test_ratio) == 3, 'the size of list is not 3'

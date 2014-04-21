@@ -38,8 +38,12 @@ def mlp():
     
 
     mlp = MLP(input_dim = data.feature_size())
-    mlp.add_layer(RELU(dim=10, name='h1_layer', W=None, b=None))
-    mlp.add_layer(RELU(dim= data.target_size(), name='output_layer', W=None, b=None))
+    
+    mlp.add_layer(Sigmoid(dim=500, name='h1_layer', W=None, b=None))
+    mlp.add_layer(Sigmoid(dim=100, name='h2_layer', W=None, b=None))
+    mlp.add_layer(Sigmoid(dim=50, name='h3_layer', W=None, b=None))
+
+    mlp.add_layer(Sigmoid(dim=data.target_size(), name='output_layer', W=None, b=None))
     
     learning_rule = LearningRule(max_col_norm = 0.1,
                                 learning_rate = 0.01,
@@ -49,16 +53,16 @@ def mlp():
                                 cost = Cost(type='mse'),
                                 stopping_criteria = {'max_epoch' : 5, 
                                                     'epoch_look_back' : 3,
-                                                    'cost' : Cost(type='mse'), 
+                                                    'cost' : Cost(type='accuracy'), 
                                                     'percent_decrease' : 0.001}
                                 )
     
-    log = Log(experiment_id = 'lahlah2',
+    log = Log(experiment_id = 'testing',
             description = 'This experiment is to test the model',
             save_outputs = True,
             save_hyperparams = False,
             save_model = False,
-            send_to_database = None)
+            send_to_database = 'Database_Name.db')
     
     train_object = TrainObject(model = mlp,
                                 dataset = data,

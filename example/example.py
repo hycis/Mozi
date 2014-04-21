@@ -120,19 +120,6 @@ def unpickle_mlp(model):
     print('reconstruct image saved. Opening image..') 
     new_im.show()
 
-def plot_spec(model):
-    
-    from smartNN.datasets.preprocessor import GCN, Scale
-    
-    with open(os.environ['smartNN_SAVE_PATH'] + '/log/' + model + '/model.pkl', 'rb') as f:
-        mlp = cPickle.load(f)
-    
-    data = P276(feature_size=2049, train_ratio=8, 
-                valid_ratio=1, test_ratio=1)
-    
-    test = data.get_test()
-    test.X = prep.apply(test.X)
-    
     
 
 def test_AE():

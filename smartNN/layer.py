@@ -40,10 +40,10 @@ class Layer(object):
     
     def _linear_part(self, state_below):
         """
-            DESCRIPTION:
-                performs linear transform y = dot(W, state_below) + b
-            PARAM:
-                state_below: 1d array of inputs from layer below
+		DESCRIPTION:
+			performs linear transform y = dot(W, state_below) + b
+		PARAM:
+			state_below: 1d array of inputs from layer below
         """
     
         if self.dropout_below is not None:

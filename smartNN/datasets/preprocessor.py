@@ -1,17 +1,11 @@
 
 """
-Functionality for preprocessing Datasets.
+Functionality for preprocessing Datasets. With Preprocessor, GCN, Standardize adapted from pylearn2
 """
 
-__authors__ = "Ian Goodfellow, David Warde-Farley, Guillaume Desjardins, and Mehdi Mirza"
-__copyright__ = "Copyright 2010-2012, Universite de Montreal"
-__credits__ = ["Ian Goodfellow", "David Warde-Farley", "Guillaume Desjardins",
-               "Mehdi Mirza"]
-__license__ = "3-clause BSD"
-__maintainer__ = "Ian Goodfellow"
-__email__ = "goodfeli@iro"
 
 
+import sys
 import copy
 import logging
 import time
@@ -75,7 +69,7 @@ class Preprocessor(object):
 
         raise NotImplementedError(str(type(self))+" does not implement an apply method.")
 
-    def invert(self):
+    def invert(self, X):
         """
         Do any necessary prep work to be able to support the "inverse" method
         later. Default implementation is no-op.
@@ -205,21 +199,46 @@ class GCN(Preprocessor):
         # per-pixel mean across examples. So it is perfectly fine
         # to subtract this without worrying about whether the current
         # object is the train, valid, or test set.
-        mean = X.mean(axis=1)
         if self.subtract_mean:
-            X = X - mean[:, np.newaxis]  # Makes a copy.
+            self.mean = X.mean(axis=1)[:, np.newaxis]
+            X = X - self.mean  # Makes a copy.
         else:
             X = X.copy()
         if self.use_std:
             # ddof=1 simulates MATLAB's var() behaviour, which is what Adam
             # Coates' code does.
-            normalizers = np.sqrt(self.sqrt_bias + X.var(axis=1, ddof=1)) / scale
+            self.normalizers = np.sqrt(self.sqrt_bias + X.var(axis=1, ddof=1)) / scale
         else:
-            normalizers = np.sqrt(self.sqrt_bias + (X ** 2).sum(axis=1)) / scale
+            self.normalizers = np.sqrt(self.sqrt_bias + (X ** 2).sum(axis=1)) / scale
         # Don't normalize by anything too small.
-        normalizers[normalizers < self.min_divisor] = 1.
-        X /= normalizers[:, np.newaxis]  # Does not make a copy.
+        self.normalizers[self.normalizers < self.min_divisor] = 1.
+        X /= self.normalizers[:, np.newaxis]  # Does not make a copy.
         return X
+    
+    def invert(self, X):
+        try:
+            if self.subtract_mean:
+                X = X + self.mean
+            rval = X * self.normalizers[:, np.newaxis]
+            return rval 
+        except AttributeError:
+            print 'apply() needs to be used before invert()' 
+        except:
+            print "Unexpected error:", sys.exc_info()[0]
+            
+class LogGCN(GCN):
+
+    def apply(self, X):
+        X = np.log(X)
+        return super(LogGCN, self).apply(X)
+    
+    def invert(self, X):
+        X = super(LogGCN, self).invert(X)
+        return np.exp(X)
+    
+    
+           
+            
 
 
 class Scale(Preprocessor):
@@ -269,7 +288,9 @@ class Scale(Preprocessor):
         return X
     
     def invert(self, X):
-        
+        if self.max is None or self.min is None:
+            raise ValueError('to use invert, either global_max and global_min are provided or \
+                                apply(X) is used before')
         width = self.max - self.min
         assert width > 0, 'the max is not bigger than the min'
         scale = width / (self.scale_range[1] - self.scale_range[0] - 2 * self.buffer)

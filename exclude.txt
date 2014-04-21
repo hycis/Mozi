@@ -4,3 +4,4 @@ save/
 .git/
 images/
 *.pyc
+.DS_Store

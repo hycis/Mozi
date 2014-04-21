@@ -9,8 +9,8 @@ model_config = DD({
                     }), # end mlp
             
             'log' : DD({
-                    'experiment_id'         : 'AE15_2_Scale',
-                    'description'           : 'second_layer_AE_Scale_with_Sigmoid_internal_units',
+                    'experiment_id'         : 'AE19_layer1_LogGCN',
+                    'description'           : 'first_layer_AE_LogGCN_with_Sigmoid_internal_units',
                     'save_outputs'          : True,
                     'save_hyperparams'      : True,
                     'save_model'            : True,
@@ -18,9 +18,9 @@ model_config = DD({
                     }), # end log
             
             'learning_rule' : DD({
-                    'max_col_norm'          : ((1, 10), int),
-                    'learning_rate'         : ((0.001, 0.1), float),
-                    'momentum'              : ((0.001, 0.1), float),
+                    'max_col_norm'          : 1,
+                    'learning_rate'         : 0.01,
+                    'momentum'              : 0.9,
                     'momentum_type'         : 'normal',
                     'weight_decay'          : 0,
                     'cost'                  : 'entropy',
@@ -45,14 +45,14 @@ model_config = DD({
 #                     }), # end dataset
                         
             'dataset' : DD({
-#                     'type'                  : 'P276',
-                    'type'                  : 'P276_Scale_AE_output',
-                    'feature_size'          : 2049,
+                    'type'                  : 'P276',
+#                     'type'                  : 'P276_Scale_AE_output',
                     'train_valid_test_ratio': [8, 1, 1],
-                    'preprocessor'          : 'Scale',
+#                     'preprocessor'          : 'Scale',
 #                     'preprocessor'          : 'GCN',
+                    'preprocessor'          : 'LogGCN',
 #                     'preprocessor'          : 'Standardize',
-                    'batch_size'            : ((32, 200), int),
+                    'batch_size'            : 100,
                     'num_batches'           : None,
                     'iter_class'            : 'SequentialSubsetIterator',
                     'rng'                   : None
@@ -62,8 +62,8 @@ model_config = DD({
             'hidden_layer' : DD({
                     'name'                  : 'hidden_layer',
                     'type'                  : 'Sigmoid',
-#                     'dim'                   : 500,
-                    'dim'                   : 64,
+                    'dim'                   : 500,
+#                     'dim'                   : 64,
                     'dropout_below'         : None
                     }), # end hidden_layer
             
@@ -125,7 +125,6 @@ model_config = DD({
             'dataset' : DD({
                     'type'                  : 'P276',
 #                     'type'                  : 'P276_Scale_AE_output',
-                    'feature_size'          : 2049,
                     'train_valid_test_ratio': [8, 1, 1],
 #                     'preprocessor'          : 'Scale',
                     'preprocessor'          : 'GCN',

@@ -85,7 +85,7 @@ def plot_compare_spec_results(model, proc):
     tile_shape=(2,1)
     
     print('..loading data from ' + model)
-    data = P276(feature_size=2049, train_valid_test_ratio=[8,1,1])
+    data = P276(train_valid_test_ratio=[8,1,1])
     
     test = data.get_test()
 #     prep = Standardize()
@@ -165,7 +165,7 @@ def plot_compare_spec_results2(model, proc):
     
     
     print('..loading data from ' + model)
-    data = P276(feature_size=2049, train_valid_test_ratio=[8,1,1])
+    data = P276(train_valid_test_ratio=[8,1,1])
     
     test = data.get_test()
 #     prep = Standardize()
@@ -215,7 +215,7 @@ def save_AE_output(model, preproc):
     prep = getattr(proc, preproc)()
     
     print('..loading data from ' + model)
-    data = P276(feature_size=2049, train_valid_test_ratio=[1,0,0])
+    data = P276(train_valid_test_ratio=[1,0,0])
 #     data = Mnist(train_valid_test_ratio=[1,0,0])
     train = data.get_train()
     print('..applying preprocessing')
