@@ -44,7 +44,7 @@ def mlp():
     
     learning_rule = LearningRule(max_col_norm = 1,
                                 learning_rate = 0.1,
-                                momentum = 0.01,
+                                momentum = 0.9,
                                 momentum_type = 'normal',
                                 weight_decay = 0,
                                 cost = Cost(type='mse'),
