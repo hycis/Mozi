@@ -89,7 +89,7 @@ class TrainObject():
         if self.learning_rule.momentum_type == 'normal':
 
             train_y_pred, train_layers_stats = self.model.train_fprop(train_x)            
-            train_cost = self.learning_rule.cost.get_cost(train_y, train_y_pred)
+            train_cost = self.learning_rule.cost.get_cost(train_y, train_y_pred)            
             gparams = T.grad(train_cost, params)
             
             for delta, param, gparam in zip(deltas, params, gparams):

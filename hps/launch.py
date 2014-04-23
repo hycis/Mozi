@@ -47,7 +47,7 @@ def cmd_line_embed(cmd, config):
     return cmd
 
 
-def get_cmd(model, mem, use_gpu, queue, host):
+def get_cmd(model, mem, use_gpu, queue, host, duree):
     dt = datetime.now()
     dt = dt.strftime('%Y%m%d_%H%M_%S%f')
     cmd = 'jobdispatch --file=commands.txt --exp_dir=%s_%s'%(model,dt)
@@ -57,6 +57,9 @@ def get_cmd(model, mem, use_gpu, queue, host):
     
     if queue:
         cmd += ' --queue=%s '%queue
+    
+    if duree:
+        cmd += ' --duree=%s '%duree
     
     if 'umontreal' in host:
         # Lisa cluster.
@@ -92,7 +95,7 @@ if __name__=='__main__':
                         default=1, help='''The total number of jobs that will
                                              be launched.''')
 
-    parser.add_argument('-m', '--memory', type=int, dest='mem',
+    parser.add_argument('-m', '--memory', dest='mem',
                         help='''Memory usage limit by job in MB.''')
 
     parser.add_argument('-c', '--number_concurrent_jobs', type=int,
@@ -105,6 +108,10 @@ if __name__=='__main__':
     parser.add_argument('-r', '--record', action='store_true',
                        help='''If this option is used, then the outputs from
                                terminal will be saved into file''')
+                               
+    parser.add_argument('--duree', help='''Walltime hh:mm:ss''')
+    
+    parser.add_argument('--cpu', help='''number of cores per node''')
                                
     parser.add_argument('--model', help='''choose the model AE or AE_Two_Layers to run''')
     
@@ -130,7 +137,7 @@ if __name__=='__main__':
 
     if args.n_concur_jobs:
         host = 'local'
-    cmd = get_cmd(model, args.mem, args.use_gpu, args.queue, host)
+    cmd = get_cmd(model, args.mem, args.use_gpu, args.queue, host, args.duree)
     if not os.path.exists(jobs_folder):
         os.mkdir(jobs_folder)
     f = open('jobs/commands.txt','w')

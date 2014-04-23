@@ -13,7 +13,7 @@ class P276(Dataset):
     def __init__(self, **kwargs):
         
         data_dir = os.environ['smartNN_DATA_PATH'] + '/p276'
-        with open(data_dir + '/p276.npy') as f:
+        with open(data_dir + '/p276_data_000.npy') as f:
             data = np.load(f)
 
         super(P276, self).__init__(X=data, y=data, **kwargs)

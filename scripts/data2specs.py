@@ -9,7 +9,7 @@ NNdir = os.path.dirname(thisfile_dir)
 
 print 'smartNN directory %s'%NNdir
 
-def generate_specs(datafiles, filename_files, dtype, feature_size):
+def generate_specs(datafiles, filename_files, dtype):
     
     assert dtype in ['f4', 'f8']
     
@@ -41,7 +41,7 @@ def generate_specs(datafiles, filename_files, dtype, feature_size):
         d_arr = np.load(d)
         d_arr = d_arr.astype(dtype)
         num_exp = [int(num) for f_name, num in f_arr]
-        assert sum(num_exp) == d_arr.shape[0], 'file_names has different number of examples from data array'
+        assert sum(num_exp) == d_arr.shape[0], 'number of examples in data array is different from the known number'
         
         pointer = 0
         for f_name, num in f_arr:
@@ -61,11 +61,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='''Generate spec files from splits of npy files''')
     parser.add_argument('--dataset', help='''name of dataset''')
     parser.add_argument('--ext', default='out', help='''extension of the npy files''')
-#     parser.add_argument('--data_files', help='''the numpy data files''')
-#     parser.add_argument('--filename_files', help='the filename files containing information about the ' +
-#                                                 'spec files and the num of examples for the spec files') 
     parser.add_argument('--output_spec_dtype',  default='f8', help='''dtype of the generated spec files f4|f8''')
-    parser.add_argument('--feature_size', default=2049, help='''feature size in an example''')
 
 
     args = parser.parse_args()
@@ -81,7 +77,7 @@ if __name__ == '__main__':
     filenames = dataset_dir + '/%s_specnames_???.npy'%args.dataset
     data_files = dataset_dir + '/%s_data_???.npy.%s'%(args.dataset, args.ext)
     
-    generate_specs(data_files, filenames, args.output_spec_dtype, args.feature_size)
+    generate_specs(data_files, filenames, args.output_spec_dtype)
     
     
     

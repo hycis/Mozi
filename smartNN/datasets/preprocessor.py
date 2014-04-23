@@ -228,13 +228,27 @@ class GCN(Preprocessor):
             
 class LogGCN(GCN):
 
+    def __init__(self, positive_values=True, **kwarg):
+        '''
+        postive_values: bool
+            indicates whether the output of the processor should be scaled to be positive
+        '''
+        self.positive_values = positive_values;
+        super(LogGCN, self).__init__(**kwarg)
+    
     def apply(self, X):
-        X = np.log(X)
-        return super(LogGCN, self).apply(X)
+        if self.positive_values:
+            rval = X + 1
+        rval = np.log(rval)
+        return super(LogGCN, self).apply(rval)
     
     def invert(self, X):
         X = super(LogGCN, self).invert(X)
-        return np.exp(X)
+        
+        if self.positive_values:
+            return np.exp(X) - 1
+        else:
+            return np.exp(X)
     
     
            

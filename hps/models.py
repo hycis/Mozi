@@ -70,7 +70,6 @@ class AE:
                             
         elif self.state.dataset.type[:4] == 'P276':
             dataset = getattr(spec, self.state.dataset.type)(
-                            feature_size = self.state.dataset.feature_size,
                             train_valid_test_ratio = self.state.dataset.train_valid_test_ratio,
                             preprocessor = preprocessor,
                             batch_size = self.state.dataset.batch_size,

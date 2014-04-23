@@ -73,7 +73,7 @@ if __name__ == '__main__':
     parser.add_argument('--ext', default='spec', help='''extension of the spec files''')
     parser.add_argument('--splits', default=1, type=int, help='''number of splits for the merged spec files''')
     parser.add_argument('--input_spec_dtype',  default='f4', help='''dtype of the input spec files f4|f8''')
-    parser.add_argument('--feature_size', default=2049, help='''feature size in an example''')
+    parser.add_argument('--feature_size', default=2049, type=int, help='''feature size in an example''')
 
     args = parser.parse_args()
 
@@ -82,7 +82,7 @@ if __name__ == '__main__':
     print('..dataset directory %s'%dataset_dir)
     print('..extension %s'%args.ext)
     print('..number of splits %s'%args.splits)
-    print('..output data files dtype: %s'%args.spec_dtype)
+    print('..output data files dtype: %s'%args.input_spec_dtype)
     
     savenpy(dataset_dir, args.ext, args.splits, args.input_spec_dtype, args.feature_size)
         

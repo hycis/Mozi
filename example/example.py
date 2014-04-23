@@ -119,7 +119,6 @@ def unpickle_mlp(model):
     new_im.save(NNdir + '/images/' + model + '_reconstruct.jpeg')
     print('reconstruct image saved. Opening image..') 
     new_im.show()
-
     
 
 def test_AE():

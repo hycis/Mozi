@@ -31,24 +31,20 @@ print 'opening ' + NNdir + '/data/p276/p276_data_000.npy'
 data_file = NNdir + '/data/p276/p276_data_000.npy'
 obj = open(data_file, 'rb')
 data = np.load(obj)
-assert data.shape[0] % 2049 == 0, 'data shape % 2049 is not 0'
-reshaped_data = data.reshape(data.shape[0]/2049, 2049)
+
+print 'data.shape: ' + data.shape
 
 print '..applying preprocessing'
 proc = GCN()
-proc_data = proc.apply(reshaped_data)
+proc_data = proc.apply(data)
 print '..fprop'
 output = model.fprop(proc_data)
 print '..invert'
 inverted_data = proc.invert(output)
 
-save_data = inverted_data.reshape(data.shape[0])
-
-print 'saved shape: ' + save_data.shape
-
 print '..save inverted'
 outfile = open(data_file + '.out', 'wb')
-np.save(outfile, save_data)
+np.save(outfile, inverted_data)
 obj.close()
 outfile.close()
 print '..completed successfully'

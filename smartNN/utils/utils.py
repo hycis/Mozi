@@ -82,13 +82,13 @@ def duplicate_param(name, tensor_list):
     return False
 
 
-def tile_raster_graphs(dct_reconstruct, orig, reconstruct, tile_shape, tile_spacing=(0.1,0.1), 
+def tile_raster_graphs(dct_reconstruct, orig, ae_reconstruct, tile_shape, tile_spacing=(0.1,0.1), 
                         slice=(0,-1), axis=None, legend=True):
     """
     DESCRIPTION:
         compare the original and the reconstructed examples by plot them on the same graph
     PARAM:
-        orig / reconstruct / dct_reconstruct : 2d numpy array of axis label [example, feature]
+        orig / ae_reconstruct / dct_reconstruct : 2d numpy array of axis label [example, feature]
         tile_shape : tuple
         tile_spacing : tuple
         slice : index [start:end]
@@ -99,8 +99,8 @@ def tile_raster_graphs(dct_reconstruct, orig, reconstruct, tile_shape, tile_spac
         matplotlib.plot object  
     """
     
-    assert orig.shape == reconstruct.shape, 'orig ' + str(orig.shape) + ' and reconstruct ' + \
-        str(reconstruct.shape) + ' shapes are different'
+    assert orig.shape == ae_reconstruct.shape, 'orig ' + str(orig.shape) + ' and reconstruct ' + \
+        str(ae_reconstruct.shape) + ' shapes are different'
     
     # make a little extra space between the subplots
     plt.subplots_adjust(wspace=tile_spacing[0], hspace=tile_spacing[1])
@@ -112,7 +112,7 @@ def tile_raster_graphs(dct_reconstruct, orig, reconstruct, tile_shape, tile_spac
     for i in xrange(0, num_examples):    
         plt.subplot(tile_shape[0], tile_shape[1], i+1)
         plt.plot(orig[i][slice[0]:slice[1]], 'b-', label='orig')
-        plt.plot(reconstruct[i][slice[0]:slice[1]], 'g-', label='AE reconstruct')
+        plt.plot(ae_reconstruct[i][slice[0]:slice[1]], 'g-', label='AE reconstruct')
         plt.plot(dct_reconstruct[i][slice[0]:slice[1]], 'r-', label='DCT reconstruct')
         if legend:
             plt.legend(loc='best')
