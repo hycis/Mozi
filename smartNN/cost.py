@@ -52,7 +52,7 @@ class Cost(object):
         return -T.mean(T.log(y_pred) * y, dtype=theano.config.floatX)
     
     def _cost_mse(self, y, y_pred):
-        return T.mean(T.sqr(y - y_pred))
+        return T.mean(T.sqr(y - y_pred), dtype=theano.config.floatX)
         
     def _cost_entropy(self, y, y_pred):        
         L = - T.sum(y * T.log(y_pred) + (1-y) * T.log(1-y_pred), axis=1, dtype=theano.config.floatX)

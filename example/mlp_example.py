@@ -39,25 +39,22 @@ def mlp():
 
     mlp = MLP(input_dim = data.feature_size())
     
-    mlp.add_layer(Sigmoid(dim=500, name='h1_layer', W=None, b=None))
-    mlp.add_layer(Sigmoid(dim=100, name='h2_layer', W=None, b=None))
-    mlp.add_layer(Sigmoid(dim=50, name='h3_layer', W=None, b=None))
-
+    mlp.add_layer(Sigmoid(dim=100, name='h1_layer', W=None, b=None))
     mlp.add_layer(Sigmoid(dim=data.target_size(), name='output_layer', W=None, b=None))
     
-    learning_rule = LearningRule(max_col_norm = 0.1,
-                                learning_rate = 0.01,
-                                momentum = 0.1,
+    learning_rule = LearningRule(max_col_norm = 1,
+                                learning_rate = 0.1,
+                                momentum = 0.01,
                                 momentum_type = 'normal',
                                 weight_decay = 0,
                                 cost = Cost(type='mse'),
-                                stopping_criteria = {'max_epoch' : 5, 
+                                stopping_criteria = {'max_epoch' : 100, 
                                                     'epoch_look_back' : 3,
-                                                    'cost' : Cost(type='accuracy'), 
+                                                    'cost' : Cost(type='error'), 
                                                     'percent_decrease' : 0.001}
                                 )
     
-    log = Log(experiment_id = 'testing',
+    log = Log(experiment_id = 'mnistest',
             description = 'This experiment is to test the model',
             save_outputs = True,
             save_hyperparams = False,
