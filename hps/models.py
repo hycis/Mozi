@@ -83,7 +83,8 @@ class AE:
                                     learning_rate = self.state.learning_rule.learning_rate,
                                     momentum = self.state.learning_rule.momentum,
                                     momentum_type = self.state.learning_rule.momentum_type,
-                                    weight_decay = self.state.learning_rule.weight_decay,
+                                    L1_lambda = self.state.learning_rule.L1_lambda,
+                                    L2_lambda = self.state.learning_rule.L2_lambda,
                                     cost = Cost(type = self.state.learning_rule.cost),
                                     stopping_criteria = {'max_epoch' : self.state.learning_rule.stopping_criteria.max_epoch,
                                                         'epoch_look_back' : self.state.learning_rule.stopping_criteria.epoch_look_back,
@@ -93,7 +94,7 @@ class AE:
     
     def build_mlp(self, dataset):
     
-        mlp = MLP(input_dim = dataset.feature_size())
+        mlp = MLP(input_dim = dataset.feature_size(), rand_seed=self.state.mlp.rand_seed)
         hidden_layer = getattr(layer, self.state.hidden_layer.type)(dim=self.state.hidden_layer.dim, 
                                                                     name=self.state.hidden_layer.name,
                                                                     dropout_below=self.state.hidden_layer.dropout_below)
@@ -148,5 +149,62 @@ class AE_Two_Layers(AE):
                                 learning_rule = learning_rule, 
                                 model = mlp)
         train_obj.run()
-             
+        
+class AE_Two_Layers_WO_Pretrain(AE):
+
+    def __init__(self, state):
+        self.state = state
+
+    def run(self):
+        log = self.build_log()
+        dataset = self.build_dataset()
+        
+        train = dataset.get_train()
+        dataset.set_train(train.X, train.X)
+    
+        valid = dataset.get_valid()
+        dataset.set_valid(valid.X, valid.X)
+    
+        test = dataset.get_test()
+        dataset.set_test(test.X, test.X)
+        
+        learning_rule = self.build_learning_rule()
+                
+        mlp = self.build_mlp(dataset)
+        
+        train_obj = TrainObject(log = log, 
+                                dataset = dataset, 
+                                learning_rule = learning_rule, 
+                                model = mlp)
+        train_obj.run()
+    
+    def build_mlp(self, dataset):
+    
+        mlp = MLP(input_dim=dataset.feature_size(), rand_seed=self.state.mlp.rand_seed)
+        hidden1 = getattr(layer, self.state.hidden1.type)(dim=self.state.hidden1.dim, 
+                                                        name=self.state.hidden1.name,
+                                                        dropout_below=self.state.hidden1.dropout_below)
+        mlp.add_layer(hidden1)
+        
+        hidden2 = getattr(layer, self.state.hidden2.type)(dim=self.state.hidden2.dim, 
+                                                        name=self.state.hidden2.name,
+                                                        dropout_below=self.state.hidden2.dropout_below)
+        mlp.add_layer(hidden2)
+        
+        hidden2_mirror = getattr(layer, self.state.hidden2.type)(dim=hidden1.dim,
+                                                                name=self.state.hidden2.name + '_mirror',
+                                                                W = hidden2.W.T)
+        mlp.add_layer(hidden2_mirror)
+        
+        hidden1_mirror = getattr(layer, self.state.hidden2.type)(dim=dataset.target_size(),
+                                                                name=self.state.hidden1.name + '_mirror',
+                                                                W = hidden1.W.T)
+        mlp.add_layer(hidden1_mirror)
+        
+        return mlp
+    
+    
+    
+    
+            
                     

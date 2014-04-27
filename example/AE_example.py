@@ -60,7 +60,9 @@ def autoencoder():
     
     mlp = MLP(input_dim = data.feature_size(), rand_seed=None)
     h1_layer = RELU(dim=100, name='h1_layer', W=None, b=None)
+    # h1_layer is encoding layer
     mlp.add_layer(h1_layer)
+    # add the decoding mirror layer
     mlp.add_layer(Sigmoid(dim=data.target_size(), name='output_layer', W=h1_layer.W.T, b=None))
 
     log = Log(experiment_id = 'AE',
@@ -155,6 +157,7 @@ def stacked_autoencoder():
     print('Start training Second Layer of AutoEncoder')
     
     mlp.pop_layer(-1)
+    # fprop == forward propagation
     reduced_train_X = np.abs(mlp.fprop(train.X))
     reduced_valid_X = np.abs(mlp.fprop(valid.X))
     reduced_test_X = np.abs(mlp.fprop(test.X))
@@ -217,3 +220,6 @@ def stacked_autoencoder():
     
     train_object.run()
     print('..Training Done')
+
+if __name__ == '__main__':
+    autoencoder()

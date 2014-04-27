@@ -6,7 +6,8 @@ class LearningRule(object):
                     learning_rate = 0.1,
                     momentum = 0.01,
                     momentum_type = 'normal',
-                    weight_decay = 0,
+                    L1_lambda = None,
+                    L2_lambda = None,
                     cost = Cost(type='nll'),
                     dropout_below = 1,
                     stopping_criteria = {'max_epoch' : 100,
@@ -18,7 +19,8 @@ class LearningRule(object):
         self.learning_rate = learning_rate
         self.momentum = momentum
         self.momentum_type = momentum_type
-        self.weight_decay = weight_decay
+        self.L1_lambda = L1_lambda
+        self.L2_lambda = L2_lambda
         self.cost = cost
         self.stopping_criteria = stopping_criteria
         assert self.stopping_criteria['max_epoch'] is not None, 'max_epoch cannot be None'

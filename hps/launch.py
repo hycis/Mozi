@@ -124,7 +124,6 @@ if __name__=='__main__':
 
     ######### MODEL #########
     print('..Model: ' + args.model)
-    assert args.model in ['AE', 'AE_Two_Layers']
     model = args.model
     jobs_folder = 'jobs'
     #########################

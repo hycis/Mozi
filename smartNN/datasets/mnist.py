@@ -35,9 +35,7 @@ class Mnist(Dataset):
         train_y = train_y_tmp
         test_y = test_y_tmp
         
-        y = np.concatenate((train_y, test_y), axis=0)    
-        import pdb
-        pdb.set_trace()            
+        y = np.concatenate((train_y, test_y), axis=0)         
 
         super(Mnist, self).__init__(X=X, y=y, **kwargs)
 

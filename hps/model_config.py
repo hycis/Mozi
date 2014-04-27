@@ -25,7 +25,8 @@ model_config = DD({
                     'learning_rate'         : ((0.0001, 0.9), float),
                     'momentum'              : ((0.0001, 0.9), float),
                     'momentum_type'         : 'normal',
-                    'weight_decay'          : 0,
+                    'L1_lambda'             : None,
+                    'L2_lambda'             : None,
                     'cost'                  : 'entropy',
                     'stopping_criteria'     : DD({
                                                 'max_epoch'         : 100,
@@ -101,7 +102,8 @@ model_config = DD({
                     'learning_rate'         : ((0.0001, 0.9), float),
                     'momentum'              : ((0.0001, 0.9), float),
                     'momentum_type'         : 'normal',
-                    'weight_decay'          : 0,
+                    'L1_lambda'             : None,
+                    'L2_lambda'             : None,
                     'cost'                  : 'entropy',
                     'stopping_criteria'     : DD({
                                                 'max_epoch'         : 100,
@@ -162,7 +164,7 @@ model_config = DD({
         'AE_Two_Layers' : DD({
         
             'mlp' : DD({
-#                     'rand_seed'             : ((123, 1000000), int)
+                    'rand_seed'             : ((123, 1000000), int)
                     }), # end mlp
             
             'log' : DD({
@@ -179,7 +181,8 @@ model_config = DD({
                     'learning_rate'         : ((0.001, 0.1), float),
                     'momentum'              : ((0.001, 0.1), float),
                     'momentum_type'         : 'normal',
-                    'weight_decay'          : 0,
+                    'L1_lambda'             : None,
+                    'L2_lambda'             : None,
                     'cost'                  : 'entropy',
                     'stopping_criteria'     : DD({
                                                 'max_epoch'         : 100,
@@ -225,7 +228,82 @@ model_config = DD({
                     'model_name'            : 'AE15_2_GCN_20140415_0756_44509622',
 #                     'model_name'            : 'AE15_2_Scale_20140415_0804_48200863'
                     }) # end output_layer
+            }), # end autoencoder
+            
+        #####################[ AE_Two_Layers_WO_Pretrain ]#####################
+    'AE_Two_Layers_WO_Pretrain' : DD({
+    
+            'mlp' : DD({
+                    'rand_seed'             : ((123, 1000000), int)
+                    }), # end mlp
+            
+            'log' : DD({
+                    'experiment_id'         : 'AE24_Two_Layers_WO_Pretrain_LogGCN',
+                    'description'           : 'Two_layers_AE_LogGCN_with_Sigmoid_internal_units',
+                    'save_outputs'          : True,
+                    'save_hyperparams'      : True,
+                    'save_model'            : True,
+                    'send_to_database'      : 'Database_Name.db'
+                    }), # end log
+            
+            'learning_rule' : DD({
+                    'max_col_norm'          : ((1, 10), int),
+                    'learning_rate'         : ((0.001, 0.1), float),
+                    'momentum'              : ((0.001, 0.1), float),
+                    'momentum_type'         : 'normal',
+                    'L1_lambda'             : None,
+                    'L2_lambda'             : None,
+                    'cost'                  : 'entropy',
+                    'stopping_criteria'     : DD({
+                                                'max_epoch'         : 100,
+                                                'epoch_look_back'   : 80,
+                                                'cost'              : 'entropy',
+                                                'percent_decrease'  : 0.
+                                                }) # end stopping_criteria
+                    }), # end learning_rule
+                    
+            #===========================[ Dataset ]===========================#            
+#             'dataset' : DD({
+#                     'type'                  : 'Mnist',
+#                     'train_valid_test_ratio': [8, 1, 1],
+#                     'preprocessor'          : 'Scale',
+# #                     'preprocessor'          : 'Standardize',
+#                     'batch_size'            : 100,
+#                     'num_batches'           : None,
+#                     'iter_class'            : 'SequentialSubsetIterator',
+#                     'rng'                   : None
+#                     }), # end dataset
+                        
+            'dataset' : DD({
+                    'type'                  : 'P276',
+#                     'type'                  : 'P276_Scale_AE_output',
+                    'train_valid_test_ratio': [8, 1, 1],
+#                     'preprocessor'          : 'Scale',
+                    'preprocessor'          : 'LogGCN',
+#                     'preprocessor'          : 'Standardize',
+                    'batch_size'            : 100,
+                    'num_batches'           : None,
+                    'iter_class'            : 'SequentialSubsetIterator',
+                    'rng'                   : None
+                    }), # end dataset
+
+            #============================[ Layers ]===========================#               
+            'hidden1' : DD({
+                    'name'                  : 'hidden1',
+                    'type'                  : 'Sigmoid',
+                    'dim'                   : 500,
+                    'dropout_below'         : ((0.05, 0.5), float)
+                    }), # end hidden_layer
+            
+            'hidden2' : DD({
+                    'name'                  : 'output2',
+                    'type'                  : 'Sigmoid',
+                    'dim'                   : 64,
+                    'dropout_below'         : None
+                    }) # end output_layer
             }) # end autoencoder
+
+            
             
     }) # end model_config
     

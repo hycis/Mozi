@@ -76,11 +76,11 @@ class Layer(object):
                 ('output_mean', T.mean(layer_output)), 
                 ('output_min', T.min(layer_output)),
                 ('max_W', T.max(self.W)),
-                ('min_W', T.min(self.W)),
                 ('mean_W', T.mean(self.W)),
+                ('min_W', T.min(self.W)),
                 ('max_b', T.max(self.b)),
-                ('min_b', T.min(self.b)),
-                ('mean_b', T.mean(self.b))]
+                ('mean_b', T.mean(self.b)),
+                ('min_b', T.min(self.b))]
                 
     def _train_layer_stats(self, layer_output):
         """

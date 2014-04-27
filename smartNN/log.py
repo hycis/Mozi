@@ -1,5 +1,6 @@
 from datetime import datetime
 import os
+import sys
 import logging
 import cPickle
 import sqlite3
@@ -67,7 +68,7 @@ class Log:
         with open(self.exp_dir+'/hyperparams.pkl', 'wb') as pkl_file:
             cPickle.dump(learning_rule, pkl_file)      
     
-    def _send_to_database(self, epoch, dataset, learning_rule, train_error, 
+    def _send_to_database(self, epoch, dataset, rand_seed, layers_dropout_below, learning_rule, train_error, 
                         valid_error, test_error, batch_size, 
                         num_layers, layers_struct, preprocessor):
                         
@@ -78,7 +79,9 @@ class Log:
         
         cur.execute('CREATE TABLE IF NOT EXISTS ' + self.experiment_id + 
                     '(experiment_dir TEXT PRIMARY KEY NOT NULL,' +
-                    'dataset TEXT,' +                     
+                    'dataset TEXT,' +  
+                    'weight_initialization_seed REAL,' +
+                    'layers_dropout_below TEXT,' +                   
                     'learning_rate REAL,' +
                     'max_col_norm INTEGER,' +
                     'momentum REAL,' + 
@@ -92,31 +95,43 @@ class Log:
                     'valid_error REAL,' +
                     'test_error REAL,' +
                     'epoch);')
+
+
         
         if self.first_time_record:
-
-            cur.execute('INSERT INTO ' + self.experiment_id + 
-                        ' VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);', 
-                        [self.exp_dir_name,
-                        dataset, 
-                        learning_rule.learning_rate,
-                        learning_rule.max_col_norm,
-                        learning_rule.momentum,
-                        learning_rule.momentum_type,
-                        batch_size,
-                        num_layers,
-                        layers_struct,
-                        preprocessor,
-                        result_cost_type,
-                        train_error,
-                        valid_error,
-                        test_error,
-                        epoch])
-            self.first_time_record = False
+            try:
+                cur.execute('INSERT INTO ' + self.experiment_id + 
+                            ' VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);', 
+                            [self.exp_dir_name,
+                            dataset,
+                            rand_seed,
+                            layers_dropout_below,
+                            learning_rule.learning_rate,
+                            learning_rule.max_col_norm,
+                            learning_rule.momentum,
+                            learning_rule.momentum_type,
+                            batch_size,
+                            num_layers,
+                            layers_struct,
+                            preprocessor,
+                            result_cost_type,
+                            train_error,
+                            valid_error,
+                            test_error,
+                            epoch])
+                self.first_time_record = False
+                
+            except sqlite3.ProgrammingError as err:
+                self.logger.error('Error: ' + err.message)
+                self.logger.error('Solution: Change the experiment_id in Log() to a new name, '
+                        + 'experiment_id is used as the table name.')
+                raise
             
         else:
             cur.execute('UPDATE ' + self.experiment_id + ' SET ' + 
-                        'dataset = ?,' +                     
+                        'dataset = ?,' +  
+                        'weight_initialization_seed = ?,' +
+                        'layers_dropout_below = ?,' +                   
                         'learning_rate = ?,' +
                         'max_col_norm = ?,' +
                         'momentum = ?,' + 
@@ -132,6 +147,8 @@ class Log:
                         'epoch = ? ' +
                         "WHERE experiment_dir='%s'"%self.exp_dir_name,
                         [dataset,
+                        rand_seed,
+                        layers_dropout_below,
                         learning_rule.learning_rate,
                         learning_rule.max_col_norm,
                         learning_rule.momentum,

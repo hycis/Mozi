@@ -47,13 +47,18 @@ class TrainObject():
         
         #===================[ build params and deltas list ]==================#
         
+        
+        def is_shared_var(var):
+            return var.__class__.__name__ == 'TensorSharedVariable' or \
+                    var.__class__.__name__ == 'CudaNdarraySharedVariable'
+        
+        
         params = []
         deltas = []
         
         prev_layer_dim = self.model.input_dim
         for layer in self.model.layers:
-            if layer.W.__class__.__name__ == 'TensorSharedVariable' or \
-                layer.W.__class__.__name__ == 'CudaNdarraySharedVariable':
+            if is_shared_var(layer.W):
                 params += [layer.W]
                 deltas += [theano.shared(np.zeros((prev_layer_dim, layer.dim), 
                                         dtype=theano.config.floatX))]
@@ -62,8 +67,7 @@ class TrainObject():
                 self.log.logger.info(layer.W.name + ' is ' + layer.W.__class__.__name__ + 
                             ' but not SharedVariable.')
 
-            if layer.b.__class__.__name__ == 'TensorSharedVariable' or \
-                layer.b.__class__.__name__ == 'CudaNdarraySharedVariable':
+            if is_shared_var(layer.b):
                 params += [layer.b]
                 deltas += [theano.shared(np.zeros(layer.dim, dtype=theano.config.floatX))]
             
@@ -89,7 +93,32 @@ class TrainObject():
         if self.learning_rule.momentum_type == 'normal':
 
             train_y_pred, train_layers_stats = self.model.train_fprop(train_x)            
-            train_cost = self.learning_rule.cost.get_cost(train_y, train_y_pred)            
+            train_cost = self.learning_rule.cost.get_cost(train_y, train_y_pred)
+            
+            if self.learning_rule.L1_lambda is not None:
+                self.log.logger.info('..applying L1_lambda: %f'%self.learning_rule.L1_lambda)
+                L1 = theano.shared(0.)
+                for layer in self.model.layers:
+                    if is_shared_var(layer.W):
+                        L1 += T.sqrt((layer.W ** 2).sum(axis=1)).sum()
+                        
+                    else:
+                        self.log.logger.info(layer.W.name + ' is ' + layer.W.__class__.__name__ + 
+                            ' is not used in L1 regularization')
+                train_cost += self.learning_rule.L1_lambda * L1
+            
+            if self.learning_rule.L2_lambda is not None:
+                self.log.logger.info('..applying L2_lambda: %f'%self.learning_rule.L2_lambda)
+                L2 = theano.shared(0.)
+                for layer in self.model.layers:
+                    if is_shared_var(layer.W):
+                        L2 += ((layer.W ** 2).sum(axis=1)).sum()
+                        
+                    else:
+                        self.log.logger.info(layer.W.name + ' is ' + layer.W.__class__.__name__ + 
+                            ' is not used in L2 regularization')
+                train_cost += self.learning_rule.L2_lambda * L2
+             
             gparams = T.grad(train_cost, params)
             
             for delta, param, gparam in zip(deltas, params, gparams):
@@ -320,6 +349,8 @@ class TrainObject():
                     if self.log is not None and self.log.send_to_database:
                         self.log._send_to_database(epoch,
                                                 self.dataset.__class__.__name__,
+                                                self.model.rand_seed,
+                                                str([layer.dropout_below for layer in self.model.layers]),
                                                 self.learning_rule,
                                                 best_train_error,
                                                 best_valid_error,
