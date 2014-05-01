@@ -12,6 +12,9 @@ parser.add_argument('--biaree', action='store_true', help='''sync with biaree'''
 
 parser.add_argument('--image', action='store_true', help='''sync with the image folder''')
 
+parser.add_argument('--udemrd', action='store_true', help='''sync with the udem research demo folder''')
+
+
 args = parser.parse_args()
 
 source = '/Volumes/Storage/Dropbox/CodingProjects/smartNN'
@@ -35,7 +38,11 @@ elif args.biaree:
 		os.system("rsync -rvu hycis@briaree.calculquebec.ca:~/smartNN/save/images \
 					%s/save/images/biaree"%source) 		
 	else:
-		os.system("rsync -rvu %s %s hycis@briaree.calculquebec.ca:~/"%(exclude, source)) 
+		os.system("rsync -rvu %s %s hycis@briaree.calculquebec.ca:~/"%(exclude, source))
+
+elif args.udemrd:
+    os.system("rsync -rvu %s /Volumes/Storage/VCTK/Research-Demo \
+                wuzhen@elisa2.iro.umontreal.ca:/data/lisa/exp/wuzhen/nii/VoiceCloneCommercial2/"%exclude)
 
 else:
 	raise ValueError('options is neither --udem | --nii | --biaree')

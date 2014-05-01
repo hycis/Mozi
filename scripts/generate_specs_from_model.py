@@ -10,8 +10,10 @@ parser = argparse.ArgumentParser(description='pass numpy data file through an Au
 parser.add_argument('--model', metavar='PATH', help='path for the model')
 parser.add_argument('--preprocessor', metavar='NAME', help='name of the preprocessor')
 parser.add_argument('--dataset', metavar='PATH', help='path to the numpy data file')
-parser.add_argument('--output_dir', metavar='PATH', help='directory to which to save the generated spec files')
-parser.add_argument('--output_dtype', metavar='f4|f8', help='output datatype of spec file, f4|f8')
+parser.add_argument('--output_dir', metavar='PATH', 
+                    help='directory to which to save the generated spec files')
+parser.add_argument('--output_dtype', metavar='f4|f8', default='<f8', 
+                    help='output datatype of spec file, f4|f8')
 
 args = parser.parse_args()
 
@@ -43,10 +45,7 @@ for f_path in dataset_files:
     dataset = proc.invert(dataset_out)
     dataset = dataset.astype(args.output_dtype)
     del dataset_out
-    
-    import pdb
-    pdb.set_trace()
-    
+
     name = os.path.basename(f_path)
     name = name.replace('data', 'specnames')
     
@@ -56,7 +55,7 @@ for f_path in dataset_files:
     names_arr = np.load(g)
     
     num_exp = [int(num) for f_name, num in names_arr]
-    assert sum(num_exp) == dataset.shape[0], 'number of examples in data array is different from the known number'
+    assert sum(num_exp) == dataset.shape[0], 'number of examples in data array is different from the spec files'
      
     pointer = 0
     for f_name, num in names_arr:
@@ -69,6 +68,8 @@ for f_path in dataset_files:
     print 'closing files..'
     f.close()
     g.close()
+    print 'Done!'
+    
 
 
 
