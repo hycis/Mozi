@@ -4,7 +4,7 @@ import theano
 import theano.tensor as T
 import numpy as np
 
-from smartNN.mlp import MLP
+from smartNN.model import MLP
 from smartNN.layer import RELU, Sigmoid, Softmax, Linear
 from smartNN.datasets.mnist import Mnist
 from smartNN.datasets.spec import P276

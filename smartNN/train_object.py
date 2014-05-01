@@ -1,5 +1,6 @@
 import theano
 import theano.tensor as T
+floatX = theano.config.floatX
 
 import numpy as np
 
@@ -60,8 +61,7 @@ class TrainObject():
         for layer in self.model.layers:
             if is_shared_var(layer.W):
                 params += [layer.W]
-                deltas += [theano.shared(np.zeros((prev_layer_dim, layer.dim), 
-                                        dtype=theano.config.floatX))]
+                deltas += [theano.shared(np.zeros((prev_layer_dim, layer.dim), dtype=floatX))]
             
             else:            
                 self.log.logger.info(layer.W.name + ' is ' + layer.W.__class__.__name__ + 
@@ -69,7 +69,7 @@ class TrainObject():
 
             if is_shared_var(layer.b):
                 params += [layer.b]
-                deltas += [theano.shared(np.zeros(layer.dim, dtype=theano.config.floatX))]
+                deltas += [theano.shared(np.zeros(layer.dim, dtype=floatX))]
             
             else:            
                 self.log.logger.info(layer.b.name + ' is ' + layer.b.__class__.__name__ + 
@@ -81,8 +81,8 @@ class TrainObject():
         
         self.log.logger.info("..number of update params: " + str(len(params)))
         
-        train_x = T.matrix('train_x')
-        train_y = T.matrix('train_y')
+        train_x = T.matrix('train_x', dtype=floatX)
+        train_y = T.matrix('train_y', dtype=floatX)
         
         assert self.learning_rule.momentum_type == 'normal' or \
                 self.learning_rule.momentum_type == 'nesterov', \
@@ -100,7 +100,7 @@ class TrainObject():
                 L1 = theano.shared(0.)
                 for layer in self.model.layers:
                     if is_shared_var(layer.W):
-                        L1 += T.sqrt((layer.W ** 2).sum(axis=1)).sum()
+                        L1 += T.sqrt((layer.W ** 2).sum(axis=0)).sum()
                         
                     else:
                         self.log.logger.info(layer.W.name + ' is ' + layer.W.__class__.__name__ + 
@@ -112,7 +112,7 @@ class TrainObject():
                 L2 = theano.shared(0.)
                 for layer in self.model.layers:
                     if is_shared_var(layer.W):
-                        L2 += ((layer.W ** 2).sum(axis=1)).sum()
+                        L2 += ((layer.W ** 2).sum(axis=0)).sum()
                         
                     else:
                         self.log.logger.info(layer.W.name + ' is ' + layer.W.__class__.__name__ + 
@@ -128,7 +128,7 @@ class TrainObject():
                 # applying max_col_norm regularisation
                 if param.name[0] == 'W' and self.learning_rule.max_col_norm is not None:
                     W_update = param + delta
-                    w_len = T.sqrt((W_update ** 2).sum(axis=1))
+                    w_len = T.sqrt((W_update ** 2).sum(axis=0))
                     divisor = (w_len <= self.learning_rule.max_col_norm) + \
                             (w_len > self.learning_rule.max_col_norm) * w_len / \
                             self.learning_rule.max_col_norm
@@ -163,8 +163,8 @@ class TrainObject():
         
         #======================[ testing params updates ]=====================#
 
-        test_x = T.matrix('test_x')
-        test_y = T.matrix('test_y')
+        test_x = T.matrix('test_x', dtype=floatX)
+        test_y = T.matrix('test_y', dtype=floatX)
         test_y_pred, test_layers_stats = self.model.test_fprop(test_x)
         
         #-----[ append updates of stats from each layer to test updates ]-----#
@@ -240,7 +240,7 @@ class TrainObject():
                 total_stopping_cost = 0. 
 
                 train_stats_names = ['train_' + name for name in self.train_stats_names]
-                train_stats_values = np.zeros(len(train_stats_names), dtype=theano.config.floatX)
+                train_stats_values = np.zeros(len(train_stats_names), dtype=floatX)
                 
                 for idx in train_set:
                     stopping_cost, cost = self.training(train_set.X[idx], train_set.y[idx])
@@ -278,7 +278,7 @@ class TrainObject():
                 total_stopping_cost = 0. 
                 
                 valid_stats_names = ['valid_' + name for name in self.test_stats_names] 
-                valid_stats_values = np.zeros(len(valid_stats_names), dtype=theano.config.floatX)
+                valid_stats_values = np.zeros(len(valid_stats_names), dtype=floatX)
                 
                 for idx in valid_set:
                     stopping_cost, cost = self.testing(valid_set.X[idx], valid_set.y[idx])
@@ -317,7 +317,7 @@ class TrainObject():
                 total_stopping_cost = 0. 
                 
                 test_stats_names = ['test_' + name for name in self.test_stats_names]
-                test_stats_values = np.zeros(len(test_stats_names), dtype=theano.config.floatX)
+                test_stats_values = np.zeros(len(test_stats_names), dtype=floatX)
 
                 for idx in test_set:
                     stopping_cost, cost = self.testing(test_set.X[idx], test_set.y[idx])

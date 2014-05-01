@@ -3,6 +3,8 @@ import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 
+floatX = theano.config.floatX
+
 class Layer(object):
     """
     Abstract Class
@@ -47,24 +49,25 @@ class Layer(object):
         """
     
         if self.dropout_below is not None:
-            assert self.dropout_below >= 0 and self.dropout_below <= 1, 'dropout_below is not in range [0,1]'
-            state_below = self.theano_rand.binomial(ndim=self.dim, n=1, p=(1-self.dropout_below),
-                                                dtype=theano.config.floatX) * state_below
+            assert self.dropout_below >= 0. and self.dropout_below <= 1., 'dropout_below is not in range [0,1]'
+            state_below = self.theano_rand.binomial(ndim=self.dim, n=1, p=(1-self.dropout_below), 
+                                                    dtype=floatX) * state_below
         
         return T.dot(state_below, self.W) + self.b
     
     def _test_layer_stats(self, layer_output):
         """
         DESCRIPTION:
-            This method is called every batch, the final result will be the mean of all the
-            results from all the batches in an epoch from the test set.
+            This method is called every batch whereby the examples from test or valid set 
+            is pass through, the final result will be the mean of all the results from all 
+            the batches in an epoch from the test set or valid set.
         PARAM:
             layer_output: the output from the layer
         RETURN:
             A list of tuples of [('name_a', var_a), ('name_b', var_b)] whereby var is scalar 
         """
         
-        w_len = T.sqrt((self.W ** 2).sum(axis=1))
+        w_len = T.sqrt((self.W ** 2).sum(axis=0))
         max_length = T.max(w_len)
         mean_length = T.mean(w_len)
         min_length = T.min(w_len)
@@ -85,8 +88,9 @@ class Layer(object):
     def _train_layer_stats(self, layer_output):
         """
         DESCRIPTION:
-            This method is called every batch, the final result will be the mean of all the
-            results from all the batches in an epoch from the train set.
+            This method is called every batch whereby the examples from train set is pass 
+            through, the final result will be the mean of all the results from all the 
+            batches in an epoch from the train set.
         PARAM:
             layer_output: the output from the layer
         RETURN:
@@ -162,7 +166,6 @@ class Softmax(Layer):
     def _train_fprop(self, state_below):
         output = self._linear_part(state_below)
         return T.nnet.softmax(output)   
-    
  
     # This is called every batch, the final cout will be the mean of all batches in an epoch
     def _test_layer_stats(self, layer_output):

@@ -3,7 +3,7 @@ from jobman import DD, expand, flatten
 
 import smartNN.layer as layer
 
-from smartNN.mlp import MLP
+from smartNN.model import MLP
 from smartNN.layer import RELU, Sigmoid, Softmax, Linear
 from smartNN.datasets.mnist import Mnist
 import smartNN.datasets.spec as spec
@@ -202,6 +202,7 @@ class AE_Two_Layers_WO_Pretrain(AE):
         mlp.add_layer(hidden1_mirror)
         
         return mlp
+
     
     
     

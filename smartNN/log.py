@@ -80,12 +80,14 @@ class Log:
         cur.execute('CREATE TABLE IF NOT EXISTS ' + self.experiment_id + 
                     '(experiment_dir TEXT PRIMARY KEY NOT NULL,' +
                     'dataset TEXT,' +  
-                    'weight_initialization_seed REAL,' +
+                    'weight_initialization_seed INT,' +
                     'layers_dropout_below TEXT,' +                   
                     'learning_rate REAL,' +
                     'max_col_norm INTEGER,' +
                     'momentum REAL,' + 
                     'momentum_type VARCHAR,' +
+                    'L1_lambda REAL,' +
+                    'L2_lambda REAL,' +
                     'batch_size INTEGER,' + 
                     'num_layers INTEGER,' +
                     'layers_struct TEXT,' + 
@@ -101,7 +103,7 @@ class Log:
         if self.first_time_record:
             try:
                 cur.execute('INSERT INTO ' + self.experiment_id + 
-                            ' VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);', 
+                            ' VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);', 
                             [self.exp_dir_name,
                             dataset,
                             rand_seed,
@@ -110,6 +112,8 @@ class Log:
                             learning_rule.max_col_norm,
                             learning_rule.momentum,
                             learning_rule.momentum_type,
+                            learning_rule.L1_lambda,
+                            learning_rule.L2_lambda,
                             batch_size,
                             num_layers,
                             layers_struct,
@@ -121,9 +125,10 @@ class Log:
                             epoch])
                 self.first_time_record = False
                 
-            except sqlite3.ProgrammingError as err:
-                self.logger.error('Error: ' + err.message)
+            except sqlite3.OperationalError as err:
+                self.logger.error('sqlite3.OperationalError: ' + err.message)
                 self.logger.error('Solution: Change the experiment_id in Log() to a new name, '
+                        + 'or drop the same table name from the database. '
                         + 'experiment_id is used as the table name.')
                 raise
             
@@ -136,6 +141,8 @@ class Log:
                         'max_col_norm = ?,' +
                         'momentum = ?,' + 
                         'momentum_type = ?,' +
+                        'L1_lambda = ?,' +
+                        'L2_lambda = ?,' +
                         'batch_size = ?,' + 
                         'num_layers = ?,' +
                         'layers_struct = ?,' +
@@ -153,6 +160,8 @@ class Log:
                         learning_rule.max_col_norm,
                         learning_rule.momentum,
                         learning_rule.momentum_type,
+                        learning_rule.L1_lambda,
+                        learning_rule.L2_lambda,
                         batch_size,
                         num_layers,
                         layers_struct,

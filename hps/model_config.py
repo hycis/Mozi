@@ -211,7 +211,7 @@ model_config = DD({
 #                     'preprocessor'          : 'Scale',
                     'preprocessor'          : 'GCN',
 #                     'preprocessor'          : 'Standardize',
-                    'batch_size'            : ((32, 200), int),
+                    'batch_size'            : 100,
                     'num_batches'           : None,
                     'iter_class'            : 'SequentialSubsetIterator',
                     'rng'                   : None
@@ -234,12 +234,12 @@ model_config = DD({
     'AE_Two_Layers_WO_Pretrain' : DD({
     
             'mlp' : DD({
-                    'rand_seed'             : ((123, 1000000), int)
+                    'rand_seed'             : ((1, 1000000), int)
                     }), # end mlp
             
             'log' : DD({
-                    'experiment_id'         : 'AE24_Two_Layers_WO_Pretrain_LogGCN',
-                    'description'           : 'Two_layers_AE_LogGCN_with_Sigmoid_internal_units',
+                    'experiment_id'         : 'AE30_Two_Layers_WO_Pretrain_LogWarp',
+                    'description'           : 'Two_layers_AE_LogWarp_with_Sigmoid_internal_units',
                     'save_outputs'          : True,
                     'save_hyperparams'      : True,
                     'save_model'            : True,
@@ -256,7 +256,7 @@ model_config = DD({
                     'cost'                  : 'entropy',
                     'stopping_criteria'     : DD({
                                                 'max_epoch'         : 100,
-                                                'epoch_look_back'   : 80,
+                                                'epoch_look_back'   : 40,
                                                 'cost'              : 'entropy',
                                                 'percent_decrease'  : 0.
                                                 }) # end stopping_criteria
@@ -275,11 +275,13 @@ model_config = DD({
 #                     }), # end dataset
                         
             'dataset' : DD({
-                    'type'                  : 'P276',
+#                     'type'                  : 'P276',
 #                     'type'                  : 'P276_Scale_AE_output',
+                    'type'                  : 'P276_LogWarp',
                     'train_valid_test_ratio': [8, 1, 1],
 #                     'preprocessor'          : 'Scale',
-                    'preprocessor'          : 'LogGCN',
+                    'preprocessor'          : 'GCN',
+#                     'preprocessor'          : 'LogGCN',
 #                     'preprocessor'          : 'Standardize',
                     'batch_size'            : 100,
                     'num_batches'           : None,
@@ -292,18 +294,16 @@ model_config = DD({
                     'name'                  : 'hidden1',
                     'type'                  : 'Sigmoid',
                     'dim'                   : 500,
-                    'dropout_below'         : ((0.05, 0.5), float)
+                    'dropout_below'         : ((1e-8, 0.2), float)
                     }), # end hidden_layer
             
             'hidden2' : DD({
-                    'name'                  : 'output2',
+                    'name'                  : 'hidden2',
                     'type'                  : 'Sigmoid',
                     'dim'                   : 64,
                     'dropout_below'         : None
                     }) # end output_layer
             }) # end autoencoder
-
-            
-            
+       
     }) # end model_config
     

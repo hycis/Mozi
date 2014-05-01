@@ -3,8 +3,6 @@
 Functionality for preprocessing Datasets. With Preprocessor, GCN, Standardize adapted from pylearn2
 """
 
-
-
 import sys
 import copy
 import logging
@@ -22,6 +20,8 @@ log = logging.getLogger(__name__)
 
 class Preprocessor(object):
     """
+        Adapted from pylearn2
+        
         Abstract class.
 
         An object that can preprocess a dataset.
@@ -95,7 +95,10 @@ class ExamplewisePreprocessor(Preprocessor):
         raise NotImplementedError(str(type(self))+" does not implement as_block.")
 
 class Standardize(ExamplewisePreprocessor):
-    """Subtracts the mean and divides by the standard deviation."""
+    """
+    Adapted from pylearn2
+    Subtracts the mean and divides by the standard deviation.
+    """
     def __init__(self, global_mean=False, global_std=False, std_eps=1e-4, can_fit=True):
         """
         Initialize a Standardize preprocessor.
@@ -139,6 +142,7 @@ class Standardize(ExamplewisePreprocessor):
 class GCN(Preprocessor):
                               
     """
+    Adapted from pylearn2
     Global contrast normalizes by (optionally) subtracting the mean
     across features and then normalizes by either the vector norm
     or the standard deviation (across features, for each example).
@@ -244,7 +248,6 @@ class LogGCN(GCN):
     
     def invert(self, X):
         X = super(LogGCN, self).invert(X)
-        
         if self.positive_values:
             return np.exp(X) - 1
         else:

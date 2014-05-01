@@ -27,7 +27,7 @@ print('smartNN_DATA_PATH = ' + os.environ['smartNN_DATA_PATH'])
 print('smartNN_SAVE_PATH = ' + os.environ['smartNN_SAVE_PATH'])
 print('smartNN_DATABASE_PATH = ' + os.environ['smartNN_DATABASE_PATH'])
 
-from smartNN.mlp import MLP
+from smartNN.model import MLP
 from smartNN.layer import RELU, Sigmoid, Softmax, Linear
 from smartNN.datasets.mnist import Mnist
 from smartNN.learning_rule import LearningRule

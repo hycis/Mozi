@@ -4,7 +4,7 @@ import theano
 import theano.tensor as T
 import numpy as np
 
-from smartNN.mlp import MLP
+from smartNN.model import MLP, AutoEncoder
 from smartNN.layer import RELU, Sigmoid, Softmax, Linear
 from smartNN.datasets.mnist import Mnist
 from smartNN.datasets.spec import P276
@@ -34,20 +34,28 @@ print('smartNN_DATABASE_PATH = ' + os.environ['smartNN_DATABASE_PATH'])
 
 
 def autoencoder():
-    
+
+    log = Log(experiment_id = 'AE',
+            description = 'This experiment is about autoencoder',
+            save_outputs = True,
+            save_hyperparams = True,
+            save_model = True,
+            send_to_database = 'Database_Name.db')
+
     learning_rule = LearningRule(max_col_norm = None,
                             learning_rate = 0.01,
                             momentum = 0.1,
                             momentum_type = 'normal',
-                            weight_decay = 0,
-                            cost = Cost(type='entropy'),
-                            stopping_criteria = {'max_epoch' : 10,
-                                                'cost' : Cost(type='entropy'),
-                                                'epoch_look_back' : 3,
+                            L1_lambda = None,
+                            L2_lambda = None,
+                            cost = Cost(type='mse'),
+                            stopping_criteria = {'max_epoch' : 100,
+                                                'cost' : Cost(type='mse'),
+                                                'epoch_look_back' : 10,
                                                 'percent_decrease' : 0.001}
                             )
     
-    data = Mnist()
+    data = Mnist(train_valid_test_ratio=[5,1,1])
     
     train = data.get_train()
     data.set_train(train.X, train.X)
@@ -58,26 +66,22 @@ def autoencoder():
     test = data.get_test()
     data.set_test(test.X, test.X)
     
-    mlp = MLP(input_dim = data.feature_size(), rand_seed=None)
+    ae = AutoEncoder(input_dim = data.feature_size(), rand_seed=None)
     h1_layer = RELU(dim=100, name='h1_layer', W=None, b=None)
-    # h1_layer is encoding layer
-    mlp.add_layer(h1_layer)
-    # add the decoding mirror layer
-    mlp.add_layer(Sigmoid(dim=data.target_size(), name='output_layer', W=h1_layer.W.T, b=None))
-
-    log = Log(experiment_id = 'AE',
-            description = 'This experiment is about autoencoder',
-            save_outputs = True,
-            save_hyperparams = True,
-            save_model = True,
-            send_to_database = 'Database_Name.db')
     
+    # h1_layer is encoding layer
+    ae.add_encode_layer(h1_layer)
+    
+    # add the decoding mirror layer
+    ae.add_decode_layer(Sigmoid(dim=data.target_size(), name='output_layer', W=h1_layer.W.T, b=None))
+
     train_object = TrainObject(model = mlp,
                                 dataset = data,
                                 learning_rule = learning_rule,
                                 log = log)
                                 
     train_object.run()
+
     
 def stacked_autoencoder():
 
@@ -98,11 +102,12 @@ def stacked_autoencoder():
                                 learning_rate = 0.01,
                                 momentum = 0.1,
                                 momentum_type = 'normal',
-                                weight_decay = 0,
-                                cost = Cost(type='entropy'),
-                                stopping_criteria = {'max_epoch' : 1000, 
-                                                    'epoch_look_back' : 10,
-                                                    'cost' : Cost(type='entropy'), 
+                                L1_lambda = None,
+                                L2_lambda = None,
+                                cost = Cost(type='mse'),
+                                stopping_criteria = {'max_epoch' : 3, 
+                                                    'epoch_look_back' : 1,
+                                                    'cost' : Cost(type='mse'), 
                                                     'percent_decrease' : 0.001}
                                 )
 
@@ -117,15 +122,15 @@ def stacked_autoencoder():
     test = data.get_test()
     data.set_test(test.X, test.X)
     
-    mlp = MLP(input_dim = data.feature_size(), rand_seed=None)
+    ae = AutoEncoder(input_dim = data.feature_size(), rand_seed=None)
 
-    h1_layer = Sigmoid(dim=500, name='h1_layer', W=None, b=None)
-    mlp.add_layer(h1_layer)
-    h1_mirror = Sigmoid(dim = data.target_size(), name='h1_mirror', W=h1_layer.W.T, b=None)
-    mlp.add_layer(h1_mirror)
+    h1_layer = RELU(dim=500, name='h1_layer', W=None, b=None)
+    ae.add_encode_layer(h1_layer)
+    h1_mirror = RELU(dim = data.target_size(), name='h1_mirror', W=h1_layer.W.T, b=None)
+    ae.add_decode_layer(h1_mirror)
 
     
-    train_object = TrainObject(model = mlp,
+    train_object = TrainObject(model = ae,
                                 dataset = data,
                                 learning_rule = learning_rule,
                                 log = log)
@@ -145,39 +150,39 @@ def stacked_autoencoder():
                             learning_rate = 0.01,
                             momentum = 0.1,
                             momentum_type = 'normal',
-                            weight_decay = 0,
-                            cost = Cost(type='entropy'),
-                            stopping_criteria = {'max_epoch' : 1000, 
-                                                'epoch_look_back' : 10,
-                                                'cost' : Cost(type='entropy'), 
+                            L1_lambda = None,
+                            L2_lambda = None,
+                            cost = Cost(type='mse'),
+                            stopping_criteria = {'max_epoch' : 3, 
+                                                'epoch_look_back' : 1,
+                                                'cost' : Cost(type='mse'), 
                                                 'percent_decrease' : 0.001}
                             )
 
     
     print('Start training Second Layer of AutoEncoder')
     
-    mlp.pop_layer(-1)
     # fprop == forward propagation
-    reduced_train_X = np.abs(mlp.fprop(train.X))
-    reduced_valid_X = np.abs(mlp.fprop(valid.X))
-    reduced_test_X = np.abs(mlp.fprop(test.X))
+    reduced_train_X = ae.encode(train.X)
+    reduced_valid_X = ae.encode(valid.X)
+    reduced_test_X = ae.encode(test.X)
 
-    data.set_train(reduced_train_X, reduced_train_X)
-    data.set_valid(reduced_valid_X, reduced_valid_X)
-    data.set_test(reduced_test_X, reduced_test_X)
+    data.set_train(X=reduced_train_X, y=reduced_train_X)
+    data.set_valid(X=reduced_valid_X, y=reduced_valid_X)
+    data.set_test(X=reduced_test_X, y=reduced_test_X)
     
     # create a new mlp taking inputs from the encoded outputs of first autoencoder
-    mlp2 = MLP(input_dim = data.feature_size(), rand_seed=None)
+    ae2 = AutoEncoder(input_dim = data.feature_size(), rand_seed=None)
 
     
-    h2_layer = Sigmoid(dim=100, name='h2_layer', W=None, b=None)
-    mlp2.add_layer(h2_layer)
+    h2_layer = RELU(dim=100, name='h2_layer', W=None, b=None)
+    ae2.add_encode_layer(h2_layer)
     
-    h2_mirror = Sigmoid(dim=h1_layer.dim, name='h2_mirror', W=h2_layer.W.T, b=None)
-    mlp2.add_layer(h2_mirror)
+    h2_mirror = RELU(dim=h1_layer.dim, name='h2_mirror', W=h2_layer.W.T, b=None)
+    ae2.add_decode_layer(h2_mirror)
     
               
-    train_object = TrainObject(model = mlp2,
+    train_object = TrainObject(model = ae2,
                             dataset = data,
                             learning_rule = learning_rule,
                             log = log2)
@@ -206,14 +211,13 @@ def stacked_autoencoder():
     test = data.get_test()
     data.set_test(test.X, test.X)
     
-    mlp3 = MLP(input_dim = data.feature_size(), rand_seed=None)
-    mlp3.add_layer(h1_layer)
-    mlp3.add_layer(h2_layer)
-    mlp3.add_layer(h2_mirror)
-    mlp3.add_layer(h1_mirror)
-    
-    
-    train_object = TrainObject(model = mlp3,
+    ae3 = AutoEncoder(input_dim = data.feature_size(), rand_seed=None)
+    ae3.add_encode_layer(h1_layer)
+    ae3.add_encode_layer(h2_layer)
+    ae3.add_decode_layer(h2_mirror)
+    ae3.add_decode_layer(h1_mirror)
+
+    train_object = TrainObject(model = ae3,
                             dataset = data,
                             learning_rule = learning_rule,
                             log = log3)
@@ -222,4 +226,5 @@ def stacked_autoencoder():
     print('..Training Done')
 
 if __name__ == '__main__':
-    autoencoder()
+#     autoencoder()
+    stacked_autoencoder()

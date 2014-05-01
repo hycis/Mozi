@@ -35,7 +35,7 @@ print('smartNN_DATA_PATH = ' + os.environ['smartNN_DATA_PATH'])
 print('smartNN_SAVE_PATH = ' + os.environ['smartNN_SAVE_PATH'])
 print('smartNN_DATABASE_PATH = ' + os.environ['smartNN_DATABASE_PATH'])
 
-from smartNN.mlp import MLP
+from smartNN.model import MLP
 from smartNN.layer import RELU, Sigmoid, Softmax, Linear
 from smartNN.datasets.mnist import Mnist
 from smartNN.learning_rule import LearningRule
@@ -81,45 +81,74 @@ def test():
     display_database(os.environ['smartNN_DATABASE_PATH'] + '/Database_Name.db', 'testing')
 
 def unpickle_mlp(model):
+
     import cPickle
-    from pylearn2.utils.image import tile_raster_images
+    from smartNN.utils.image import tile_raster_images
     from PIL.Image import fromarray
     from smartNN.datasets.preprocessor import GCN, Standardize
     
     with open(os.environ['smartNN_SAVE_PATH'] + '/log/' + model + '/model.pkl', 'rb') as f:
         mlp = cPickle.load(f)
     
-    data = Mnist(preprocessor = None, 
-                    binarize = False,
-                    batch_size = 100,
-                    num_batches = None, 
-                    train_ratio = 5, 
-                    valid_ratio = 1,
+    data = Mnist(train_valid_test_ratio = [5,1,1],
                     iter_class = 'SequentialSubsetIterator',
                     rng = None)
     
     test = data.get_test()
 #     prep = Standardize()
-    prep = GCN(use_std = False)
-    test.X = prep.apply(test.X)
+#     prep = GCN(use_std = False)
+#     test.X = prep.apply(test.X)
     
-    orig_array = tile_raster_images(X = test.X[0:100], img_shape=(28,28), tile_shape=(10,10), 
+    orig_array = tile_raster_images(X = test.X[-1001:-1], img_shape=(28,28), tile_shape=(50,20), 
                                     tile_spacing=(5, 5), scale_rows_to_unit_interval=True, output_pixel_vals=True)
     orig_im = fromarray(orig_array)
-    orig_im.save(NNdir + '/images/' + model + '_orig.jpeg')
+    orig_im.save(NNdir + '/save/images/' + model + '_orig.jpeg')
+    print('orig image saved. Opening image..')
+#     orig_im.show()
+    
+    new_X = mlp.fprop(test.X)
+    new_array = tile_raster_images(X = new_X[-1001:-1], img_shape=(28,28), tile_shape=(50,20), 
+                                    tile_spacing=(0, 0), scale_rows_to_unit_interval=True, output_pixel_vals=True)
+    new_im = fromarray(new_array)
+
+    new_im.save(NNdir + '/save/images/' + model + '_reconstruct.jpeg')
+    print('reconstruct image saved. Opening image..') 
+#     new_im.show()
+
+def unpickle_ae(model):
+
+    import cPickle
+    from smartNN.utils.image import tile_raster_images
+    from PIL.Image import fromarray
+    from smartNN.datasets.preprocessor import GCN, Standardize
+    
+    with open(os.environ['smartNN_SAVE_PATH'] + '/log/' + model + '/model.pkl', 'rb') as f:
+        mlp = cPickle.load(f)
+    
+    data = Mnist(train_valid_test_ratio = [5,1,1],
+                    iter_class = 'SequentialSubsetIterator',
+                    rng = None)
+    
+    test = data.get_test()
+#     prep = Standardize()
+#     prep = GCN(use_std = False)
+#     test.X = prep.apply(test.X)
+    
+    orig_array = tile_raster_images(X = test.X[-1001:-1], img_shape=(28,28), tile_shape=(50,20), 
+                                    tile_spacing=(5, 5), scale_rows_to_unit_interval=True, output_pixel_vals=True)
+    orig_im = fromarray(orig_array)
+    orig_im.save(NNdir + '/save/images/' + model + '_orig.jpeg')
     print('orig image saved. Opening image..')
     orig_im.show()
     
-    new_X = mlp.fprop(test.X)
-    new_array = tile_raster_images(X = new_X[0:100], img_shape=(28,28), tile_shape=(10,10), 
-                                    tile_spacing=(0, 0), scale_rows_to_unit_interval=True, output_pixel_vals=True)
+    new_X = mlp.encode(test.X)
+    new_array = tile_raster_images(X = new_X[-1001:-1], img_shape=(10,10), tile_shape=(50,20), 
+                                    tile_spacing=(5, 5), scale_rows_to_unit_interval=True, output_pixel_vals=True)
     new_im = fromarray(new_array)
-    import pdb
-    pdb.set_trace()
-    new_im.save(NNdir + '/images/' + model + '_reconstruct.jpeg')
+
+    new_im.save(NNdir + '/save/images/' + model + '_reconstruct.jpeg')
     print('reconstruct image saved. Opening image..') 
     new_im.show()
-    
 
 def test_AE():
 
@@ -161,6 +190,8 @@ if __name__ == '__main__':
 #     test()
 #     unpickle_mlp('stacked_AE5_20140410_0707_50423148')
 #     test_AE()
+#     unpickle_mlp('AE_20140430_0817_34293595')
+    unpickle_ae('AE_20140501_1220_23965555')
                                 
                                 
                                 

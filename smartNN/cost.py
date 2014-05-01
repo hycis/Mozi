@@ -1,6 +1,8 @@
 import theano.tensor as T
 import theano
 
+floatX = theano.config.floatX
+
 class Cost(object):
     """
     Cost inherits MLP so that cost can make use of the 
@@ -24,14 +26,14 @@ class Cost(object):
                 ('y', y.type, 'y_pred', y_pred.type))
 
         return T.eq(y_pred.argmax(axis=1), 
-                    y.argmax(axis=1)).sum(dtype=theano.config.floatX) / y.shape[0]
+                    y.argmax(axis=1)).sum(dtype=floatX) / y.shape[0]
 
     
     def positives(self, y, y_pred):
         """
         return the number of correctly predicted examples in a batch
         """
-        return T.eq(y_pred.argmax(axis=1), y.argmax(axis=1)).sum(dtype=theano.config.floatX)
+        return T.eq(y_pred.argmax(axis=1), y.argmax(axis=1)).sum(dtype=floatX)
     
     def get_batch_cost(self, y, y_pred):
         return getattr(self, '_batch_cost_' + self.type)(y, y_pred)
@@ -48,18 +50,21 @@ class Cost(object):
     def get_cost(self, y, y_pred):
         return getattr(self, '_cost_' + self.type)(y, y_pred)
     
-    def _cost_nll(self, y, y_pred):
-        return -T.mean(T.log(y_pred) * y, dtype=theano.config.floatX)
-    
     def _cost_mse(self, y, y_pred):
-        return T.mean(T.sqr(y - y_pred), dtype=theano.config.floatX)
+        L = T.sum(T.sqr(y - y_pred), axis=1)
+        return T.mean(L, dtype=floatX)
         
     def _cost_entropy(self, y, y_pred):        
-        L = - T.sum(y * T.log(y_pred) + (1-y) * T.log(1-y_pred), axis=1, dtype=theano.config.floatX)
-        return T.mean(L)
+        L = - T.sum(y * T.log(y_pred) + (1-y) * T.log(1-y_pred), axis=1)
+        return T.mean(L, dtype=floatX)
     
     def _cost_error(self, y, y_pred):
-        return T.mean(T.neq(y_pred.argmax(axis=1), y.argmax(axis=1)), dtype=theano.config.floatX)
+        L = T.neq(y_pred.argmax(axis=1), y.argmax(axis=1))
+        return T.mean(L, dtype=floatX)
+    
+    def _cost_abs(self, y, y_pred):
+        L = T.sum(T.abs_(y - y_pred, axis=1))
+        return T.mean(L, dtype=floatX)
     
         
     
