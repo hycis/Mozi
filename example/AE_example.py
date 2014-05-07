@@ -17,7 +17,6 @@ from smartNN.datasets.preprocessor import Standardize, GCN
 NNdir = os.path.dirname(os.path.realpath(__file__))
 NNdir = os.path.dirname(NNdir)
 
-
 if not os.getenv('smartNN_DATA_PATH'):
     os.environ['smartNN_DATA_PATH'] = NNdir + '/data'
 
@@ -32,10 +31,9 @@ print('smartNN_SAVE_PATH = ' + os.environ['smartNN_SAVE_PATH'])
 print('smartNN_DATABASE_PATH = ' + os.environ['smartNN_DATABASE_PATH'])
 
 
-
 def autoencoder():
 
-    log = Log(experiment_id = 'AE',
+    log = Log(experiment_name = 'AE',
             description = 'This experiment is about autoencoder',
             save_outputs = True,
             save_hyperparams = True,
@@ -55,6 +53,7 @@ def autoencoder():
                                                 'percent_decrease' : 0.001}
                             )
     
+    # building dataset
     data = Mnist(train_valid_test_ratio=[5,1,1])
     
     train = data.get_train()
@@ -66,16 +65,17 @@ def autoencoder():
     test = data.get_test()
     data.set_test(test.X, test.X)
     
+    # building autoencoder
     ae = AutoEncoder(input_dim = data.feature_size(), rand_seed=None)
     h1_layer = RELU(dim=100, name='h1_layer', W=None, b=None)
     
-    # h1_layer is encoding layer
+    # adding encoding layer
     ae.add_encode_layer(h1_layer)
     
-    # add the decoding mirror layer
+    # adding decoding mirror layer
     ae.add_decode_layer(Sigmoid(dim=data.target_size(), name='output_layer', W=h1_layer.W.T, b=None))
 
-    train_object = TrainObject(model = mlp,
+    train_object = TrainObject(model = ae,
                                 dataset = data,
                                 learning_rule = learning_rule,
                                 log = log)
@@ -85,13 +85,13 @@ def autoencoder():
     
 def stacked_autoencoder():
 
-    name = 'stacked_AE4'
+    name = 'Stacked_AE'
 
     #=====[ Train First layer of stack autoencoder ]=====#
     print('Start training First Layer of AutoEncoder')
 
     
-    log = Log(experiment_id = name + '_layer1',
+    log = Log(experiment_name = name + '_layer1',
             description = 'This experiment is to test the model',
             save_outputs = True,
             save_hyperparams = True,
@@ -138,8 +138,10 @@ def stacked_autoencoder():
     train_object.run()
     
     #=====[ Train Second Layer of autoencoder ]=====#
+
+    print('Start training Second Layer of AutoEncoder')
     
-    log2 = Log(experiment_id = name + '_layer2',
+    log2 = Log(experiment_name = name + '_layer2',
             description = 'This experiment is to test the model',
             save_outputs = True,
             save_hyperparams = True,
@@ -159,9 +161,6 @@ def stacked_autoencoder():
                                                 'percent_decrease' : 0.001}
                             )
 
-    
-    print('Start training Second Layer of AutoEncoder')
-    
     # fprop == forward propagation
     reduced_train_X = ae.encode(train.X)
     reduced_valid_X = ae.encode(valid.X)
@@ -190,15 +189,14 @@ def stacked_autoencoder():
     train_object.run()
     
     #=====[ Fine Tuning ]=====#
-    
-    log3 = Log(experiment_id = name + '_full',
+    print('Fine Tuning')
+
+    log3 = Log(experiment_name = name + '_full',
             description = 'This experiment is to test the model',
             save_outputs = True,
             save_hyperparams = True,
             save_model = True,
             send_to_database = 'Database_Name.db')
-    
-    print('Fine Tuning')
     
     data = Mnist()
     
@@ -223,7 +221,7 @@ def stacked_autoencoder():
                             log = log3)
     
     train_object.run()
-    print('..Training Done')
+    print('Training Done')
 
 if __name__ == '__main__':
 #     autoencoder()

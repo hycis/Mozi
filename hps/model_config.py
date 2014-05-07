@@ -7,12 +7,12 @@ model_config = DD({
         
         'AE' : DD({
         
-            'mlp' : DD({
+            'model' : DD({
                     'rand_seed'             : ((1, 1000000), int)
                     }), # end mlp
             
             'log' : DD({
-                    'experiment_id'         : 'AE23_LogGCN',
+                    'experiment_name'         : 'AE23_LogGCN',
                     'description'           : 'first_layer_AE_Log_GCN_with_Sigmoid_internal_units',
                     'save_outputs'          : True,
                     'save_hyperparams'      : True,
@@ -84,12 +84,12 @@ model_config = DD({
 
         'AE_Second_Stack' : DD({
             
-            'mlp' : DD({
+            'model' : DD({
                     'rand_seed'             : ((1, 1000000), int)
                     }), # end mlp
             
             'log' : DD({
-                    'experiment_id'         : 'AE22_layer2_LogGCN',
+                    'experiment_name'         : 'AE22_layer2_LogGCN',
                     'description'           : 'second_layer_AE_Log_GCN_with_Sigmoid_internal_units',
                     'save_outputs'          : True,
                     'save_hyperparams'      : True,
@@ -163,12 +163,12 @@ model_config = DD({
                     # One hidden layer Autoencoder
         'AE_Two_Layers' : DD({
         
-            'mlp' : DD({
+            'model' : DD({
                     'rand_seed'             : ((123, 1000000), int)
                     }), # end mlp
             
             'log' : DD({
-                    'experiment_id'         : 'AE15Double_GCN',
+                    'experiment_name'         : 'AE15Double_GCN',
                     'description'           : 'Two_layers_AE_GCN_with_Sigmoid_internal_units',
                     'save_outputs'          : True,
                     'save_hyperparams'      : True,
@@ -231,14 +231,14 @@ model_config = DD({
             }), # end autoencoder
             
         #####################[ AE_Two_Layers_WO_Pretrain ]#####################
-    'AE_Two_Layers_WO_Pretrain' : DD({
+        'AE_Two_Layers_WO_Pretrain' : DD({
     
-            'mlp' : DD({
+            'model' : DD({
                     'rand_seed'             : ((1, 1000000), int)
                     }), # end mlp
             
             'log' : DD({
-                    'experiment_id'         : 'AE30_Two_Layers_WO_Pretrain_LogWarp',
+                    'experiment_name'         : 'AE30_Two_Layers_WO_Pretrain_LogWarp',
                     'description'           : 'Two_layers_AE_LogWarp_with_Sigmoid_internal_units',
                     'save_outputs'          : True,
                     'save_hyperparams'      : True,
@@ -303,7 +303,87 @@ model_config = DD({
                     'dim'                   : 64,
                     'dropout_below'         : None
                     }) # end output_layer
-            }) # end autoencoder
+            }), # end autoencoder
+       
+       
+        ###########################[ AE_Many_Splits ]##########################
+        'AE_Many_Splits' : DD({
+    
+
+            'model' : DD({
+                    'rand_seed'             : ((1, 1000000), int)
+                    }), # end mlp
+                    
+            'parts': ['abc1.npy', 'abc2.npy']
+            
+            'log' : DD({
+                    'experiment_name'         : 'AE_Many_Splits',
+                    'description'           : '',
+                    'save_outputs'          : True,
+                    'save_hyperparams'      : True,
+                    'save_model'            : True,
+                    'send_to_database'      : 'Database_Name.db'
+                    }), # end log
+            
+            'learning_rule' : DD({
+                    'max_col_norm'          : 10,
+                    'learning_rate'         : ((0.00001, 0.9), float),
+                    'momentum'              : ((0.00001, 0.9), float),
+                    'momentum_type'         : 'normal',
+                    'L1_lambda'             : None,
+                    'L2_lambda'             : None,
+                    'cost'                  : 'entropy',
+                    'stopping_criteria'     : DD({
+                                                'max_epoch'         : 100,
+                                                'epoch_look_back'   : 40,
+                                                'cost'              : 'entropy',
+                                                'percent_decrease'  : 0.
+                                                }) # end stopping_criteria
+                    }), # end learning_rule
+                    
+            #===========================[ Dataset ]===========================#            
+#             'dataset' : DD({
+#                     'type'                  : 'Mnist',
+#                     'train_valid_test_ratio': [8, 1, 1],
+#                     'preprocessor'          : 'Scale',
+# #                     'preprocessor'          : 'Standardize',
+#                     'batch_size'            : 100,
+#                     'num_batches'           : None,
+#                     'iter_class'            : 'SequentialSubsetIterator',
+#                     'rng'                   : None
+#                     }), # end dataset
+                        
+            'dataset' : DD({
+#                     'type'                  : 'P276',
+#                     'type'                  : 'P276_LogWarp',
+                    'type'                  : 'Laura_LogWarp',
+                    'train_valid_test_ratio': [8, 1, 1],
+#                     'preprocessor'          : 'Scale',
+                    'preprocessor'          : 'GCN',
+#                     'preprocessor'          : 'LogGCN',
+#                     'preprocessor'          : 'Standardize',
+                    'batch_size'            : 100,
+                    'num_batches'           : None,
+                    'iter_class'            : 'SequentialSubsetIterator',
+                    'rng'                   : None
+                    }), # end dataset
+
+            #============================[ Layers ]===========================#               
+            'hidden1' : DD({
+                    'name'                  : 'hidden1',
+                    'type'                  : 'Sigmoid',
+                    'dim'                   : 500,
+                    'dropout_below'         : ((1e-8, 0.2), float)
+                    }), # end hidden_layer
+            
+            'hidden2' : DD({
+                    'name'                  : 'hidden2',
+                    'type'                  : 'Sigmoid',
+                    'dim'                   : 64,
+                    'dropout_below'         : None
+                    }) # end output_layer
+            }), # end autoencoder
+       
        
     }) # end model_config
     

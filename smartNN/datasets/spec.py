@@ -15,15 +15,6 @@ class P276(Dataset):
 
         super(P276, self).__init__(X=data, y=data, **kwargs)
 
-class LogP276(Dataset):
-    
-    def __init__(self, **kwargs):
-        
-        data_dir = os.environ['smartNN_DATA_PATH'] + '/p276'
-        with open(data_dir + '/log_p276.npy') as f:
-            data = np.load(f)
-
-        super(P276, self).__init__(X=data, y=data, **kwargs)
 
 class P276_LogWarp(Dataset):
 
@@ -35,26 +26,17 @@ class P276_LogWarp(Dataset):
 
         super(P276_LogWarp, self).__init__(X=data, y=data, **kwargs)
 
-
-
-class P276_GCN_AE_output(Dataset):
+class Laura(Dataset):
     
-    def __init__(self, **kwargs):
+    def __init__(self, part, **kwargs):
         
-        data_dir = os.environ['smartNN_DATA_PATH'] + '/p276'
-        with open(data_dir + '/p276_GCN_AE_output.npy') as f:
+        data_path = os.environ['smartNN_DATA_PATH'] + '/Laura/' + part
+        with open(data_path) as f:
             data = np.load(f)
-
-        super(P276_GCN_AE_output, self).__init__(X=data, y=data, **kwargs)
-
-
-class P276_Scale_AE_output(Dataset):
+        
+        super(Laura_Splits, self).__init__(X=data, y=data, **kwargs)
+        
     
-    def __init__(self, **kwargs):
-        
-        data_dir = os.environ['smartNN_DATA_PATH'] + '/p276'
-        with open(data_dir + '/p276_Scale_AE_output.npy') as f:
-            data = np.load(f)
-
-        super(P276_Scale_AE_output, self).__init__(X=data, y=data, **kwargs)
+    
+    
   

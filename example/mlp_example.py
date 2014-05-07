@@ -42,7 +42,7 @@ def mlp():
     mlp.add_layer(Sigmoid(dim=100, name='h1_layer', W=None, b=None, dropout_below=None))
     mlp.add_layer(Sigmoid(dim=data.target_size(), name='output_layer', W=None, b=None, dropout_below=None))
     
-    learning_rule = LearningRule(max_col_norm = 1,
+    learning_rule = LearningRule(max_col_norm = 0.1,
                                 learning_rate = 0.01,
                                 momentum = 0.1,
                                 momentum_type = 'normal',
@@ -55,7 +55,7 @@ def mlp():
                                                     'percent_decrease' : 0.001}
                                 )
     
-    log = Log(experiment_id = 'mnistest2',
+    log = Log(experiment_name = 'mnistest2',
             description = 'This experiment is to test the model',
             save_outputs = True,
             save_hyperparams = False,

@@ -45,5 +45,5 @@ elif args.udemrd:
                 wuzhen@elisa2.iro.umontreal.ca:/data/lisa/exp/wuzhen/nii/VoiceCloneCommercial2/"%exclude)
 
 else:
-	raise ValueError('options is neither --udem | --nii | --biaree')
+	raise ValueError('options is neither --udem | --nii | --biaree | --udemrd | --image')
 

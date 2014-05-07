@@ -6,11 +6,12 @@ import numpy as np
 
 import time
 import sys
-import logging
-log = logging.getLogger(__name__)
 
+import logging
+int_logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
+from smartNN.log import Log
 from smartNN.utils.utils import split_list, generate_shared_list, \
                                 merge_lists, get_shared_values, \
                                 duplicate_param
@@ -28,12 +29,16 @@ class TrainObject():
         param := param + delta
     '''
 
-    def __init__(self, model, dataset, learning_rule, log):
+    def __init__(self, model, dataset, learning_rule, log=None):
         self.model = model
         self.dataset = dataset
         self.learning_rule = learning_rule
         self.log = log
 
+        if self.log is None:
+            # use default Log setting             
+            self.log = Log(logger=int_logger)
+        
         self.log.logger.info( '..begin setting up train object')    
         self._setup()
         
@@ -132,7 +137,7 @@ class TrainObject():
                     divisor = (w_len <= self.learning_rule.max_col_norm) + \
                             (w_len > self.learning_rule.max_col_norm) * w_len / \
                             self.learning_rule.max_col_norm
-                    W_update = W_update / divisor.reshape(((divisor.shape[0]),1))
+                    W_update = W_update / divisor.reshape((1, divisor.shape[0]))
                     train_updates += [(param, W_update)]
                 
                 else:
@@ -338,15 +343,15 @@ class TrainObject():
                 
                     best_test_error = mean_test_error
 
-                    if self.log is not None and self.log.save_model:
+                    if self.log.save_model:
                         self.log._save_model(self.model)
                         self.log.logger.info('..model saved')
                 
-                    if self.log is not None and self.log.save_hyperparams:
+                    if self.log.save_hyperparams:
                         self.log._save_hyperparams(self.learning_rule)
                         self.log.logger.info('..hyperparams saved')
 
-                    if self.log is not None and self.log.send_to_database:
+                    if self.log.send_to_database:
                         self.log._send_to_database(epoch,
                                                 self.dataset.__class__.__name__,
                                                 self.model.rand_seed,
@@ -361,34 +366,33 @@ class TrainObject():
                                                 self.dataset.preprocessor.__class__.__name__)
                                                     
                         self.log.logger.info('..sent to database: %s:%s' % (self.log.send_to_database, 
-                                                                self.log.experiment_id))
+                                                                self.log.experiment_name))
 
             
             end_time = time.time()
             
             #=====================[ log outputs to file ]=====================#
-            if self.log is not None and self.log.save_outputs:
 
-                merged_train = merge_lists(train_stats_names, train_stats_values)
-                merged_valid = merge_lists(valid_stats_names, valid_stats_values)
-                merged_test = merge_lists(test_stats_names, test_stats_values)
+            merged_train = merge_lists(train_stats_names, train_stats_values)
+            merged_valid = merge_lists(valid_stats_names, valid_stats_values)
+            merged_test = merge_lists(test_stats_names, test_stats_values)
+        
+            stopping_cost_type = self.learning_rule.stopping_criteria['cost'].type
+            outputs = [('epoch', epoch),
+                        ('runtime(s)', int(end_time-start_time)),
+                        ('mean_train_cost_' + self.learning_rule.cost.type, mean_train_cost),
+                        ('mean_train_error_' + stopping_cost_type, mean_train_error),
+                        ('best_train_error_' + stopping_cost_type, best_train_error),
+                        ('mean_valid_cost_' + self.learning_rule.cost.type, mean_valid_cost),
+                        ('mean_valid_error_' + stopping_cost_type, mean_valid_error),
+                        ('best_valid_error_' + stopping_cost_type, best_valid_error),
+                        ('mean_test_cost_' + self.learning_rule.cost.type, mean_test_cost),
+                        ('mean_test_error_' + stopping_cost_type, mean_test_error),
+                        ('best_test_error_' + stopping_cost_type, best_test_error)]
+                        
+            outputs += merged_train + merged_valid + merged_test
             
-                stopping_cost_type = self.learning_rule.stopping_criteria['cost'].type
-                outputs = [('epoch', epoch),
-                            ('runtime(s)', int(end_time-start_time)),
-                            ('mean_train_cost_' + self.learning_rule.cost.type, mean_train_cost),
-                            ('mean_train_error_' + stopping_cost_type, mean_train_error),
-                            ('best_train_error_' + stopping_cost_type, best_train_error),
-                            ('mean_valid_cost_' + self.learning_rule.cost.type, mean_valid_cost),
-                            ('mean_valid_error_' + stopping_cost_type, mean_valid_error),
-                            ('best_valid_error_' + stopping_cost_type, best_valid_error),
-                            ('mean_test_cost_' + self.learning_rule.cost.type, mean_test_cost),
-                            ('mean_test_error_' + stopping_cost_type, mean_test_error),
-                            ('best_test_error_' + stopping_cost_type, best_test_error)]
-                            
-                outputs += merged_train + merged_valid + merged_test
-            
-                self.log._save_outputs(outputs)
+            self.log._log_outputs(outputs)
 
             epoch += 1
             
