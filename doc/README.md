@@ -39,7 +39,7 @@ smartNN_DATABASE_PATH # the directory to save the database which contains the st
 
 __3. Building the Model__
 
-To build AutoEncoder, first import the 
+To build an Autoencoder, we need to put together components 
 
 ```python
 import theano
@@ -56,6 +56,8 @@ from smartNN.cost import Cost
 from smartNN.datasets.preprocessor import Standardize, GCN
 
 def autoencoder():
+
+    # logging is optional
     log = Log(experiment_name = 'AE',
             description = 'This experiment is about autoencoder',
             save_outputs = True,
@@ -99,13 +101,15 @@ def autoencoder():
     # adding decoding mirror layer, lock the weights of the output layer to be transpose of input layer
     ae.add_decode_layer(Sigmoid(dim=data.target_size(), name='output_layer', W=h1_layer.W.T, b=None))
 
+    # put all the components into a TrainObject
     train_object = TrainObject(model = ae,
                                 dataset = data,
                                 learning_rule = learning_rule,
                                 log = log)
-                                
+    
+    # finally run the training                         
     train_object.run()
-
+    
 ```
 
 
