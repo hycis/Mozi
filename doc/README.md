@@ -127,7 +127,7 @@ to generate the results. To generate all the specfiles from the model. Run the s
 $ python generate_specs_from_model.py --model /path/to/model.pkl --preprocessor GCN 
 --dataset /path/to/p276_data_000.npy --output_dir /dir/for/specfiles/ --output_dtype <f8
 ```
-`generate_specs_from_model.py` basically goes through the following steps    
+The script `generate_specs_from_model.py` basically goes through the following steps    
 1.  load model.pkl  
 2.  load p276_data_000.npy  
 3.  preprocess p276_data_000.npy  
