@@ -26,9 +26,9 @@ $ python specs2data.py --spec_files /path/to/p276/*.spec --splits 1 --input_spec
 --feature_size 2049 --output_dir /path/to/output_dir/
 ```
 
-After merging, two files are created, they are `p276_data_000.npy` which is a 2D tensor of
-dimension (num of frames, 2049) and `p276_specnames_000.npy` which is a list of tuples of 
-specification (name of specfile, num of frames in the specfile).
+After merging, two files are created, they are `p276_data_000.npy` which is a 2D data tensor of
+dimension (num of frames, 2049) which is used for training and `p276_specnames_000.npy` 
+which is a list of tuples of specification (name of specfile, num of frames in the specfile).
 
 __2. Setting Environment Variables__
 
@@ -127,7 +127,7 @@ to generate the results. To generate all the specfiles from the model. Run the s
 $ python generate_specs_from_model.py --model /path/to/model.pkl --preprocessor GCN 
 --dataset /path/to/p276_data_000.npy --output_dir /dir/for/specfiles/ --output_dtype <f8
 ```
-Below is a segment of codes from generate_specs_from_model.py
+Below is a segment of codes from generate_specs_from_model.py.
 
 ```python
 import cPickle
@@ -138,14 +138,15 @@ from smartNN.datasets.preprocessor import GCN
 
 # If there is preprocessing before training, then before passing the test data through the model,
 # it has to be preprocessed also.
-dataset_raw = P276(train_valid_test_ratio=[1,0,0])
+with open(/path/to/p276_data_000.npy) as d:
+  dataset_raw = np.load(d)
 proc = GCN()
 print 'apply preprocessing..'
-dataset_proc = proc.apply(dataset_raw.get_train())
+dataset_proc = proc.apply(dataset_raw)
 del dataset_raw
 
 # unpickle the trained model
-print 'opening model.. ' + args.model
+print 'opening model.. '
 with open('/path/to/model.pkl') as m:
   model = cPickle.load(m)
 
@@ -160,7 +161,7 @@ dataset = proc.invert(dataset_out)
 dataset = dataset.astype('<f8')
 del dataset_out
 
-# now dataset is ready and can be used to generate spec files.
+np.save(dataset, '/path/to/p276_data_000_proc.npy')
 ```
 
 
