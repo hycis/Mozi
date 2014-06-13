@@ -45,7 +45,7 @@ __3. Building the Model__
 
 In order to build and run an AutoEncoder, we need to put together the various components
 (model, layer, dataset, learning_rule, log, cost function) into a train_object and run the
-training. For more examples goto [example](../example/)
+training. For more examples goto [example](../example/).
 
 ```python
 import theano
