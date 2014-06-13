@@ -4,7 +4,7 @@
 In order to use this package, user should install Anaconda(a super package that includes 
 numpy, matplotlib and others), Theano and sqlite3. And add smartNN directory to your PYTHONPATH.
 
-Steps from data preparation to training model to generating specs from model
+Steps from data preparation to model training to generating specs from model
 
 __1. Generate datafile from spec files__
 
@@ -25,6 +25,10 @@ For example, in order to merge p276 spec files into one npy file (splits = 1), i
 $ python specs2data.py --spec_files /path/to/p276/*.spec --splits 1 --input_spec_dtype f4 
 --feature_size 2049 --output_dir /path/to/output_dir/
 ```
+
+After merging, two files are created, they are `p276_data_000.npy` which is a 2D tensor of
+dim(num of frames, 2049) and `p276_specnames_000.npy` which is a list of tuples of specification
+(name of specfile, number of frames in the spec file).
 
 __2. Setting Environment Variables__
 
@@ -50,7 +54,7 @@ import numpy as np
 
 from smartNN.model AutoEncoder
 from smartNN.layer import RELU, Sigmoid, Softmax, Linear 
-from smartNN.datasets.mnist import Mnist
+from smartNN.datasets.spec import P276
 from smartNN.learning_rule import LearningRule
 from smartNN.log import Log
 from smartNN.train_object import TrainObject
@@ -80,8 +84,8 @@ def autoencoder():
                                                 'percent_decrease' : 0.001}
                             )
     
-    # building dataset
-    data = Mnist(train_valid_test_ratio=[5,1,1])
+    # building dataset, batch_size and preprocessor
+    data = P276(train_valid_test_ratio=[5,1,1], batch_size=100, preprocessor=GCN())
     
     # for AutoEncoder, the inputs and outputs must be the same
     train = data.get_train()
@@ -115,6 +119,42 @@ def autoencoder():
 ```
 __4. Generate Outputs from the saved Model__
 
-After training, pick the best model 
+After training, pick the best model which is saved as a pickle file. And run test data through it
+to generate the results.
+
+```python
+import cPickle
+import os
+import numpy as np
+from smartNN.datasets.spec import P276
+from smartNN.datasets.preprocessor import GCN
+
+# If there is preprocessing before training, then before passing the test data through the model,
+# it has to be preprocessed also.
+dataset_raw = P276(train_valid_test_ratio=[1,0,0])
+proc = GCN()
+print 'apply preprocessing..'
+dataset_proc = proc.apply(dataset_raw.get_train())
+del dataset_raw
+
+# unpickle the trained model
+print 'opening model.. ' + args.model
+with open('/path/to/model.pkl') as m:
+  model = cPickle.load(m)
+
+# pass the processed data through the model
+print 'forward propagation..'
+dataset_out = model.fprop(dataset_proc)
+del dataset_proc
+
+# invert the preprocessing
+print 'invert dataset..'
+dataset = proc.invert(dataset_out)
+dataset = dataset.astype('<f8')
+del dataset_out
+
+# now dataset is ready and can be used to generate spec files.
+```
+
 
 
