@@ -136,6 +136,9 @@ $ python generate_specs_from_model.py --model /path/to/model.pkl --preprocessor 
 6.  load p276_specnames_000.npy  
 7.  base on the specnames from p276_specnames_000.npy, reconstruct the specfiles from npy file  
 
+Below shows the steps from 1 to 5. Step 6 and 7 can also be done separately using 
+[data2specs.py](../scrips/data2specs.py)
+
 ```python
 import cPickle
 import os
