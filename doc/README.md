@@ -26,8 +26,8 @@ $ python specs2data.py --spec_files /path/to/p276/*.spec --splits 1 --input_spec
 --feature_size 2049 --output_dir /path/to/output_dir/
 ```
 
-After merging, two files are created, they are `p276_data_000.npy` which is a 2D data tensor of
-dimension (num of frames, 2049) which is used for training and `p276_specnames_000.npy` 
+After merging, two files are created, they are `p276_data_000.npy` which is a 2D data tensor 
+used for training of dimension (num of frames, 2049) and `p276_specnames_000.npy` 
 which is a list of tuples of specification (name of specfile, num of frames in the specfile).
 
 __2. Setting Environment Variables__
