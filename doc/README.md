@@ -39,18 +39,20 @@ smartNN_DATABASE_PATH # the directory to save the database which contains the st
 
 __3. Building the Model__
 
-To build an Autoencoder, we need to put together components 
+In order to build and run an AutoEncoder, we need to put together the various components
+(model, layer, dataset, learning_rule, log, cost function) into a train_object and run the
+training.
 
 ```python
 import theano
 import theano.tensor as T
 import numpy as np
 
-from smartNN.model AutoEncoder # import AutoEncoder model
+from smartNN.model AutoEncoder
 from smartNN.layer import RELU, Sigmoid, Softmax, Linear 
 from smartNN.datasets.mnist import Mnist
 from smartNN.learning_rule import LearningRule
-from smartNN.log import Log # OPTIONAL, if you don't want logging, then this not necessary.
+from smartNN.log import Log
 from smartNN.train_object import TrainObject
 from smartNN.cost import Cost
 from smartNN.datasets.preprocessor import Standardize, GCN
