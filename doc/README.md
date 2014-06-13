@@ -1,7 +1,7 @@
 
-# Procedures for Reconstructing Spec Files #
+# Procedures for Reconstructing Spec Files with AutoEncoder #
 
-In order to use this package, user should install Aanconda(a super package that includes 
+In order to use this package, user should install Anaconda(a super package that includes 
 numpy, matplotlib and others), Theano and sqlite3.
 
 Steps from data preparation to training model to generating specs from model
@@ -26,7 +26,16 @@ $ python specs2data.py --spec_files /path/to/p276/*.spec --splits 1 --input_spec
 --feature_size 2049 --output_dir /path/to/output_dir/
 ```
 
-__2. Setup AutoEncoder for training__
+__2. Setting Environment Variables__
+
+In smartNN, there are three environment variables.
+
+```python
+smartNN_DATA_PATH   # the directory for all the datasets
+smartNN_SAVE_PATH   # the directory to save the best models, the outputs logs and the hyperparams 
+smartNN_DATABASE_PATH # the directory to save the database which contains the stats from 
+                      # all the experiments which is used for picking the best model
+``` 
 
 
 
