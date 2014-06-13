@@ -41,7 +41,7 @@ __3. Building the Model__
 
 In order to build and run an AutoEncoder, we need to put together the various components
 (model, layer, dataset, learning_rule, log, cost function) into a train_object and run the
-training.
+training. For more examples goto [AE_example.py](../example/AE_example.py)
 
 ```python
 import theano
@@ -115,5 +115,6 @@ def autoencoder():
 ```
 __4. Generate Outputs from the saved Model__
 
+After training, pick the best model 
 
 
