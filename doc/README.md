@@ -127,14 +127,14 @@ to generate the results. To generate all the specfiles from the model. Run the s
 $ python generate_specs_from_model.py --model /path/to/model.pkl --preprocessor GCN 
 --dataset /path/to/p276_data_000.npy --output_dir /dir/for/specfiles/ --output_dtype <f8
 ```
-`generate_specs_from_model.py` did the following things in one go 
+`generate_specs_from_model.py` did the following things in one go    
 1.  load model.pkl  
-2.  load p276_data_000.npy
-3.  preprocess p276_data_000.npy
-4.  pass the preprocessed p276_data_000.npy through the model
-5.  invert the output from the model (this is necessary because the output is from a preprocessed input)
-6.  load p276_specnames_000.npy
-7.  base on the specnames from p276_specnames_000.npy, reconstruct the specfiles from npy file
+2.  load p276_data_000.npy  
+3.  preprocess p276_data_000.npy  
+4.  pass the preprocessed p276_data_000.npy through the model  
+5.  invert the output from the model (this is necessary because the output is from a preprocessed input)  
+6.  load p276_specnames_000.npy  
+7.  base on the specnames from p276_specnames_000.npy, reconstruct the specfiles from npy file  
 
 ```python
 import cPickle
