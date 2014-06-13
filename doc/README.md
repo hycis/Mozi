@@ -27,8 +27,11 @@ $ python specs2data.py --spec_files /path/to/p276/*.spec --splits 1 --input_spec
 ```
 
 After merging, two files are created, they are `p276_data_000.npy` which is a 2D data tensor 
-used for training of dimension (num of frames, 2049) and `p276_specnames_000.npy` 
+of dimension (num of frames, 2049) and `p276_specnames_000.npy` 
 which is a list of tuples of specification (name of specfile, num of frames in the specfile).
+
+The last three number in `p276_data_000.npy` corresponds to the split id of that data file.
+`p276_specnames_000` is used for unrolling the specfiles from the npy data file after training.
 
 __2. Setting Environment Variables__
 
