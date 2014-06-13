@@ -32,9 +32,9 @@ In smartNN, there are three environment variables to be set.
 
 ```python
 smartNN_DATA_PATH   # the directory for all the datasets
-smartNN_SAVE_PATH   # the directory to save the best models, the outputs logs and the hyperparams 
-smartNN_DATABASE_PATH # the directory to save the database which contains the stats from 
-                      # all the experiments which is used for picking the best model
+smartNN_SAVE_PATH   # the directory to save the best models, the outputs logs and the hyperparameters 
+smartNN_DATABASE_PATH # after training, the hyperparameters and training results from various 
+                      # experiments is saved into a database for comparisions
 ``` 
 
 __3. Building the Model__
