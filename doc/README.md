@@ -1,6 +1,9 @@
 
 # Procedures for Reconstructing Spec Files #
 
+In order to use this package, user should install Aanconda(a super package that includes 
+numpy, matplotlib and others), Theano and sqlite3.
+
 Steps from data preparation to training model to generating specs from model
 
 __1. Generate datafile from spec files__
@@ -20,10 +23,11 @@ For example, in order to merge p276 spec files into one npy file (splits = 1), i
 
 ```bash
 $ python specs2data.py --spec_files /path/to/p276/*.spec --splits 1 --input_spec_dtype f4 
---feature_size 2048 --output_dir /path/to/output_dir/
+--feature_size 2049 --output_dir /path/to/output_dir/
 ```
 
 __2. Setup AutoEncoder for training__
+
 
 
 
