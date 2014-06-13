@@ -113,7 +113,7 @@ def autoencoder():
     train_object.run()
     
 ```
-
+__4. Generate Outputs from the saved Model__
 
 
 
