@@ -138,7 +138,7 @@ from smartNN.datasets.preprocessor import GCN
 
 # If there is preprocessing before training, then before passing the test data through the model,
 # it has to be preprocessed also.
-with open(/path/to/p276_data_000.npy) as d:
+with open('/path/to/p276_data_000.npy') as d:
   dataset_raw = np.load(d)
 proc = GCN()
 print 'apply preprocessing..'
