@@ -27,8 +27,8 @@ $ python specs2data.py --spec_files /path/to/p276/*.spec --splits 1 --input_spec
 ```
 
 After merging, two files are created, they are `p276_data_000.npy` which is a 2D tensor of
-dim(num of frames, 2049) and `p276_specnames_000.npy` which is a list of tuples of specification
-(name of specfile, number of frames in the spec file).
+dimension (num of frames, 2049) and `p276_specnames_000.npy` which is a list of tuples of 
+specification (name of specfile, num of frames in the specfile).
 
 __2. Setting Environment Variables__
 
@@ -120,7 +120,14 @@ def autoencoder():
 __4. Generate Outputs from the saved Model__
 
 After training, pick the best model which is saved as a pickle file. And run test data through it
-to generate the results.
+to generate the results. To generate all the specfiles from the model. Run the script
+[generate_specs_from_model.py](../scripts/generate_specs_from_model.py).
+
+```bash
+$ python generate_specs_from_model.py --model /path/to/model.pkl --preprocessor GCN 
+--dataset /path/to/p276_data_000.npy --output_dir /dir/for/specfiles/ --output_dtype <f8
+```
+Below is a segment of codes from generate_specs_from_model.py
 
 ```python
 import cPickle
