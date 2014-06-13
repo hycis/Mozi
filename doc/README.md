@@ -10,13 +10,13 @@ the first step is to merge all the spec files into a numpy data
 file that is readable by AutoEncoder by using the script
 [specs2data.py](../scripts/specs2data.py)
 
-to know all the options available for the script, use 
+In order to know all the options available for the script, use 
 
 ```bash
 $ python specs2data.py -h
 ```
 
-Example to merge p276 spec files into one npy file (splits = 1)
+For example, in order to merge p276 spec files into one npy file (splits = 1), issue
 
 ```bash
 $ python specs2data.py --spec_files /path/to/p276/*.spec --splits 1 --input_spec_dtype f4 
