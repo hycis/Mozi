@@ -4,32 +4,32 @@ import theano
 import theano.tensor as T
 import numpy as np
 
-from smartNN.model import MLP
-from smartNN.layer import RELU, Sigmoid, Softmax, Linear
-from smartNN.datasets.mnist import Mnist
-from smartNN.datasets.spec import P276
-from smartNN.learning_rule import LearningRule
-from smartNN.log import Log
-from smartNN.train_object import TrainObject
-from smartNN.cost import Cost
-from smartNN.datasets.preprocessor import Standardize, GCN
+from pynet.model import MLP
+from pynet.layer import RELU, Sigmoid, Softmax, Linear
+from pynet.datasets.mnist import Mnist
+from pynet.datasets.spec import P276
+from pynet.learning_rule import LearningRule
+from pynet.log import Log
+from pynet.train_object import TrainObject
+from pynet.cost import Cost
+from pynet.datasets.preprocessor import Standardize, GCN
 
 NNdir = os.path.dirname(os.path.realpath(__file__))
 NNdir = os.path.dirname(NNdir)
 
 
-if not os.getenv('smartNN_DATA_PATH'):
-    os.environ['smartNN_DATA_PATH'] = NNdir + '/data'
+if not os.getenv('PYNET_DATA_PATH'):
+    os.environ['PYNET_DATA_PATH'] = NNdir + '/data'
 
-if not os.getenv('smartNN_DATABASE_PATH'):
-    os.environ['smartNN_DATABASE_PATH'] = NNdir + '/database'
+if not os.getenv('PYNET_DATABASE_PATH'):
+    os.environ['PYNET_DATABASE_PATH'] = NNdir + '/database'
 
-if not os.getenv('smartNN_SAVE_PATH'):
-    os.environ['smartNN_SAVE_PATH'] = NNdir + '/save'
+if not os.getenv('PYNET_SAVE_PATH'):
+    os.environ['PYNET_SAVE_PATH'] = NNdir + '/save'
 
-print('smartNN_DATA_PATH = ' + os.environ['smartNN_DATA_PATH'])
-print('smartNN_SAVE_PATH = ' + os.environ['smartNN_SAVE_PATH'])
-print('smartNN_DATABASE_PATH = ' + os.environ['smartNN_DATABASE_PATH'])
+print('PYNET_DATA_PATH = ' + os.environ['PYNET_DATA_PATH'])
+print('PYNET_SAVE_PATH = ' + os.environ['PYNET_SAVE_PATH'])
+print('PYNET_DATABASE_PATH = ' + os.environ['PYNET_DATABASE_PATH'])
 
 
 def mlp():

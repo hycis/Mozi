@@ -11,8 +11,8 @@ import logging
 int_logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
-from smartNN.log import Log
-from smartNN.utils.utils import split_list, generate_shared_list, \
+from pynet.log import Log
+from pynet.utils.utils import split_list, generate_shared_list, \
                                 merge_lists, get_shared_values, \
                                 duplicate_param
 

@@ -2,7 +2,7 @@
 # Procedures for Reconstructing Spec Files with AutoEncoder #
 
 In order to use this package, user should install Anaconda(a super package that includes 
-numpy, matplotlib and others), Theano and sqlite3. And add smartNN directory to your PYTHONPATH.
+numpy, matplotlib and others), Theano and sqlite3. And add pynet directory to your PYTHONPATH.
 
 Steps from data preparation to model training to generating specs from model
 
@@ -35,12 +35,12 @@ The last three number in `p276_data_000.npy` corresponds to the split id of that
 
 __2. Setting Environment Variables__
 
-In smartNN, there are three environment variables to be set.
+In pynet, there are three environment variables to be set.
 
 ```python
-smartNN_DATA_PATH   # the directory for all the datasets
-smartNN_SAVE_PATH   # the directory to save the best models, the outputs logs and the hyperparameters 
-smartNN_DATABASE_PATH # after training, the hyperparameters and training results from various 
+PYNET_DATA_PATH   # the directory for all the datasets
+PYNET_SAVE_PATH   # the directory to save the best models, the outputs logs and the hyperparameters 
+PYNET_DATABASE_PATH # after training, the hyperparameters and training results from various 
                       # experiments is saved into a database for comparisions
 ``` 
 
@@ -55,14 +55,14 @@ import theano
 import theano.tensor as T
 import numpy as np
 
-from smartNN.model AutoEncoder
-from smartNN.layer import RELU, Sigmoid, Softmax, Linear 
-from smartNN.datasets.spec import P276
-from smartNN.learning_rule import LearningRule
-from smartNN.log import Log
-from smartNN.train_object import TrainObject
-from smartNN.cost import Cost
-from smartNN.datasets.preprocessor import Standardize, GCN
+from pynet.model AutoEncoder
+from pynet.layer import RELU, Sigmoid, Softmax, Linear 
+from pynet.datasets.spec import P276
+from pynet.learning_rule import LearningRule
+from pynet.log import Log
+from pynet.train_object import TrainObject
+from pynet.cost import Cost
+from pynet.datasets.preprocessor import Standardize, GCN
 
 def autoencoder():
 
@@ -146,8 +146,8 @@ Below shows the steps from 1 to 5. Step 6 and 7 can also be done separately usin
 import cPickle
 import os
 import numpy as np
-from smartNN.datasets.spec import P276
-from smartNN.datasets.preprocessor import GCN
+from pynet.datasets.spec import P276
+from pynet.datasets.preprocessor import GCN
 
 # If there is preprocessing before training, then before passing the test data through the model,
 # it has to be preprocessed also.

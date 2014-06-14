@@ -1,6 +1,6 @@
 import logging
 logger = logging.getLogger(__name__)
-import smartNN.datasets.iterator as iter
+import pynet.datasets.iterator as iter
 
 class IterMatrix(object):
 

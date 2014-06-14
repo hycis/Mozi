@@ -1,5 +1,5 @@
 import theano.tensor as T
-from smartNN.cost import Cost
+from pynet.cost import Cost
 
 class LearningRule(object):
     def __init__(self, max_col_norm = 1,

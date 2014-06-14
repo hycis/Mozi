@@ -2,15 +2,15 @@ import os
 import numpy as np
 import theano
 
-from smartNN.utils.mnist_ubyte import read_mnist_images
-from smartNN.utils.mnist_ubyte import read_mnist_labels
-from smartNN.datasets.dataset import IterMatrix, Dataset
+from pynet.utils.mnist_ubyte import read_mnist_images
+from pynet.utils.mnist_ubyte import read_mnist_labels
+from pynet.datasets.dataset import IterMatrix, Dataset
 
 class Mnist(Dataset):
     
     def __init__(self, **kwargs):
                 
-        im_dir = os.environ['smartNN_DATA_PATH'] + '/mnist/'
+        im_dir = os.environ['PYNET_DATA_PATH'] + '/mnist/'
         
         train_X = read_mnist_images(im_dir + 'train-images-idx3-ubyte', dtype='float32')
         train_y = read_mnist_labels(im_dir + 'train-labels-idx1-ubyte')

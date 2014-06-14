@@ -24,7 +24,7 @@ class Log:
         self.exp_id = experiment_name + '_' + dt
 
         if save_outputs or save_hyperparams or save_model:
-            save_dir = os.environ['smartNN_SAVE_PATH'] + '/log'
+            save_dir = os.environ['PYNET_SAVE_PATH'] + '/log'
             if not os.path.exists(save_dir):
                 os.mkdir(save_dir)
         
@@ -78,7 +78,7 @@ class Log:
                         valid_error, test_error, batch_size, 
                         num_layers, layers_struct, preprocessor):
                         
-        conn = sqlite3.connect(os.environ['smartNN_DATABASE_PATH'] + 
+        conn = sqlite3.connect(os.environ['PYNET_DATABASE_PATH'] + 
                                 '/' + self.send_to_database)
         cur = conn.cursor()
         result_cost_type = learning_rule.stopping_criteria['cost'].type
