@@ -98,7 +98,6 @@ class Layer(object):
         """
         return self._test_layer_stats(layer_output)
 
-
     
 class Linear(Layer):
     def _test_fprop(self, state_below):
@@ -109,17 +108,15 @@ class Linear(Layer):
         output = self._linear_part(state_below)
         return output   
     
- 
     # This is called every batch, the final cout will be the mean of all batches in an epoch
     def _test_layer_stats(self, layer_output):
         return super(Linear, self)._test_layer_stats(layer_output)
-
     
     def _train_layer_stats(self, layer_output):
         return self._test_layer_stats(layer_output)
 
+
 class Sigmoid(Layer):
-        
     def _test_fprop(self, state_below):
         output = self._linear_part(state_below)
         return T.nnet.sigmoid(output)
@@ -128,7 +125,6 @@ class Sigmoid(Layer):
         output = self._linear_part(state_below)
         return T.nnet.sigmoid(output)   
     
- 
     # This is called every batch, the final cout will be the mean of all batches in an epoch
     def _test_layer_stats(self, layer_output):
         return super(Sigmoid, self)._test_layer_stats(layer_output)
@@ -138,7 +134,6 @@ class Sigmoid(Layer):
     
 
 class RELU(Layer):
-
     def _test_fprop(self, state_below):
         output = self._linear_part(state_below)
         return output * (output > 0.)
@@ -147,7 +142,6 @@ class RELU(Layer):
         output = self._linear_part(state_below)
         return output * (output > 0.)   
     
- 
     # This is called every batch, the final cout will be the mean of all batches in an epoch
     def _test_layer_stats(self, layer_output):
         return super(RELU, self)._test_layer_stats(layer_output)
@@ -156,9 +150,7 @@ class RELU(Layer):
         return self._test_layer_stats(layer_output)
 
 
-  
 class Softmax(Layer):
-       
     def _test_fprop(self, state_below):
         output = self._linear_part(state_below)
         return T.nnet.softmax(output)
