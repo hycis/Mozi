@@ -40,3 +40,9 @@ def stacksize(since=0.0):
     '''Return stack size in bytes.
     '''
     return _VmB('VmStk:') - since
+
+
+def print_mem_usage():
+    print('memory: ' + str(memory()/1024/1024) + ' MB')
+    print('resident: ' + str(resident()/1024/1024) + ' MB')
+    print('stacksize: ' + str(resident()/1024/1024) + ' MB')

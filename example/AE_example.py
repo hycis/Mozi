@@ -41,7 +41,7 @@ def autoencoder():
                             momentum_type = 'normal',
                             L1_lambda = None,
                             L2_lambda = None,
-                            cost = Cost(type='mse'),
+                            training_cost = Cost(type='mse'),
                             stopping_criteria = {'max_epoch' : 100,
                                                 'cost' : Cost(type='mse'),
                                                 'epoch_look_back' : 10,
@@ -87,8 +87,8 @@ def autoencoder():
                                              'Momentum' : learning_rule.momentum}}
             ) # end log
 
-    log.log(ae.rand_seed)
-    log.log('this is testing')
+    log.info(ae.rand_seed)
+    log.info('this is testing')
 
     train_object = TrainObject(model = ae,
                                 dataset = data,

@@ -59,10 +59,10 @@ class SubsetIterator(object):
     @property
     def num_examples(self):
         return self.batch_size * self.num_batches
-    
+
     @property
     def uneven(self):
-        return False    
+        return False
 
 class SequentialSubsetIterator(SubsetIterator):
     def __init__(self, dataset_size, batch_size, num_batches, rng=None):
@@ -94,7 +94,7 @@ class SequentialSubsetIterator(SubsetIterator):
         self._idx = 0
         self._batch = 0
         self._indices = np.arange(self._dataset_size)
-        
+
 
     def next(self):
         if self._batch >= self.num_batches or self._idx >= self._dataset_size:
@@ -123,8 +123,8 @@ class SequentialSubsetIterator(SubsetIterator):
     @property
     def uneven(self):
         return self.batch_size * self.num_batches > self._dataset_size
-    
-    
+
+
 class ShuffledSequentialSubsetIterator(SequentialSubsetIterator):
 
     stochastic = True

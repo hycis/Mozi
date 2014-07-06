@@ -21,7 +21,7 @@ log = logging.getLogger(__name__)
 class Preprocessor(object):
     """
         Adapted from pylearn2
-        
+
         Abstract class.
 
         An object that can preprocess a dataset.
@@ -140,7 +140,7 @@ class Standardize(ExamplewisePreprocessor):
 
 
 class GCN(Preprocessor):
-                              
+
     """
     Adapted from pylearn2
     Global contrast normalizes by (optionally) subtracting the mean
@@ -171,10 +171,10 @@ class GCN(Preprocessor):
         If the divisor for an example is less than this value,
         do not apply it. Defaults to `1e-8`.
     """
-    
+
     def __init__(self, scale=1., subtract_mean=False, use_std=False,
                 sqrt_bias=0., min_divisor=1e-8):
-                
+
         self.scale = scale
         self.subtract_mean = subtract_mean
         self.use_std = use_std
@@ -218,18 +218,18 @@ class GCN(Preprocessor):
         self.normalizers[self.normalizers < self.min_divisor] = 1.
         X /= self.normalizers[:, np.newaxis]  # Does not make a copy.
         return X
-    
+
     def invert(self, X):
         try:
             if self.subtract_mean:
                 X = X + self.mean
             rval = X * self.normalizers[:, np.newaxis]
-            return rval 
+            return rval
         except AttributeError:
-            print 'apply() needs to be used before invert()' 
+            print 'apply() needs to be used before invert()'
         except:
             print "Unexpected error:", sys.exc_info()[0]
-            
+
 class LogGCN(GCN):
 
     def __init__(self, positive_values=True, **kwarg):
@@ -239,23 +239,23 @@ class LogGCN(GCN):
         '''
         self.positive_values = positive_values;
         super(LogGCN, self).__init__(**kwarg)
-    
+
     def apply(self, X):
         if self.positive_values:
             rval = X + 1
         rval = np.log(rval)
         return super(LogGCN, self).apply(rval)
-    
+
     def invert(self, X):
         X = super(LogGCN, self).invert(X)
         if self.positive_values:
             return np.exp(X) - 1
         else:
             return np.exp(X)
-    
-    
-           
-            
+
+
+
+
 
 
 class Scale(Preprocessor):
@@ -267,33 +267,33 @@ class Scale(Preprocessor):
     ----------
     X : ndarray, 2-dimensional
         numpy matrix with examples indexed on the first axis and
-        features indexed on the second. 
-    
+        features indexed on the second.
+
     global_max : real
         the maximum value of the whole dataset. If not provided, global_max is set to X.max()
-        
+
     global_min : real
         the minimum value of the whole dataset. If not provided, global_min is set to X.min()
-    
+
     scale_range : size 2 list
         set the upper bound and lower bound after scaling
-    
+
     buffer : float
         the buffer on the upper lower bound such that [L+buffer, U-buffer]
     """
 
 
     def __init__(self, global_max=None, global_min=None, scale_range=[0,1], buffer=1e-8):
-    
+
         self.scale_range = scale_range
         self.buffer = buffer
         self.max = global_max
         self.min = global_min
         assert scale_range[0] + buffer < scale_range[1] - buffer, \
                 'the lower bound is larger than the upper bound'
-        
+
     def apply(self, X):
-    
+
         self.max = self.max if self.max is not None else X.max()
         self.min = self.min if self.min is not None else X.min()
         width = self.max - self.min
@@ -301,9 +301,9 @@ class Scale(Preprocessor):
         scale = (self.scale_range[1] - self.scale_range[0] - 2 * self.buffer) / width
         X = scale * (X - self.min)
         X = X + self.scale_range[0] + self.buffer
-        
+
         return X
-    
+
     def invert(self, X):
         if self.max is None or self.min is None:
             raise ValueError('to use invert, either global_max and global_min are provided or \
@@ -313,15 +313,5 @@ class Scale(Preprocessor):
         scale = width / (self.scale_range[1] - self.scale_range[0] - 2 * self.buffer)
         X = scale * (X - self.scale_range[0] - self.buffer)
         X = X + self.min
-        
+
         return X
-        
-            
-        
-        
-        
-        
-        
-        
-        
-    

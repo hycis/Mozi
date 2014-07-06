@@ -39,10 +39,13 @@ class TrainObject():
             # use default Log setting
             self.log = Log(logger=int_logger)
 
-        self.log.logger.info( '..begin setting up train object')
-        self._setup()
+        else:
+            self.log.print_records()
 
-    def _setup(self):
+        self.log.info( '..begin setting up train object')
+        self.setup()
+
+    def setup(self):
 
         #================[ check output dim with target size ]================#
 
@@ -50,6 +53,10 @@ class TrainObject():
                 'output dim: ' + str(self.model.layers[-1].dim) + \
                 ', is not equal to target size: ' + str(self.dataset.target_size())
 
+
+        assert self.model.input_dim == self.dataset.feature_size(), \
+                'input dim: ' + str(self.model.input_dim) + \
+                ', is not equal to feature size: ' + str(self.dataset.feature_size())
 
         #===================[ build params and deltas list ]==================#
 
@@ -69,7 +76,7 @@ class TrainObject():
                 deltas += [theano.shared(np.zeros((prev_layer_dim, layer.dim), dtype=floatX))]
 
             else:
-                self.log.logger.info(layer.W.name + ' is ' + layer.W.__class__.__name__ +
+                self.log.info(layer.W.name + ' is ' + layer.W.__class__.__name__ +
                             ' but not SharedVariable.')
 
             if is_shared_var(layer.b):
@@ -77,14 +84,14 @@ class TrainObject():
                 deltas += [theano.shared(np.zeros(layer.dim, dtype=floatX))]
 
             else:
-                self.log.logger.info(layer.b.name + ' is ' + layer.b.__class__.__name__ +
+                self.log.info(layer.b.name + ' is ' + layer.b.__class__.__name__ +
                             ' but not SharedVariable.')
 
             prev_layer_dim = layer.dim
 
         #=====================[ training params updates ]=====================#
 
-        self.log.logger.info("..number of update params: " + str(len(params)))
+        self.log.info("..number of update params: " + str(len(params)))
 
         train_x = T.matrix('train_x', dtype=floatX)
         train_y = T.matrix('train_y', dtype=floatX)
@@ -101,26 +108,26 @@ class TrainObject():
             train_cost = self.learning_rule.cost.get_cost(train_y, train_y_pred)
 
             if self.learning_rule.L1_lambda is not None:
-                self.log.logger.info('..applying L1_lambda: %f'%self.learning_rule.L1_lambda)
+                self.log.info('..applying L1_lambda: %f'%self.learning_rule.L1_lambda)
                 L1 = theano.shared(0.)
                 for layer in self.model.layers:
                     if is_shared_var(layer.W):
                         L1 += T.sqrt((layer.W ** 2).sum(axis=0)).sum()
 
                     else:
-                        self.log.logger.info(layer.W.name + ' is ' + layer.W.__class__.__name__ +
+                        self.log.info(layer.W.name + ' is ' + layer.W.__class__.__name__ +
                             ' is not used in L1 regularization')
                 train_cost += self.learning_rule.L1_lambda * L1
 
             if self.learning_rule.L2_lambda is not None:
-                self.log.logger.info('..applying L2_lambda: %f'%self.learning_rule.L2_lambda)
+                self.log.info('..applying L2_lambda: %f'%self.learning_rule.L2_lambda)
                 L2 = theano.shared(0.)
                 for layer in self.model.layers:
                     if is_shared_var(layer.W):
                         L2 += ((layer.W ** 2).sum(axis=0)).sum()
 
                     else:
-                        self.log.logger.info(layer.W.name + ' is ' + layer.W.__class__.__name__ +
+                        self.log.info(layer.W.name + ' is ' + layer.W.__class__.__name__ +
                             ' is not used in L2 regularization')
                 train_cost += self.learning_rule.L2_lambda * L2
 
@@ -155,7 +162,7 @@ class TrainObject():
 
         #-------------------------[ train functions ]-------------------------#
 
-        self.log.logger.info('..begin compiling functions')
+        self.log.info('..begin compiling functions')
 
         train_stopping_cost = self.learning_rule.stopping_criteria['cost'].get_cost(train_y, train_y_pred)
 
@@ -164,7 +171,7 @@ class TrainObject():
                                         updates=train_updates,
                                         on_unused_input='warn')
 
-        self.log.logger.info('..training function compiled')
+        self.log.info('..training function compiled')
 
         #======================[ testing params updates ]=====================#
 
@@ -188,14 +195,10 @@ class TrainObject():
                                         updates=test_stats_updates,
                                         on_unused_input='warn')
 
-        self.log.logger.info('..testing function compiled')
+        self.log.info('..testing function compiled')
 
 
     def run(self):
-
-        train_set = self.dataset.get_train()
-        valid_set = self.dataset.get_valid()
-        test_set = self.dataset.get_test()
 
         best_train_error = float("inf")
         best_valid_error = float("inf")
@@ -209,156 +212,129 @@ class TrainObject():
         mean_valid_cost = float("inf")
         mean_test_cost = float("inf")
 
-        train_stats_names = []
         train_stats_values = []
-
-        valid_stats_names = []
         valid_stats_values = []
-
-        test_stats_names = []
         test_stats_values = []
 
         epoch = 1
         error_dcr = 0
         self.best_epoch_so_far = 0
 
+        train_stats_names = ['train_' + name for name in self.train_stats_names]
+        valid_stats_names = ['valid_' + name for name in self.test_stats_names]
+        test_stats_names = ['test_' + name for name in self.test_stats_names]
+
         while (self.continue_learning(epoch, error_dcr, best_valid_error)):
 
             start_time = time.time()
 
-            #======================[ Training Progress ]======================#
+            num_train_examples = 0
+            total_train_cost = 0.
+            total_train_stopping_cost = 0.
+            train_stats_values = np.zeros(len(train_stats_names), dtype=floatX)
+
+            num_valid_examples = 0
+            total_valid_cost = 0.
+            total_valid_stopping_cost = 0.
+            valid_stats_values = np.zeros(len(valid_stats_names), dtype=floatX)
+
+            num_test_examples = 0
+            total_test_cost = 0.
+            total_test_stopping_cost = 0.
+            test_stats_values = np.zeros(len(test_stats_names), dtype=floatX)
+
+            blk = 0
+
+            for block in self.dataset:
+                blk += 1
+
+                train_set = block.get_train()
+                valid_set = block.get_valid()
+                test_set = block.get_test()
+
+
+                #====================[ Training Progress ]====================#
+                if train_set.dataset_size() > 0:
+
+                    self.log.info('..training '+ self.dataset.__class__.__name__
+                                + ' block %s/%s'%(blk, self.dataset.nblocks()))
+
+                    for idx in train_set:
+                        stopping_cost, cost = self.training(train_set.X[idx], train_set.y[idx])
+                        total_train_cost += cost * len(idx)
+                        total_train_stopping_cost += stopping_cost * len(idx)
+                        num_train_examples += len(idx)
+                        train_stats_values += len(idx) * get_shared_values(self.train_stats_shared)
+
+
+                #===================[ Validating Progress ]===================#
+                if valid_set.dataset_size() > 0:
+
+                    self.log.info('..validating ' + self.dataset.__class__.__name__
+                                + ' block %s/%s'%(blk, self.dataset.nblocks()))
+
+                    for idx in valid_set:
+                        stopping_cost, cost = self.testing(valid_set.X[idx], valid_set.y[idx])
+                        total_valid_cost += cost * len(idx)
+                        total_valid_stopping_cost += stopping_cost * len(idx)
+                        num_valid_examples += len(idx)
+                        valid_stats_values += len(idx) * get_shared_values(self.test_stats_shared)
+
+
+                #====================[ Testing Progress ]=====================#
+                if test_set.dataset_size() > 0:
+
+                    self.log.info('..testing ' + self.dataset.__class__.__name__
+                                + ' block %s/%s'%(blk, self.dataset.nblocks()))
+
+                    for idx in test_set:
+                        stopping_cost, cost = self.testing(test_set.X[idx], test_set.y[idx])
+                        total_test_cost += cost * len(idx)
+                        total_test_stopping_cost += stopping_cost * len(idx)
+                        num_test_examples += len(idx)
+                        test_stats_values += len(idx) * get_shared_values(self.test_stats_shared)
+
+            #==============[ Update best cost and error values ]==============#
             if train_set.dataset_size() > 0:
-
-                self.log.logger.info('..training ' + self.dataset.__class__.__name__ + ' in progress')
-
-                assert train_set.feature_size() == self.model.input_dim and \
-                        train_set.target_size() == self.model.layers[-1].dim, \
-                        'train_set input or target size does not match the model ' + \
-                        'input or target size. ' + \
-                        '\ntrain_set feature size: ' + str(train_set.feature_size()) + \
-                        '\nmodel input dim: ' + str(self.model.input_dim) + \
-                        '\ntrain_set target size: ' + str(train_set.target_size()) + \
-                        '\nmodel output dim: ' + str(self.model.layers[-1].dim)
-
-                num_examples = 0
-                total_cost = 0.
-                total_stopping_cost = 0.
-
-                train_stats_names = ['train_' + name for name in self.train_stats_names]
-                train_stats_values = np.zeros(len(train_stats_names), dtype=floatX)
-
-                for idx in train_set:
-                    stopping_cost, cost = self.training(train_set.X[idx], train_set.y[idx])
-
-                    total_cost += cost * len(idx)
-                    total_stopping_cost += stopping_cost * len(idx)
-                    num_examples += len(idx)
-
-                    train_stats_values += len(idx) * get_shared_values(self.train_stats_shared)
-
-                mean_train_error = total_stopping_cost / num_examples
-                mean_train_cost = total_cost / num_examples
-
-                train_stats_values /= num_examples
+                mean_train_error = total_train_stopping_cost / num_train_examples
+                mean_train_cost = total_train_cost / num_train_examples
+                train_stats_values /= num_train_examples
 
                 if mean_train_error < best_train_error:
                     best_train_error = mean_train_error
 
-            #=====================[ Validating Progress ]=====================#
             if valid_set.dataset_size() > 0:
-
-                self.log.logger.info('..validating ' + self.dataset.__class__.__name__ + ' in progress')
-
-                assert valid_set.feature_size() == self.model.input_dim and \
-                        valid_set.target_size() == self.model.layers[-1].dim, \
-                        'valid_set input or target size does not match the model ' + \
-                        'input or target size. ' + \
-                        '\nvalid_set feature size: ' + str(valid_set.feature_size()) + \
-                        '\nmodel input dim: ' + str(self.model.input_dim) + \
-                        '\nvalid_set target size: ' + str(valid_set.target_size()) + \
-                        '\nmodel output dim: ' + str(self.model.layers[-1].dim)
-
-                num_examples = 0
-                total_cost = 0.
-                total_stopping_cost = 0.
-
-                valid_stats_names = ['valid_' + name for name in self.test_stats_names]
-                valid_stats_values = np.zeros(len(valid_stats_names), dtype=floatX)
-
-                for idx in valid_set:
-                    stopping_cost, cost = self.testing(valid_set.X[idx], valid_set.y[idx])
-
-                    total_cost += cost * len(idx)
-                    total_stopping_cost += stopping_cost * len(idx)
-                    num_examples += len(idx)
-
-                    valid_stats_values += len(idx) * get_shared_values(self.test_stats_shared)
-
-                mean_valid_error = total_stopping_cost / num_examples
-                mean_valid_cost = total_cost / num_examples
-
-                valid_stats_values /= num_examples
+                mean_valid_error = total_valid_stopping_cost / num_valid_examples
+                mean_valid_cost = total_valid_cost / num_valid_examples
+                valid_stats_values /= num_valid_examples
 
                 if best_valid_error - mean_valid_error > 0:
                     error_dcr = best_valid_error - mean_valid_error
                     best_valid_error = mean_valid_error
 
-            #======================[ Testing Progress ]=======================#
             if test_set.dataset_size() > 0:
+                mean_test_error = total_test_stopping_cost / num_test_examples
+                mean_test_cost = total_test_cost / num_test_examples
+                test_stats_values /= num_test_examples
 
-                self.log.logger.info('..testing ' + self.dataset.__class__.__name__ + ' in progress')
+            #========[ save model, save hyperparams, save to database ]=======#
+            if mean_test_error < best_test_error:
 
-                assert test_set.feature_size() == self.model.input_dim and \
-                        test_set.target_size() == self.model.layers[-1].dim, \
-                        'test_set input or target size does not match the model ' + \
-                        'input or target size. ' + \
-                        '\ntest_set feature size: ' + str(test_set.feature_size()) + \
-                        '\nmodel input dim: ' + str(self.model.input_dim) + \
-                        '\ntest_set target size: ' + str(test_set.target_size()) + \
-                        '\nmodel output dim: ' + str(self.model.layers[-1].dim)
+                best_test_error = mean_test_error
 
-                num_examples = 0
-                total_cost = 0.
-                total_stopping_cost = 0.
+                if self.log.save_model:
+                    self.log._save_model(self.model)
+                    self.log.info('..model saved')
 
-                test_stats_names = ['test_' + name for name in self.test_stats_names]
-                test_stats_values = np.zeros(len(test_stats_names), dtype=floatX)
+                if self.log.save_hyperparams:
+                    self.log._save_hyperparams(self.learning_rule)
+                    self.log.info('..hyperparams saved')
 
-                for idx in test_set:
-                    stopping_cost, cost = self.testing(test_set.X[idx], test_set.y[idx])
+                if self.log.save_to_database:
+                    self.log._save_to_database(epoch, best_train_error, best_valid_error, best_test_error)
 
-                    total_cost += cost * len(idx)
-                    total_stopping_cost += stopping_cost * len(idx)
-                    num_examples += len(idx)
-
-                    test_stats_values += len(idx) * get_shared_values(self.test_stats_shared)
-
-                test_stats_values /= num_examples
-
-                mean_test_error = total_stopping_cost / num_examples
-                mean_test_cost = total_cost / num_examples
-
-                #======[ save model, save hyperparams, send to database ]=====#
-                if mean_test_error < best_test_error:
-
-                    best_test_error = mean_test_error
-
-                    if self.log.save_model:
-                        self.log._save_model(self.model)
-                        self.log.logger.info('..model saved')
-
-                    if self.log.save_hyperparams:
-                        self.log._save_hyperparams(self.learning_rule)
-                        self.log.logger.info('..hyperparams saved')
-
-                    if self.log.save_to_database:
-                        self.log.log(type(epoch))
-                        self.log.log(type(best_train_error))
-                        self.log._save_to_database(epoch, best_train_error, best_valid_error, best_test_error)
-
-                        self.log.logger.info('..sent to database: %s:%s' % (self.log.save_to_database,
-                                                                self.log.experiment_name))
-
+                    self.log.info('..sent to database: %s:%s' % (self.log.save_to_database['name'],
+                                                            self.log.experiment_name))
 
             end_time = time.time()
 

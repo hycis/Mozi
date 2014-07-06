@@ -52,9 +52,13 @@ class Log:
         if save_to_database:
             self.first_time_record = True
 
-    def log(self, msg):
+    def info(self, msg):
         self.logger.info(msg)
 
+    def print_records(self):
+
+        for key in self.save_to_database['records']:
+            self.info(key + ': ' + `self.save_to_database['records'][key]`)
 
     def _log_outputs(self, outputs):
         dt = datetime.now()
@@ -76,8 +80,6 @@ class Log:
     def _save_hyperparams(self, learning_rule):
         with open(self.exp_dir+'/hyperparams.pkl', 'wb') as pkl_file:
             cPickle.dump(learning_rule, pkl_file)
-
-
 
     def _save_to_database(self, epoch, train_error, valid_error, test_error):
         conn = sqlite3.connect(os.environ['PYNET_DATABASE_PATH'] + '/' + self.save_to_database['name'])
@@ -107,8 +109,6 @@ class Log:
                     ls.append(v)
                 query += '?,?,?,?,?);'
                 ls.extend([epoch, train_error, valid_error, test_error])
-                print(query)
-                print(ls)
                 cur.execute(query, ls)
                 self.first_time_record = False
 
