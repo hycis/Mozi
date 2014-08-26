@@ -138,6 +138,10 @@ class Standardize(ExamplewisePreprocessor):
         X = (X - self._mean) / (self._std_eps + self._std)
         return X
 
+    def invert(self, X):
+        return X * (self._std_eps + self._std) + self._mean
+
+
 
 class GCN(Preprocessor):
 
@@ -283,17 +287,18 @@ class Scale(Preprocessor):
     """
 
 
-    def __init__(self, global_max=None, global_min=None, scale_range=[0,1], buffer=1e-8):
+    def __init__(self, global_max=None, global_min=None, use_local=True, scale_range=[-1,1], buffer=0.5):
 
         self.scale_range = scale_range
         self.buffer = buffer
         self.max = global_max
         self.min = global_min
+        self.use_local = use_local
         assert scale_range[0] + buffer < scale_range[1] - buffer, \
                 'the lower bound is larger than the upper bound'
 
     def apply(self, X):
-
+        # TODO allow local scaling of each example
         self.max = self.max if self.max is not None else X.max()
         self.min = self.min if self.min is not None else X.min()
         width = self.max - self.min

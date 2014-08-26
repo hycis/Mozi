@@ -182,3 +182,19 @@ class Tanh(Layer):
 
     def _train_layer_stats(self, layer_output):
         return self._test_layer_stats(layer_output)
+
+class Softplus(Layer):
+    def _test_fprop(self, state_below):
+        output = self._linear_part(state_below)
+        return T.nnet.softplus(output)
+
+    def _train_fprop(self, state_below):
+        output = self._linear_part(state_below)
+        return T.nnet.softplus(output)
+
+    # This is called every batch, the final cout will be the mean of all batches in an epoch
+    def _test_layer_stats(self, layer_output):
+        return super(Softplus, self)._test_layer_stats(layer_output)
+
+    def _train_layer_stats(self, layer_output):
+        return self._test_layer_stats(layer_output)

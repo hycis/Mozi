@@ -16,6 +16,9 @@ from pynet.utils.utils import split_list, generate_shared_list, \
                                 merge_lists, get_shared_values, \
                                 duplicate_param
 
+from pynet.utils.check_memory import print_mem_usage
+
+
 class TrainObject():
 
     '''
@@ -246,6 +249,7 @@ class TrainObject():
             blk = 0
 
             for block in self.dataset:
+                block_time = time.time()
                 blk += 1
 
                 train_set = block.get_train()
@@ -294,6 +298,9 @@ class TrainObject():
                         num_test_examples += len(idx)
                         test_stats_values += len(idx) * get_shared_values(self.test_stats_shared)
 
+                self.log.info('block time: %0.2f'%(time.time()-block_time))
+                self.log.info(print_mem_usage())
+
             #==============[ Update best cost and error values ]==============#
             if train_set.dataset_size() > 0:
                 mean_train_error = total_train_stopping_cost / num_train_examples
@@ -330,11 +337,12 @@ class TrainObject():
                     self.log._save_hyperparams(self.learning_rule)
                     self.log.info('..hyperparams saved')
 
-                if self.log.save_to_database:
-                    self.log._save_to_database(epoch, best_train_error, best_valid_error, best_test_error)
+            #=======================[ save to database ]======================#
+            if self.log.save_to_database:
+                self.log._save_to_database(epoch, best_train_error, best_valid_error, best_test_error)
 
-                    self.log.info('..sent to database: %s:%s' % (self.log.save_to_database['name'],
-                                                            self.log.experiment_name))
+                self.log.info('..sent to database: %s:%s' % (self.log.save_to_database['name'],
+                                                        self.log.experiment_name))
 
             end_time = time.time()
 

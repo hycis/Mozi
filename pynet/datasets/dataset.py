@@ -113,7 +113,7 @@ class Dataset(SingleBlock):
             train_valid_test_ratio : list
                 the ratio to split the dataset linearly
         '''
-        
+
         assert len(train_valid_test_ratio) == 3, 'the size of list is not 3'
         self.ratio = train_valid_test_ratio
         self.preprocessor = preprocessor

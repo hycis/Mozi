@@ -43,6 +43,7 @@ def stacksize(since=0.0):
 
 
 def print_mem_usage():
-    print('memory: ' + str(memory()/1024/1024) + ' MB')
-    print('resident: ' + str(resident()/1024/1024) + ' MB')
-    print('stacksize: ' + str(resident()/1024/1024) + ' MB')
+    rstr = 'memory: ' + str(memory()/1024/1024) + ' MB\n'
+    rstr += 'resident: ' + str(resident()/1024/1024) + ' MB\n'
+    rstr += 'stacksize: ' + str(resident()/1024/1024) + ' MB\n'
+    return rstr

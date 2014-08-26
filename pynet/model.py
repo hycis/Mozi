@@ -43,8 +43,8 @@ class MLP(Model):
 
         if layer.W is None:
             W_values = np.asarray(np.random.uniform(
-                                low = -np.sqrt(1. / (prev_layer_dim)),
-                                high = np.sqrt(1. / (prev_layer_dim)),
+                                low = -4 * np.sqrt(6. / (layer.dim + prev_layer_dim)),
+                                high = 4 * np.sqrt(6. / (layer.dim + prev_layer_dim)),
                                 size = (prev_layer_dim, layer.dim)),
                                 dtype = floatX)
 
@@ -112,12 +112,12 @@ class AutoEncoder(MLP):
         self.add_layer(layer)
         self.decode_layers.append(layer)
 
-    def rm_encode_layer(self, index):
+    def pop_encode_layer(self, index=0):
         layer = self.encode_layers.pop(index)
         self.layers.remove(layer)
         return layer
 
-    def rm_decode_layer(self, index):
+    def pop_decode_layer(self, index=0):
         layer = self.decode_layers.pop(index)
         self.layers.remove(layer)
         return layer

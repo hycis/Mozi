@@ -14,13 +14,13 @@ def split_list(tuple_list):
     """
     ls_A = []
     ls_B = []
-    
+
     for tuple in tuple_list:
         ls_A.append(tuple[0])
         ls_B.append(tuple[1])
 
     return ls_A, ls_B
-    
+
 def generate_shared_list(ls):
     """
     DESCRIPTION:
@@ -31,12 +31,12 @@ def generate_shared_list(ls):
         a list of shared variables initialized to 0 of len(ls)
     """
     rlist = []
-    
+
     for i in xrange(len(ls)):
         rlist.append(theano.shared(np.array(0., dtype=theano.config.floatX)))
-    
+
     return rlist
-    
+
 def merge_lists(ls_A, ls_B):
     """
     DESCRIPTION:
@@ -47,13 +47,13 @@ def merge_lists(ls_A, ls_B):
     RETURN:
         a list of tuples
     """
-    
+
     assert len(ls_A) == len(ls_B), 'two lists of different length'
-    
+
     rlist = []
     for a, b in zip(ls_A, ls_B):
         rlist.append((a,b))
-    
+
     return rlist
 
 def get_shared_values(shared_ls):
@@ -62,27 +62,27 @@ def get_shared_values(shared_ls):
         get a list of values from a list of shared variables
     PARAM:
         shared_ls: list of shared variables
-    RETURN: 
+    RETURN:
         numpy array of the list of values
     """
-    
+
     val_ls = []
     for var in shared_ls:
         val_ls.append(var.get_value())
-    
+
     return np.asarray(val_ls, dtype=theano.config.floatX)
-    
-    
+
+
 def duplicate_param(name, tensor_list):
-    
+
     for param in tensor_list:
         if param.name is name:
             return True
-        
+
     return False
 
 
-def tile_raster_graphs(dct_reconstruct, orig, ae_reconstruct, tile_shape, tile_spacing=(0.1,0.1), 
+def tile_raster_graphs(dct_reconstruct, orig, ae_reconstruct, tile_shape, tile_spacing=(0.1,0.1),
                         slice=(0,-1), axis=None, legend=True):
     """
     DESCRIPTION:
@@ -94,22 +94,22 @@ def tile_raster_graphs(dct_reconstruct, orig, ae_reconstruct, tile_shape, tile_s
         slice : index [start:end]
             gives the range of values in the example to plot
         axis : list [x_min, x_max, y_min, y_max]
-            sets the bounds of the x and y axis  
+            sets the bounds of the x and y axis
     RETURN:
         matplotlib.plot object  
     """
-    
+
     assert orig.shape == ae_reconstruct.shape, 'orig ' + str(orig.shape) + ' and reconstruct ' + \
         str(ae_reconstruct.shape) + ' shapes are different'
-    
+
     # make a little extra space between the subplots
     plt.subplots_adjust(wspace=tile_spacing[0], hspace=tile_spacing[1])
-     
+
     num_examples = orig.shape[0]
     if num_examples > tile_shape[0] * tile_shape[1]:
         num_examples = tile_shape[0] * tile_shape[1]
 
-    for i in xrange(0, num_examples):    
+    for i in xrange(0, num_examples):
         plt.subplot(tile_shape[0], tile_shape[1], i+1)
         plt.plot(orig[i][slice[0]:slice[1]], 'b-', label='orig')
         plt.plot(ae_reconstruct[i][slice[0]:slice[1]], 'g-', label='AE reconstruct')
@@ -120,10 +120,4 @@ def tile_raster_graphs(dct_reconstruct, orig, ae_reconstruct, tile_shape, tile_s
             plt.axis('tight')
         else:
             plt.axis(axis)
-    return plt    
-    
-
-
-
-    
-    
+    return plt

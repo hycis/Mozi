@@ -4,7 +4,7 @@ import theano
 
 from pynet.utils.mnist_ubyte import read_mnist_images
 from pynet.utils.mnist_ubyte import read_mnist_labels
-from pynet.datasets.dataset import IterMatrix, Dataset
+from pynet.datasets.dataset import IterMatrix, Dataset, DataBlocks
 
 class Mnist(Dataset):
 
@@ -38,3 +38,33 @@ class Mnist(Dataset):
         y = np.concatenate((train_y, test_y), axis=0)
 
         super(Mnist, self).__init__(X=X, y=y, **kwargs)
+
+class Mnist_Blocks(DataBlocks):
+
+    def __init__(self, feature_size, target_size, **kwargs):
+
+        self.parts = [ 'blk1.npy', 'blk2.npy']
+        # self.parts = ['fullblk.npy']
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/mnist_npy'
+        super(Mnist_Blocks, self).__init__(feature_size, target_size, **kwargs)
+
+
+    def __iter__(self):
+        self.files = iter(self.parts)
+        return self
+
+    def next(self):
+        self.dataset.train = None
+        self.dataset.valid = None
+        self.dataset.test = None
+        with open(self.data_dir + '/' + next(self.files), 'rb') as f:
+            data = np.load(f)
+        if self.dataset.preprocessor is not None:
+            logger.info('..applying preprocessing: ' + self.preprocessor.__class__.__name__)
+            data = self.dataset.preprocessor.apply(data)
+        self.dataset.set_Xy(X=data, y=data)
+        data = None
+        return self.dataset
+
+    def nblocks(self):
+        return len(self.parts)
