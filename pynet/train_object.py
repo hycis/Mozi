@@ -4,7 +4,7 @@ floatX = theano.config.floatX
 
 import numpy as np
 
-import time
+import time, datetime
 import sys
 
 import logging
@@ -153,6 +153,7 @@ class TrainObject():
                 else:
                     train_updates += [(param, param + delta)]
 
+        # TODO
         elif self.learning_rule.momentum_type == 'nesterov':
             raise NotImplementedError('nesterov not implemented yet')
 
@@ -172,7 +173,8 @@ class TrainObject():
         self.training = theano.function(inputs=[train_x, train_y],
                                         outputs=(train_stopping_cost, train_cost),
                                         updates=train_updates,
-                                        on_unused_input='warn')
+                                        on_unused_input='warn',
+                                        allow_input_downcast=True)
 
         self.log.info('..training function compiled')
 
@@ -196,7 +198,8 @@ class TrainObject():
         self.testing = theano.function(inputs=[test_x, test_y],
                                         outputs=(test_stopping_cost, test_cost),
                                         updates=test_stats_updates,
-                                        on_unused_input='warn')
+                                        on_unused_input='warn',
+                                        allow_input_downcast=True)
 
         self.log.info('..testing function compiled')
 
@@ -226,6 +229,8 @@ class TrainObject():
         train_stats_names = ['train_' + name for name in self.train_stats_names]
         valid_stats_names = ['valid_' + name for name in self.test_stats_names]
         test_stats_names = ['test_' + name for name in self.test_stats_names]
+
+        job_start = time.time()
 
         while (self.continue_learning(epoch, error_dcr, best_valid_error)):
 
@@ -298,7 +303,7 @@ class TrainObject():
                         num_test_examples += len(idx)
                         test_stats_values += len(idx) * get_shared_values(self.test_stats_shared)
 
-                self.log.info('block time: %0.2f'%(time.time()-block_time))
+                self.log.info('block time: %0.2fs'%(time.time()-block_time))
                 self.log.info(print_mem_usage())
 
             #==============[ Update best cost and error values ]==============#
@@ -366,10 +371,14 @@ class TrainObject():
                         ('best_test_error_' + stopping_cost_type, best_test_error)]
 
             outputs += merged_train + merged_valid + merged_test
-
             self.log._log_outputs(outputs)
-
             epoch += 1
+
+        job_end = time.time()
+        self.log.info('Job Completed! at %s'%time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(job_end)))
+        ttl_time = int(job_start - job_end)
+        datetime.timedelta(seconds=ttl_time)
+        self.log.info('Total Time Taken: %s'%str(_))
 
 
     def continue_learning(self, epoch, error_dcr, best_valid_error):

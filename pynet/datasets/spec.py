@@ -82,10 +82,47 @@ class Laura_Warp_Blocks(Laura_Blocks):
 
         self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura_warp_npy'
 
-class Laura_Warp_Blocks_500(Laura_Warp_Blocks):
+class Laura_Warp_Standardize_Blocks(Laura_Blocks):
     def __init__(self, feature_size, target_size, **kwargs):
-        super(Laura_Warp_Blocks_500, self).__init__(feature_size, target_size, **kwargs)
+        super(Laura_Warp_Standardize_Blocks, self).__init__(feature_size, target_size, **kwargs)
+        self.parts = [ 'Laura_warp_standardize_data_000.npy',  'Laura_warp_standardize_data_010.npy',
+                       'Laura_warp_standardize_data_001.npy',  'Laura_warp_standardize_data_011.npy',
+                       'Laura_warp_standardize_data_002.npy',  'Laura_warp_standardize_data_012.npy',
+                       'Laura_warp_standardize_data_003.npy',  'Laura_warp_standardize_data_013.npy',
+                       'Laura_warp_standardize_data_004.npy',  'Laura_warp_standardize_data_014.npy',
+                       'Laura_warp_standardize_data_005.npy',  'Laura_warp_standardize_data_015.npy',
+                       'Laura_warp_standardize_data_006.npy',  'Laura_warp_standardize_data_016.npy',
+                       'Laura_warp_standardize_data_007.npy',  'Laura_warp_standardize_data_017.npy',
+                       'Laura_warp_standardize_data_008.npy',  'Laura_warp_standardize_data_018.npy',
+                       'Laura_warp_standardize_data_009.npy',  'Laura_warp_standardize_data_019.npy']
+
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura_warp_standardize_npy'
+
+class Laura_Standardize_Blocks(Laura_Blocks):
+    def __init__(self, feature_size, target_size, **kwargs):
+        super(Laura_Standardize_Blocks, self).__init__(feature_size, target_size, **kwargs)
+        self.parts = [ 'Laura_standardize_data_000.npy',  'Laura_standardize_data_010.npy',
+                       'Laura_standardize_data_001.npy',  'Laura_standardize_data_011.npy',
+                       'Laura_standardize_data_002.npy',  'Laura_standardize_data_012.npy',
+                       'Laura_standardize_data_003.npy',  'Laura_standardize_data_013.npy',
+                       'Laura_standardize_data_004.npy',  'Laura_standardize_data_014.npy',
+                       'Laura_standardize_data_005.npy',  'Laura_standardize_data_015.npy',
+                       'Laura_standardize_data_006.npy',  'Laura_standardize_data_016.npy',
+                       'Laura_standardize_data_007.npy',  'Laura_standardize_data_017.npy',
+                       'Laura_standardize_data_008.npy',  'Laura_standardize_data_018.npy',
+                       'Laura_standardize_data_009.npy',  'Laura_standardize_data_019.npy']
+
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura_standardize_npy'
+
+class Laura_Warp_Blocks_500_RELU(Laura_Warp_Blocks):
+    def __init__(self, feature_size, target_size, **kwargs):
+        super(Laura_Warp_Blocks_500_RELU, self).__init__(feature_size, target_size, **kwargs)
         self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura_AE0713_Warp_500_20140714_1317_43818059'
+
+class Laura_Warp_Blocks_500_Tanh(Laura_Warp_Blocks):
+    def __init__(self, feature_size, target_size, **kwargs):
+        super(Laura_Warp_Blocks_500_Tanh, self).__init__(feature_size, target_size, **kwargs)
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura_AE0830_Warp_Blocks_2049_500_tanh_gpu_20140902_0012_36590657'
 
 class Laura_Warp_Blocks_650(Laura_Warp_Blocks):
     def __init__(self, feature_size, target_size, **kwargs):
@@ -105,16 +142,6 @@ class Laura_Warp_Blocks_250(Laura_Warp_Blocks):
 class Laura_Warp_Blocks_180(Laura_Warp_Blocks):
     def __init__(self, feature_size, target_size, **kwargs):
         super(Laura_Warp_Blocks_180, self).__init__(feature_size, target_size, **kwargs)
-        self.parts = [ 'Laura_warp_data_000.npy',  'Laura_warp_data_010.npy',
-                       'Laura_warp_data_001.npy',  'Laura_warp_data_011.npy',
-                       'Laura_warp_data_002.npy',  'Laura_warp_data_012.npy',
-                       'Laura_warp_data_003.npy',  'Laura_warp_data_013.npy',
-                       'Laura_warp_data_004.npy',  'Laura_warp_data_014.npy']
-                    #    'Laura_warp_data_005.npy',  'Laura_warp_data_015.npy',
-                    #    'Laura_warp_data_006.npy',  'Laura_warp_data_016.npy',
-                    #    'Laura_warp_data_007.npy',  'Laura_warp_data_017.npy',
-                    #    'Laura_warp_data_008.npy',  'Laura_warp_data_018.npy',
-                    #    'Laura_warp_data_009.npy',  'Laura_warp_data_019.npy']
         self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura_AE0721_Warp_Blocks_500_180_20140723_0131_18179134'
 
 class Laura_Warp_Blocks_150(Laura_Warp_Blocks):

@@ -25,16 +25,24 @@ def _VmB(VmKey):
 
 
 def memory(since=0.0):
-    '''Return memory usage in bytes.
+    '''Return virtual memory usage in bytes.
     '''
     return _VmB('VmSize:') - since
 
+def peak_Vm(since=0.0):
+    '''Return the peak virtual memory usage in bytes
+    '''
+    return _VmB('VmPeak:') - since
 
 def resident(since=0.0):
     '''Return resident memory usage in bytes.
     '''
     return _VmB('VmRSS:') - since
 
+def peak_resident(since=0.0):
+    '''Return the peak resident memory usage in bytes.
+    '''
+    return _VmB('VmHWM:') - since
 
 def stacksize(since=0.0):
     '''Return stack size in bytes.
@@ -43,7 +51,10 @@ def stacksize(since=0.0):
 
 
 def print_mem_usage():
-    rstr = 'memory: ' + str(memory()/1024/1024) + ' MB\n'
-    rstr += 'resident: ' + str(resident()/1024/1024) + ' MB\n'
+    rstr = 'virtual memory: ' + str(memory()/1024/1024) + ' MB\n'
+    rstr += 'peak virtual memory: ' + str(peak_Vm()/1024/1024) + ' MB\n'
+    rstr += 'resident memory: ' + str(resident()/1024/1024) + ' MB\n'
+    rstr += 'peak resident memory: ' + str(peak_resident()/1024/1024) + ' MB\n'
     rstr += 'stacksize: ' + str(resident()/1024/1024) + ' MB\n'
+
     return rstr
