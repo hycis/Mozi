@@ -63,8 +63,8 @@ class MLP(Model):
 
         test_layers_stats = []
         for i in xrange(len(self.layers)):
-            layer_output = self.layers[i]._test_fprop(input_state)
-            stats = self.layers[i]._test_layer_stats(layer_output)
+            input_state = self.layers[i]._test_fprop(input_state)
+            stats = self.layers[i]._test_layer_stats(input_state)
             class_name = self.layers[i].__class__.__name__
             stats = [(str(i)+'_'+class_name+'_'+a, b) for (a,b) in stats]
             test_layers_stats += stats
@@ -76,8 +76,8 @@ class MLP(Model):
 
         train_layers_stats = []
         for i in xrange(len(self.layers)):
-            layer_output = self.layers[i]._train_fprop(input_state)
-            stats = self.layers[i]._train_layer_stats(layer_output)
+            input_state = self.layers[i]._train_fprop(input_state)
+            stats = self.layers[i]._train_layer_stats(input_state)
             class_name = self.layers[i].__class__.__name__
             stats = [(str(i)+'_'+class_name+'_'+a, b) for (a,b) in stats]
             train_layers_stats += stats

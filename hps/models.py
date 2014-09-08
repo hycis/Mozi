@@ -16,6 +16,7 @@ import cPickle
 import os
 
 import theano
+from theano.sandbox.cuda.var import CudaNdarraySharedVariable
 floatX = theano.config.floatX
 
 class AE:
@@ -290,13 +291,11 @@ class Laura_Two_Layers(AE):
 
         model = self.build_model(dataset.feature_size())
         model.layers[0].dropout_below = self.state.hidden1.dropout_below
-        import pdb
-        pdb.set_trace()
         for layer in model.layers:
-            print(layer.W.__class__.__name__)
-            print(layer.b.__class__.__name__)
-            layer.W = layer.W.astype(floatX)
-            layer.b = layer.b.astype(floatX)
+            if isinstance(layer.W, CudaNdarraySharedVariable):
+                layer.W = theano.tensor._shared(np.array(layer.W.get_value()))
+            if isinstance(layer.b, CudaNdarraySharedVariable):
+                layer.b = theano.tensor._shared(np.array(layer.b.get_value()))
 
         if self.state.log.save_to_database_name:
             database = self.build_database(dataset, learning_rule, model)
