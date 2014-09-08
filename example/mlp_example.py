@@ -59,7 +59,7 @@ def mlp():
             description = 'This experiment is to test the model',
             save_outputs = True,
             save_hyperparams = False,
-            save_model = False,
+            save_model = True,
             save_to_database = {'name': 'Database.db',
                                 'records' : {'Dataset' : data.__class__.__name__,
                                              'Weight_Init_Seed' : mlp.rand_seed,

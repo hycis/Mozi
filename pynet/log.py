@@ -4,6 +4,10 @@ import sys
 import logging
 import cPickle
 import sqlite3
+import copy
+import numpy as np
+import theano
+from theano.sandbox.cuda.var import CudaNdarraySharedVariable
 
 class Log:
 
@@ -74,8 +78,15 @@ class Log:
         print('\n')
 
     def _save_model(self, model):
+        sav_model = copy.deepcopy(model)
+        for layer in sav_model.layers:
+            if isinstance(layer.W, CudaNdarraySharedVariable):
+                layer.W = theano.tensor._shared(np.array(layer.W.get_value()))
+            if isinstance(layer.b, CudaNdarraySharedVariable):
+                layer.b = theano.tensor._shared(np.array(layer.b.get_value()))
+
         with open(self.exp_dir+'/model.pkl', 'wb') as pkl_file:
-            cPickle.dump(model, pkl_file)
+            cPickle.dump(sav_model, pkl_file)
 
     def _save_hyperparams(self, learning_rule):
         with open(self.exp_dir+'/hyperparams.pkl', 'wb') as pkl_file:
