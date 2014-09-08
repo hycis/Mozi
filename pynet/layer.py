@@ -55,7 +55,7 @@ class Layer(object):
 		DESCRIPTION:
 			performs linear transform y = dot(W, state_below) + b
 		PARAM:
-			state_below: 1d array of inputs from layer below
+			state_below: 2d array of inputs from layer below
         """
         return T.dot(state_below, self.W) + self.b
 

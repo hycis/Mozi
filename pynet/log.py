@@ -6,8 +6,11 @@ import cPickle
 import sqlite3
 import copy
 import numpy as np
+
 import theano
 from theano.sandbox.cuda.var import CudaNdarraySharedVariable
+
+floatX = theano.config.floatX
 
 class Log:
 

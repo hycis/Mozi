@@ -68,7 +68,6 @@ class TrainObject():
             return var.__class__.__name__ == 'TensorSharedVariable' or \
                     var.__class__.__name__ == 'CudaNdarraySharedVariable'
 
-
         params = []
         deltas = []
 
@@ -103,8 +102,6 @@ class TrainObject():
                 self.learning_rule.momentum_type == 'nesterov', \
                 'momentum is not normal | nesterov'
 
-        train_updates = []
-
         if self.learning_rule.momentum_type == 'normal':
 
             train_y_pred, train_layers_stats = self.model.train_fprop(train_x)
@@ -134,8 +131,11 @@ class TrainObject():
                             ' is not used in L2 regularization')
                 train_cost += self.learning_rule.L2_lambda * L2
 
+            import pdb
+            pdb.set_trace()
             gparams = T.grad(train_cost, params)
 
+            train_updates = []
             for delta, param, gparam in zip(deltas, params, gparams):
                 train_updates += [(delta, self.learning_rule.momentum * delta
                             - self.learning_rule.learning_rate * gparam)]
@@ -174,7 +174,7 @@ class TrainObject():
                                         outputs=(train_stopping_cost, train_cost),
                                         updates=train_updates,
                                         on_unused_input='warn',
-                                        allow_input_downcast=True)
+                                        rebuild_strict=False)
 
         self.log.info('..training function compiled')
 
@@ -375,10 +375,10 @@ class TrainObject():
             epoch += 1
 
         job_end = time.time()
-        self.log.info('Job Completed! at %s'%time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(job_end)))
-        ttl_time = int(job_start - job_end)
-        datetime.timedelta(seconds=ttl_time)
-        self.log.info('Total Time Taken: %s'%str(_))
+        self.log.info('Job Completed on %s'%time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(job_end)))
+        ttl_time = int(job_end - job_start)
+        dt = datetime.timedelta(seconds=ttl_time)
+        self.log.info('Total Time Taken: %s \n'%dt)
 
 
     def continue_learning(self, epoch, error_dcr, best_valid_error):
