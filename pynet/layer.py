@@ -4,6 +4,7 @@ import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 
 floatX = theano.config.floatX
+theano_rand = RandomStreams()
 
 class Layer(object):
     """
@@ -27,7 +28,7 @@ class Layer(object):
         self.W = W
         self.b = b
         self.dropout_below = dropout_below
-        self.theano_rand = RandomStreams()
+
 
         if self.W is not None and self.W.name is None:
             self.W.name = 'W_' + self.name
@@ -50,7 +51,7 @@ class Layer(object):
 
         if self.dropout_below is not None:
             assert self.dropout_below >= 0. and self.dropout_below <= 1., 'dropout_below is not in range [0,1]'
-            state_below = self.theano_rand.binomial(ndim=self.dim, n=1, p=(1-self.dropout_below),
+            state_below = theano_rand.binomial(size=state_below.shape, n=1, p=(1-self.dropout_below),
                                                     dtype=floatX) * state_below
 
         return T.dot(state_below, self.W) + self.b
