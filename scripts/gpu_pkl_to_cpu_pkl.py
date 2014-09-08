@@ -138,6 +138,13 @@ def fix(obj, stacklevel=0):
         print prefix + 'fixing a generic object'
         field_names = dir(obj)
         for field in field_names:
+            print '=========='
+            print field
+            if field == 'env':
+#                 import pdb
+#                 pdb.set_trace()
+                continue
+            print '-----------'
             if isinstance(getattr(obj, field), types.MethodType):
                 print prefix + '.%s is an instancemethod' % field
                 continue
@@ -150,12 +157,22 @@ def fix(obj, stacklevel=0):
                 print prefix + '.%s is blacklisted for TensorVariable'%field
                 continue
             
-            print prefix + '.fixing field %s' % field
-            if field == 'dtype':
-                import pdb
-                pdb.set_trace()
-            updated_field = fix(getattr(obj, field), stacklevel + 2)
-            print prefix + '.applying fix to field %s' % field
+
+#             
+#             print prefix + '.fixing field %s' % field
+# #             if field == 'dtype':
+#             import pdb
+#             pdb.set_trace()
+            try:
+#                 if field == 'W':
+                   #  import pdb
+#                     pdb.set_trace()
+                updated_field = fix(getattr(obj, field), stacklevel + 2)
+                print prefix + '.applying fix to field %s' % field
+            except:
+                pass
+                # import pdb
+#                 pdb.set_trace()
             if isinstance(updated_field, Placeholder):
                 postponed_fixes.append(FieldFixer(obj, field, updated_field))
             else:
@@ -164,6 +181,7 @@ def fix(obj, stacklevel=0):
                 except Exception, e:
                     print "Couldn't do that because of exception: "+str(e)
         rval = obj
+
     already_fixed[oid] = rval
     print prefix+'stored fix for '+str(oid)
     assert canary_oid == oid

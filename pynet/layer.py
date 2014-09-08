@@ -2,8 +2,11 @@ import numpy as np
 import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
+# from theano.tensor.raw_random import binomial
+
 
 floatX = theano.config.floatX
+theano_rand = RandomStreams()
 
 class Layer(object):
     """
@@ -27,7 +30,6 @@ class Layer(object):
         self.W = W
         self.b = b
         self.dropout_below = dropout_below
-        self.theano_rand = RandomStreams()
 
         if self.W is not None and self.W.name is None:
             self.W.name = 'W_' + self.name
@@ -40,19 +42,27 @@ class Layer(object):
     def _train_fprop(self, state_below):
         raise NotImplementedError(str(type(self))+" does not implement _train_fprop.")
 
+    def _mask_state_below(self, state_below):
+        """
+        DESCRIPTION:
+            masked the state below with probability specify by self.dropout_below
+        """
+        if self.dropout_below is not None:
+            assert self.dropout_below >= 0. and self.dropout_below <= 1., \
+                    'dropout_below is not in range [0,1]'
+
+            state_below = theano_rand.binomial(size=state_below.shape, n=1,
+                                                p=(1-self.dropout_below),
+                                                dtype=floatX) * state_below
+        return state_below
+
     def _linear_part(self, state_below):
         """
 		DESCRIPTION:
 			performs linear transform y = dot(W, state_below) + b
 		PARAM:
-			state_below: 1d array of inputs from layer below
+			state_below: 2d array of inputs from layer below
         """
-
-        if self.dropout_below is not None:
-            assert self.dropout_below >= 0. and self.dropout_below <= 1., 'dropout_below is not in range [0,1]'
-            state_below = self.theano_rand.binomial(ndim=self.dim, n=1, p=(1-self.dropout_below),
-                                                    dtype=floatX) * state_below
-
         return T.dot(state_below, self.W) + self.b
 
     def _test_layer_stats(self, layer_output):
@@ -71,8 +81,13 @@ class Layer(object):
         max_length = T.max(w_len)
         mean_length = T.mean(w_len)
         min_length = T.min(w_len)
+        # layer_output = self._mask_state_below(state_below)
+        pos = T.gt(T.abs_(layer_output), 0)
+        x, y = pos.shape
+        active = pos.sum() * 1.0 / (x * y)
 
-        return [('max_col_length', max_length),
+        return [('test_active', active),
+                ('max_col_length', max_length),
                 ('mean_col_length', mean_length),
                 ('min_col_length', min_length),
                 ('output_max', T.max(layer_output)),
@@ -96,8 +111,13 @@ class Layer(object):
         RETURN:
             A list of tuples of [('name_a', var_a), ('name_b', var_b)] whereby var is scalar
         """
-        return self._test_layer_stats(layer_output)
-
+        rval = self._test_layer_stats(layer_output)
+        # layer_output = self._mask_state_below(state_below)
+        # pos = T.gt(T.abs_(layer_output), 0)
+        # x, y = pos.shape
+        # active = pos.sum() * 1.0 / (x * y)
+        # return [('train_active', active)]
+        return rval
 
 class Linear(Layer):
     def _test_fprop(self, state_below):
@@ -105,6 +125,7 @@ class Linear(Layer):
         return output
 
     def _train_fprop(self, state_below):
+        state_below = self._mask_state_below(state_below)
         output = self._linear_part(state_below)
         return output
 
@@ -122,6 +143,7 @@ class Sigmoid(Layer):
         return T.nnet.sigmoid(output)
 
     def _train_fprop(self, state_below):
+        state_below = self._mask_state_below(state_below)
         output = self._linear_part(state_below)
         return T.nnet.sigmoid(output)
 
@@ -139,6 +161,7 @@ class RELU(Layer):
         return output * (output > 0.)
 
     def _train_fprop(self, state_below):
+        state_below = self._mask_state_below(state_below)
         output = self._linear_part(state_below)
         return output * (output > 0.)
 
@@ -156,6 +179,7 @@ class Softmax(Layer):
         return T.nnet.softmax(output)
 
     def _train_fprop(self, state_below):
+        state_below = self._mask_state_below(state_below)
         output = self._linear_part(state_below)
         return T.nnet.softmax(output)
 
@@ -173,6 +197,7 @@ class Tanh(Layer):
         return T.tanh(output)
 
     def _train_fprop(self, state_below):
+        state_below = self._mask_state_below(state_below)
         output = self._linear_part(state_below)
         return T.tanh(output)
 
@@ -189,6 +214,7 @@ class Softplus(Layer):
         return T.nnet.softplus(output)
 
     def _train_fprop(self, state_below):
+        state_below = self._mask_state_below(state_below)
         output = self._linear_part(state_below)
         return T.nnet.softplus(output)
 
