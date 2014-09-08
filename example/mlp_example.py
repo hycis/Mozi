@@ -39,8 +39,8 @@ def mlp():
 
     mlp = MLP(input_dim = data.feature_size())
 
-    mlp.add_layer(Sigmoid(dim=200, name='h1_layer', W=None, b=None, dropout_below=None))
-    mlp.add_layer(Sigmoid(dim=data.target_size(), name='output_layer', W=None, b=None, dropout_below=None))
+    mlp.add_layer(Sigmoid(dim=200, name='h1_layer', W=None, b=None, dropout_below=0.5))
+    mlp.add_layer(Sigmoid(dim=data.target_size(), name='output_layer', W=None, b=None, dropout_below=0.5))
 
     learning_rule = LearningRule(max_col_norm = 10,
                                 learning_rate = 0.01,
@@ -73,7 +73,7 @@ def mlp():
             ) # end log
 
     train_object = TrainObject(model = mlp,
-                                datablocks = data,
+                                dataset = data,
                                 learning_rule = learning_rule,
                                 log = log)
     train_object.run()

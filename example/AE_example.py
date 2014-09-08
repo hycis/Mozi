@@ -62,7 +62,7 @@ def autoencoder():
 
     # building autoencoder
     ae = AutoEncoder(input_dim = data.feature_size(), rand_seed=None)
-    h1_layer = RELU(dim=100, name='h1_layer', W=None, b=None)
+    h1_layer = RELU(dim=100, name='h1_layer', W=None, b=None, dropout_below=0.5)
 
     # adding encoding layer
     ae.add_encode_layer(h1_layer)
