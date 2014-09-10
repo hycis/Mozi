@@ -32,16 +32,16 @@ class Laura_Blocks(DataBlocks):
 
     def __init__(self, feature_size, target_size, **kwargs):
         super(Laura_Blocks, self).__init__(feature_size, target_size, **kwargs)
-        self.parts = [ 'Laura_data_000.npy',  'Laura_data_010.npy',
-                       'Laura_data_001.npy',  'Laura_data_011.npy',
-                       'Laura_data_002.npy',  'Laura_data_012.npy',
-                       'Laura_data_003.npy',  'Laura_data_013.npy',
-                       'Laura_data_004.npy',  'Laura_data_014.npy',
-                       'Laura_data_005.npy',  'Laura_data_015.npy',
-                       'Laura_data_006.npy',  'Laura_data_016.npy',
-                       'Laura_data_007.npy',  'Laura_data_017.npy',
-                       'Laura_data_008.npy',  'Laura_data_018.npy',
-                       'Laura_data_009.npy',  'Laura_data_019.npy']
+        self.parts = [ 'Laura_data_000.npy',  'Laura_data_010.npy']
+                    #    'Laura_data_001.npy',  'Laura_data_011.npy',
+                    #    'Laura_data_002.npy',  'Laura_data_012.npy',
+                    #    'Laura_data_003.npy',  'Laura_data_013.npy',
+                    #    'Laura_data_004.npy',  'Laura_data_014.npy',
+                    #    'Laura_data_005.npy',  'Laura_data_015.npy',
+                    #    'Laura_data_006.npy',  'Laura_data_016.npy',
+                    #    'Laura_data_007.npy',  'Laura_data_017.npy',
+                    #    'Laura_data_008.npy',  'Laura_data_018.npy',
+                    #    'Laura_data_009.npy',  'Laura_data_019.npy']
 
         self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura_npy'
 

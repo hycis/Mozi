@@ -74,7 +74,11 @@ class TrainObject():
 
         prev_layer_dim = self.model.input_dim
         for layer in self.model.layers:
+            # import pdb
+            # pdb.set_trace()
             if is_shared_var(layer.W):
+                layer.W = theano.shared(np.array(layer.W.get_value(), dtype=floatX),
+                                        name='W_'+layer.name, borrow=True)
                 params += [layer.W]
                 deltas += [theano.shared(np.zeros((prev_layer_dim, layer.dim), dtype=floatX))]
 
@@ -83,6 +87,8 @@ class TrainObject():
                             ' but not SharedVariable.')
 
             if is_shared_var(layer.b):
+                layer.b = theano.shared(np.array(layer.b.get_value(), dtype=floatX),
+                                        name='b_'+layer.name, borrow=True)
                 params += [layer.b]
                 deltas += [theano.shared(np.zeros(layer.dim, dtype=floatX))]
 
@@ -94,7 +100,7 @@ class TrainObject():
 
         #=====================[ training params updates ]=====================#
 
-        self.log.info("..number of update params: " + str(len(params)))
+        self.log.info("..update params: " + str(params))
 
         train_x = T.matrix('train_x', dtype=floatX)
         train_y = T.matrix('train_y', dtype=floatX)
@@ -133,6 +139,8 @@ class TrainObject():
                 train_cost += self.learning_rule.L2_lambda * L2
 
             train_updates = []
+            # import pdb
+            # pdb.set_trace()
             gparams = T.grad(train_cost, params)
             for delta, param, gparam in zip(deltas, params, gparams):
                 train_updates += [(delta, self.learning_rule.momentum * delta
@@ -165,6 +173,8 @@ class TrainObject():
         #-------------------------[ train functions ]-------------------------#
 
         self.log.info('..begin compiling functions')
+        # import pdb
+        # pdb.set_trace()
 
         train_stopping_cost = self.learning_rule.stopping_criteria['cost'].get_cost(train_y, train_y_pred)
 

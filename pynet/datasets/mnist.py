@@ -1,3 +1,5 @@
+import logging
+logger = logging.getLogger(__name__)
 import os
 import numpy as np
 import theano
@@ -68,3 +70,11 @@ class Mnist_Blocks(DataBlocks):
 
     def nblocks(self):
         return len(self.parts)
+
+class Mnist_Blocks_500(Mnist_Blocks):
+    def __init__(self, feature_size, target_size, **kwargs):
+
+        # self.parts = [ 'blk1.npy', 'blk2.npy']
+        # self.parts = ['fullblk.npy']
+        super(Mnist_Blocks_500, self).__init__(feature_size, target_size, **kwargs)
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/AE_Testing_Mnist_784_500_20140908_2215_15217959'

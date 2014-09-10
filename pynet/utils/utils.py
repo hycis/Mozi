@@ -96,7 +96,7 @@ def tile_raster_graphs(dct_reconstruct, orig, ae_reconstruct, tile_shape, tile_s
         axis : list [x_min, x_max, y_min, y_max]
             sets the bounds of the x and y axis
     RETURN:
-        matplotlib.plot object  
+        matplotlib.plot object
     """
 
     assert orig.shape == ae_reconstruct.shape, 'orig ' + str(orig.shape) + ' and reconstruct ' + \

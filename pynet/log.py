@@ -81,12 +81,16 @@ class Log:
         print('\n')
 
     def _save_model(self, model):
+        # import pdb
+        # pdb.set_trace()
         sav_model = copy.deepcopy(model)
         for layer in sav_model.layers:
             if isinstance(layer.W, CudaNdarraySharedVariable):
-                layer.W = theano.tensor._shared(np.array(layer.W.get_value()))
+                layer.W = theano.tensor._shared(np.array(layer.W.get_value()),
+                                                name='W_'+layer.name, borrow=True)
             if isinstance(layer.b, CudaNdarraySharedVariable):
-                layer.b = theano.tensor._shared(np.array(layer.b.get_value()))
+                layer.b = theano.tensor._shared(np.array(layer.b.get_value()),
+                                                name='b_'+layer.name, borrow=True)
 
         with open(self.exp_dir+'/model.pkl', 'wb') as pkl_file:
             cPickle.dump(sav_model, pkl_file)

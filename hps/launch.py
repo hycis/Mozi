@@ -65,26 +65,30 @@ def get_cmd(model, mem, use_gpu, queue, host, duree, ppn, nb_proc, pmem):
     if mem:
         cmd += ' --mem=%s '%mem
 
+    if use_gpu:
+        cmd += ' --gpu --env=THEANO_FLAGS=device=gpu,floatX=float32 '
+
+
     if queue:
+        cmd += ' --queue=%s '%queue
+
         # k20 node is in guillimin
         if queue in 'k20':
-            cmd += '  --queue=k20  '
             if use_gpu:
                 # pmem is memory per core, mem is total memory for a job
-                cmd += ' --env=THEANO_FLAGS=device=gpu,floatX=float32 --extra_param=:gpus=1,pmem=%s '%pmem
+                cmd += ' --extra_param=:gpus=1,pmem=%s '%pmem
         # phi is gpu node in guillimin
         elif queue in 'phi':
-            cmd += ' --queue=phi '
             if use_gpu:
-                cmd += ' --env=THEANO_FLAGS=device=gpu,floatX=float32 --extra_param=:mics=1,pmem=%s '%pmem
+                cmd += ' --extra_param=:mics=1,pmem=%s '%pmem
 
         if queue in 'aw':
-            cmd += '  --queue=aw  '
             if use_gpu:
-                cmd += ' --env=THEANO_FLAGS=device=gpu,floatX=float32 --extra_param=:gpus=1,pmem=%s '%pmem
+                cmd += ' --extra_param=:gpus=1,pmem=%s '%pmem
 
-        else:
-            cmd += ' --queue=%s '%queue
+        # if queue in 'gpu_4':
+        #     if use_gpu:
+        #         cmd += ' --extra_param=:nodes=1,gpus=4 '
 
     if duree:
         cmd += ' --duree=%s '%duree
@@ -99,14 +103,11 @@ def get_cmd(model, mem, use_gpu, queue, host, duree, ppn, nb_proc, pmem):
         cmd += ' --bqtools '
     elif 'briaree1' in host:
         # Briaree cluster.
-        if use_gpu:
-            cmd += ' --gpu --env=THEANO_FLAGS=device=gpu,floatX=float32 '
-        else:
+        if not use_gpu:
             cmd += ' --env=THEANO_FLAGS=floatX=float32 '
     elif 'helios-login1' in host:
-        print('========================')
         if use_gpu:
-            cmd += ' --gpu --env=THEANO_FLAGS=device=gpu,floatX=float32 --extra_param=:gpus=1 '
+            cmd += ' --extra_param=:gpus=4 '
 
     else:
         host = 'local'
@@ -140,7 +141,7 @@ if __name__=='__main__':
                        help='''If this option is used, then the outputs from
                                terminal will be saved into file''')
 
-    parser.add_argument('--duree', default='48:00:00', help='''Walltime hh:mm:ss''')
+    parser.add_argument('--duree', default='12:00:00', help='''Walltime hh:mm:ss''')
 
     parser.add_argument('--model', help='''choose the model AE or AE_Two_Layers to run''')
 

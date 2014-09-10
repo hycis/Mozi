@@ -25,15 +25,16 @@ class Cost(object):
             raise TypeError('y should have the same shape as self.y_pred',
                 ('y', y.type, 'y_pred', y_pred.type))
 
-        return T.eq(y_pred.argmax(axis=1),
-                    y.argmax(axis=1)).sum(dtype=floatX) / y.shape[0]
+        rval = T.eq(y_pred.argmax(axis=1), y.argmax(axis=1)).sum() / y.shape[0]
+        return rval.astype(floatX)
 
 
     def positives(self, y, y_pred):
         """
         return the number of correctly predicted examples in a batch
         """
-        return T.eq(y_pred.argmax(axis=1), y.argmax(axis=1)).sum(dtype=floatX)
+        rval = T.eq(y_pred.argmax(axis=1), y.argmax(axis=1)).sum()
+        return rval.astype(floatX)
 
     def get_batch_cost(self, y, y_pred):
         return getattr(self, '_batch_cost_' + self.type)(y, y_pred)
@@ -42,7 +43,8 @@ class Cost(object):
         """
         return the total cost of all the examples in a batch
         """
-        return T.sum(T.log(y_pred)[T.arange(y.shape[0]), y.argmin(axis=1)])
+        rval = T.sum(T.log(y_pred)[T.arange(y.shape[0]), y.argmin(axis=1)])
+        return rval.astype(floatX)
 
     def confusion_matrix(self, y, y_pred):
         pass
@@ -52,16 +54,20 @@ class Cost(object):
 
     def _cost_mse(self, y, y_pred):
         L = T.sum(T.sqr(y - y_pred), axis=1)
-        return T.mean(L, dtype=floatX)
+        rval = T.mean(L)
+        return rval.astype(floatX)
 
     def _cost_entropy(self, y, y_pred):
         L = - T.sum(y * T.log(y_pred) + (1-y) * T.log(1-y_pred), axis=1)
-        return T.mean(L, dtype=floatX)
+        rval = T.mean(L)
+        return rval.astype(floatX)
 
     def _cost_error(self, y, y_pred):
         L = T.neq(y_pred.argmax(axis=1), y.argmax(axis=1))
-        return T.mean(L, dtype=floatX)
+        rval = T.mean(L)
+        return rval.astype(floatX)
 
     def _cost_abs(self, y, y_pred):
         L = T.sum(T.abs_(y - y_pred, axis=1))
-        return T.mean(L, dtype=floatX)
+        rval = T.mean(L)
+        return rval.astype(floatX)

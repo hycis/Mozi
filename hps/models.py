@@ -6,6 +6,7 @@ from pynet.model import *
 from pynet.layer import *
 from pynet.datasets.mnist import Mnist, Mnist_Blocks
 import pynet.datasets.spec as spec
+import pynet.datasets.mnist as mnist
 from pynet.learning_rule import LearningRule
 from pynet.log import Log
 from pynet.train_object import TrainObject
@@ -69,8 +70,9 @@ class AE:
             test = dataset.get_test()
             dataset.set_test(test.X, test.X)
 
-        elif self.state.dataset.type == 'Mnist_Blocks':
-            dataset = Mnist_Blocks(feature_size = self.state.dataset.feature_size,
+        elif self.state.dataset.type[:12] == 'Mnist_Blocks':
+            dataset = getattr(mnist, self.state.dataset.type)(
+                            feature_size = self.state.dataset.feature_size,
                             target_size = self.state.dataset.feature_size,
                             train_valid_test_ratio = self.state.dataset.train_valid_test_ratio,
                             preprocessor = preprocessor,
@@ -268,6 +270,8 @@ class Laura_Two_Layers(AE):
     def build_model(self, input_dim):
         with open(os.environ['PYNET_SAVE_PATH'] + '/log/'
                     + self.state.hidden1.model + '/model.pkl') as f1:
+            # import pdb
+            # pdb.set_trace()
             model1 = cPickle.load(f1)
 
         with open(os.environ['PYNET_SAVE_PATH'] + '/log/'
@@ -291,12 +295,19 @@ class Laura_Two_Layers(AE):
 
         model = self.build_model(dataset.feature_size())
         model.layers[0].dropout_below = self.state.hidden1.dropout_below
+        print('checking cuda arrays')
         for layer in model.layers:
+            # import pdb
+            # pdb.set_trace()
             if isinstance(layer.W, CudaNdarraySharedVariable):
-                layer.W = theano.tensor._shared(np.array(layer.W.get_value()))
+                print layer.W.name, 'is cuda array'
+                layer.W = theano.tensor._shared(np.array(layer.W.get_value(), dtype=floatX),
+                                                name='W_'+layer.name, borrow=True)
             if isinstance(layer.b, CudaNdarraySharedVariable):
-                layer.b = theano.tensor._shared(np.array(layer.b.get_value()))
-
+                print layer.b.name, 'is cuda array'
+                layer.b = theano.tensor._shared(np.array(layer.b.get_value(), dtype=floatX),
+                                                name='b_'+layer.name, borrow=True)
+        print('checking done!')
         if self.state.log.save_to_database_name:
             database = self.build_database(dataset, learning_rule, model)
             database['records']['Feature_Size'] = self.state.dataset.feature_size
@@ -308,12 +319,12 @@ class Laura_Two_Layers(AE):
                                 learning_rule = learning_rule,
                                 model = model)
 
-        train_obj.run()
+        # train_obj.run()
 
         # fine tuning
         log.info("fine tuning")
         train_obj.model.layers[0].dropout_below = None
-        train_obj.setup()
+        # train_obj.setup()
         train_obj.run()
 
 class Laura_Three_Layers(AE):
