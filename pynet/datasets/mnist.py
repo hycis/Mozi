@@ -45,8 +45,8 @@ class Mnist_Blocks(DataBlocks):
 
     def __init__(self, feature_size, target_size, **kwargs):
 
-        self.parts = [ 'blk1.npy', 'blk2.npy']
-        # self.parts = ['fullblk.npy']
+        # self.parts = [ 'blk1.npy', 'blk2.npy']
+        self.parts = ['fullblk.npy']
         self.data_dir = os.environ['PYNET_DATA_PATH'] + '/mnist_npy'
         super(Mnist_Blocks, self).__init__(feature_size, target_size, **kwargs)
 

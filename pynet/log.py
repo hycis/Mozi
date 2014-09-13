@@ -4,6 +4,7 @@ import sys
 import logging
 import cPickle
 import sqlite3
+import operator
 import copy
 import numpy as np
 
@@ -63,9 +64,10 @@ class Log:
         self.logger.info(msg)
 
     def print_records(self):
-
-        for key in self.save_to_database['records']:
-            self.info(key + ': ' + `self.save_to_database['records'][key]`)
+        sorted_ls = sorted(self.save_to_database['records'].iteritems(),
+                             key=operator.itemgetter(0))
+        for key, value in sorted_ls:
+            self.info(key + ': ' + str(value))
 
     def _log_outputs(self, outputs):
         dt = datetime.now()
@@ -83,17 +85,17 @@ class Log:
     def _save_model(self, model):
         # import pdb
         # pdb.set_trace()
-        sav_model = copy.deepcopy(model)
-        for layer in sav_model.layers:
-            if isinstance(layer.W, CudaNdarraySharedVariable):
-                layer.W = theano.tensor._shared(np.array(layer.W.get_value()),
-                                                name='W_'+layer.name, borrow=True)
-            if isinstance(layer.b, CudaNdarraySharedVariable):
-                layer.b = theano.tensor._shared(np.array(layer.b.get_value()),
-                                                name='b_'+layer.name, borrow=True)
+        # sav_model = copy.deepcopy(model)
+        # for layer in sav_model.layers:
+        #     if isinstance(layer.W, CudaNdarraySharedVariable):
+        #         layer.W = theano.tensor._shared(np.array(layer.W.get_value()),
+        #                                         name='W_'+layer.name, borrow=True)
+        #     if isinstance(layer.b, CudaNdarraySharedVariable):
+        #         layer.b = theano.tensor._shared(np.array(layer.b.get_value()),
+        #                                         name='b_'+layer.name, borrow=True)
 
         with open(self.exp_dir+'/model.pkl', 'wb') as pkl_file:
-            cPickle.dump(sav_model, pkl_file)
+            cPickle.dump(model, pkl_file)
 
     def _save_hyperparams(self, learning_rule):
         with open(self.exp_dir+'/hyperparams.pkl', 'wb') as pkl_file:

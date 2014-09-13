@@ -75,7 +75,7 @@ def autoencoder():
             save_outputs = True,
             save_hyperparams = True,
             save_model = True,
-            save_to_database = {'name': 'Database.db',
+            save_to_database = {'name': 'Example.db',
                                 'records' : {'Dataset' : data.__class__.__name__,
                                              'Weight_Init_Seed' : ae.rand_seed,
                                              'Dropout_Below' : str([layer.dropout_below for layer in ae.layers]),

@@ -7,6 +7,7 @@ import numpy as np
 from pynet.model import MLP
 from pynet.layer import RELU, Sigmoid, Softmax, Linear
 from pynet.datasets.mnist import Mnist
+from pynet.datasets.cifar10 import Cifar10
 from pynet.datasets.spec import P276
 from pynet.learning_rule import LearningRule
 from pynet.log import Log
@@ -34,8 +35,8 @@ print('PYNET_DATABASE_PATH = ' + os.environ['PYNET_DATABASE_PATH'])
 
 def mlp():
 
-    data = Mnist(train_valid_test_ratio=[5,1,1])
-
+    # data = Mnist(train_valid_test_ratio=[5,1,1])
+    data = Cifar10(train_valid_test_ratio=[5,1,1])
 
     mlp = MLP(input_dim = data.feature_size())
 
@@ -60,7 +61,7 @@ def mlp():
             save_outputs = True,
             save_hyperparams = False,
             save_model = True,
-            save_to_database = {'name': 'Database.db',
+            save_to_database = {'name': 'Example.db',
                                 'records' : {'Dataset' : data.__class__.__name__,
                                              'Weight_Init_Seed' : mlp.rand_seed,
                                              'Dropout_Below' : str([layer.dropout_below for layer in mlp.layers]),

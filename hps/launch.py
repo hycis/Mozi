@@ -51,7 +51,7 @@ def cmd_line_embed(cmd, config):
     return cmd
 
 
-def get_cmd(model, mem, use_gpu, queue, host, duree, ppn, nb_proc, pmem):
+def get_cmd(model, mem, use_gpu, queue, host, duree, ppn, nb_proc, pmem, gpus):
     dt = datetime.now()
     dt = dt.strftime('%Y%m%d_%H%M_%S%f')
     cmd = 'jobdispatch --file=commands.txt --exp_dir=%s_%s'%(model,dt)
@@ -76,15 +76,15 @@ def get_cmd(model, mem, use_gpu, queue, host, duree, ppn, nb_proc, pmem):
         if queue in 'k20':
             if use_gpu:
                 # pmem is memory per core, mem is total memory for a job
-                cmd += ' --extra_param=:gpus=1,pmem=%s '%pmem
+                cmd += ' --extra_param=:gpus=%s,pmem=%s '%(gpus,pmem)
         # phi is gpu node in guillimin
         elif queue in 'phi':
             if use_gpu:
-                cmd += ' --extra_param=:mics=1,pmem=%s '%pmem
+                cmd += ' --extra_param=:mics=%s,pmem=%s '%(gpus,pmem)
 
         if queue in 'aw':
             if use_gpu:
-                cmd += ' --extra_param=:gpus=1,pmem=%s '%pmem
+                cmd += ' --extra_param=:gpus=%s,pmem=%s '%(gpus,pmem)
 
         # if queue in 'gpu_4':
         #     if use_gpu:
@@ -106,8 +106,8 @@ def get_cmd(model, mem, use_gpu, queue, host, duree, ppn, nb_proc, pmem):
         if not use_gpu:
             cmd += ' --env=THEANO_FLAGS=floatX=float32 '
     elif 'helios-login1' in host:
-        if use_gpu:
-            cmd += ' --extra_param=:gpus=4 '
+        if gpus:
+            cmd += ' --extra_param=:gpus=%s '%gpus
 
     else:
         host = 'local'
@@ -151,6 +151,9 @@ if __name__=='__main__':
 
     parser.add_argument('--pmem', default='8000m', help='''memory allocation per core''')
 
+    parser.add_argument('--gpus', default='2', help='''memory allocation per core''')
+
+
     # TODO: ajouter assert pour s'assurer que lorsqu'on lance des jobs avec gpu, seulement
     # 1 job puisse etre lance localement.
     args = parser.parse_args()
@@ -172,7 +175,7 @@ if __name__=='__main__':
     if args.n_concur_jobs:
         host = 'local'
     cmd = get_cmd(model, args.mem, args.use_gpu, args.queue, host,
-                args.duree, args.ppn, args.nb_proc, args.pmem)
+                args.duree, args.ppn, args.nb_proc, args.pmem, args.gpus)
     if not os.path.exists(jobs_folder):
         os.mkdir(jobs_folder)
     f = open('jobs/commands.txt','w')

@@ -50,7 +50,6 @@ class AE:
 
 
     def build_dataset(self):
-
         dataset = None
 
         preprocessor = None if self.state.dataset.preprocessor is None else \
@@ -129,12 +128,14 @@ class AE:
         model = AutoEncoder(input_dim = input_dim, rand_seed=self.state.model.rand_seed)
         hidden1 = getattr(layer, self.state.hidden1.type)(dim=self.state.hidden1.dim,
                                                         name=self.state.hidden1.name,
-                                                        dropout_below=self.state.hidden1.dropout_below)
+                                                        dropout_below=self.state.hidden1.dropout_below,
+                                                        blackout_below=self.state.hidden1.blackout_below)
         model.add_encode_layer(hidden1)
         h1_mirror = getattr(layer, self.state.h1_mirror.type)(dim=input_dim,
                                                             name=self.state.h1_mirror.name,
                                                             W=hidden1.W.T,
-                                                            dropout_below=self.state.h1_mirror.dropout_below)
+                                                            dropout_below=self.state.h1_mirror.dropout_below,
+                                                            blackout_below=self.state.h1_mirror.blackout_below)
         model.add_decode_layer(h1_mirror)
         return model
 
@@ -142,11 +143,13 @@ class AE:
         model = AutoEncoder(input_dim = input_dim, rand_seed=self.state.model.rand_seed)
         hidden1 = getattr(layer, self.state.hidden1.type)(dim=self.state.hidden1.dim,
                                                         name=self.state.hidden1.name,
-                                                        dropout_below=self.state.hidden1.dropout_below)
+                                                        dropout_below=self.state.hidden1.dropout_below,
+                                                        blackout_below=self.state.hidden1.blackout_below)
         model.add_encode_layer(hidden1)
         h1_mirror = getattr(layer, self.state.h1_mirror.type)(dim=input_dim,
                                                             name=self.state.h1_mirror.name,
-                                                            dropout_below=self.state.h1_mirror.dropout_below)
+                                                            dropout_below=self.state.h1_mirror.dropout_below,
+                                                            blackout_below=self.state.h1_mirror.blackout_below)
         model.add_decode_layer(h1_mirror)
         return model
 
@@ -154,12 +157,14 @@ class AE:
         model = AutoEncoder(input_dim=input_dim, rand_seed=self.state.model.rand_seed)
         hidden1 = getattr(layer, self.state.hidden1.type)(dim=self.state.hidden1.dim,
                                                         name=self.state.hidden1.name,
-                                                        dropout_below=self.state.hidden1.dropout_below)
+                                                        dropout_below=self.state.hidden1.dropout_below,
+                                                        blackout_below=self.state.hidden1.blackout_below)
         model.add_encode_layer(hidden1)
 
         hidden2 = getattr(layer, self.state.hidden2.type)(dim=self.state.hidden2.dim,
                                                         name=self.state.hidden2.name,
-                                                        dropout_below=self.state.hidden2.dropout_below)
+                                                        dropout_below=self.state.hidden2.dropout_below,
+                                                        blackout_below=self.state.hidden2.blackout_below)
         model.add_encode_layer(hidden2)
 
         hidden2_mirror = getattr(layer, self.state.h2_mirror.type)(dim=self.state.hidden1.dim,
@@ -176,19 +181,22 @@ class AE:
 
     def build_database(self, dataset, learning_rule, model):
         save_to_database = {'name' : self.state.log.save_to_database_name,
-                            'records' : {'Dataset' : dataset.__class__.__name__,
-                                         'max_col_norm' : learning_rule.max_col_norm,
+                            'records' : {'Dataset'          : dataset.__class__.__name__,
+                                         'max_col_norm'     : learning_rule.max_col_norm,
                                          'Weight_Init_Seed' : model.rand_seed,
-                                         'Dropout_Below' : str([layer.dropout_below for layer in model.layers]),
-                                         'Batch_Size' : dataset.batch_size,
-                                         'Layer_Size' : len(model.layers),
-                                         'Layer_Types': str([layer.__class__.__name__ for layer in model.layers]),
-                                         'Layer_Dim' : str([layer.dim for layer in model.layers]),
-                                         'Preprocessor' : dataset.preprocessor.__class__.__name__,
-                                         'Learning_Rate' : learning_rule.learning_rate,
-                                         'Momentum' : learning_rule.momentum,
-                                         'Training_Cost': learning_rule.cost.type,
-                                         'Stopping_Cost': learning_rule.stopping_criteria['cost'].type}
+                                         'Dropout_Below'    : str([layer.dropout_below for layer in model.layers]),
+                                         'Blackout_Below'   : str([layer.blackout_below for layer in model.layers]),
+                                         'Batch_Size'       : dataset.batch_size,
+                                         'nblocks'          : dataset.nblocks(),
+                                         'Layer_Size'       : len(model.layers),
+                                         'Layer_Types'      : str([layer.__class__.__name__ for layer in model.layers]),
+                                         'Feature_Size'     : dataset.feature_size(),
+                                         'Layer_Dim'        : str([layer.dim for layer in model.layers]),
+                                         'Preprocessor'     : dataset.preprocessor.__class__.__name__,
+                                         'Learning_Rate'    : learning_rule.learning_rate,
+                                         'Momentum'         : learning_rule.momentum,
+                                         'Training_Cost'    : learning_rule.cost.type,
+                                         'Stopping_Cost'    : learning_rule.stopping_criteria['cost'].type}
                             }
 
         return save_to_database
@@ -207,8 +215,6 @@ class AE_Testing(AE):
 
         if self.state.log.save_to_database_name:
             database = self.build_database(dataset, learning_rule, model)
-            database['records']['Feature_Size'] = self.state.dataset.feature_size
-            database['records']['nblocks'] = len(dataset.parts)
             log = self.build_log(database)
 
         train_obj = TrainObject(log = log,
@@ -242,11 +248,11 @@ class Laura(AE):
         else:
             raise ValueError()
 
+        log = self.build_log()
         if self.state.log.save_to_database_name:
             database = self.build_database(dataset, learning_rule, model)
-            database['records']['Feature_Size'] = self.state.dataset.feature_size
-            database['records']['nblocks'] = len(dataset.parts)
             log = self.build_log(database)
+
 
         train_obj = TrainObject(log = log,
                                 dataset = dataset,
@@ -270,8 +276,6 @@ class Laura_Two_Layers(AE):
     def build_model(self, input_dim):
         with open(os.environ['PYNET_SAVE_PATH'] + '/log/'
                     + self.state.hidden1.model + '/model.pkl') as f1:
-            # import pdb
-            # pdb.set_trace()
             model1 = cPickle.load(f1)
 
         with open(os.environ['PYNET_SAVE_PATH'] + '/log/'
@@ -279,9 +283,6 @@ class Laura_Two_Layers(AE):
             model2 = cPickle.load(f2)
 
         model = AutoEncoder(input_dim=input_dim)
-        # import pdb
-        # pdb.set_trace()
-
         model.add_encode_layer(model1.pop_encode_layer())
         model.add_encode_layer(model2.pop_encode_layer())
         model.add_decode_layer(model2.pop_decode_layer())
@@ -295,23 +296,9 @@ class Laura_Two_Layers(AE):
 
         model = self.build_model(dataset.feature_size())
         model.layers[0].dropout_below = self.state.hidden1.dropout_below
-        print('checking cuda arrays')
-        for layer in model.layers:
-            # import pdb
-            # pdb.set_trace()
-            if isinstance(layer.W, CudaNdarraySharedVariable):
-                print layer.W.name, 'is cuda array'
-                layer.W = theano.tensor._shared(np.array(layer.W.get_value(), dtype=floatX),
-                                                name='W_'+layer.name, borrow=True)
-            if isinstance(layer.b, CudaNdarraySharedVariable):
-                print layer.b.name, 'is cuda array'
-                layer.b = theano.tensor._shared(np.array(layer.b.get_value(), dtype=floatX),
-                                                name='b_'+layer.name, borrow=True)
-        print('checking done!')
+
         if self.state.log.save_to_database_name:
             database = self.build_database(dataset, learning_rule, model)
-            database['records']['Feature_Size'] = self.state.dataset.feature_size
-            database['records']['nblocks'] = len(dataset.parts)
             log = self.build_log(database)
 
         train_obj = TrainObject(log = log,
@@ -324,6 +311,7 @@ class Laura_Two_Layers(AE):
         # fine tuning
         log.info("fine tuning")
         train_obj.model.layers[0].dropout_below = None
+        train_obj.model.layers[1].dropout_below = None
         # train_obj.setup()
         train_obj.run()
 
@@ -366,8 +354,6 @@ class Laura_Three_Layers(AE):
 
         if self.state.log.save_to_database_name:
             database = self.build_database(dataset, learning_rule, model)
-            database['records']['Feature_Size'] = self.state.dataset.feature_size
-            database['records']['nblocks'] = len(dataset.parts)
             log = self.build_log(database)
 
         train_obj = TrainObject(log = log,
@@ -402,8 +388,6 @@ class Laura_Two_Layers_No_Transpose(AE):
 
         if self.state.log.save_to_database_name:
             database = self.build_database(dataset, learning_rule, model)
-            database['records']['Feature_Size'] = self.state.dataset.feature_size
-            database['records']['nblocks'] = len(dataset.parts)
             log = self.build_log(database)
 
         train_obj = TrainObject(log = log,
