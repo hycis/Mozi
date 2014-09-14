@@ -248,10 +248,10 @@ class Laura(AE):
         else:
             raise ValueError()
 
-        log = self.build_log()
-        if self.state.log.save_to_database_name:
-            database = self.build_database(dataset, learning_rule, model)
-            log = self.build_log(database)
+        # log = self.build_log()
+        # if self.state.log.save_to_database_name:
+        database = self.build_database(dataset, learning_rule, model)
+        log = self.build_log(database)
 
 
         train_obj = TrainObject(log = log,

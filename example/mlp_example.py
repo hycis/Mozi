@@ -35,8 +35,8 @@ print('PYNET_DATABASE_PATH = ' + os.environ['PYNET_DATABASE_PATH'])
 
 def mlp():
 
-    # data = Mnist(train_valid_test_ratio=[5,1,1])
-    data = Cifar10(train_valid_test_ratio=[5,1,1])
+    data = Mnist(train_valid_test_ratio=[5,1,1])
+    # data = Cifar10(train_valid_test_ratio=[5,1,1])
 
     mlp = MLP(input_dim = data.feature_size())
 

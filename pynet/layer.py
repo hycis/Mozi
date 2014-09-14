@@ -4,7 +4,7 @@ import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 
 floatX = theano.config.floatX
-theano_rand = RandomStreams()
+theano_rand = RandomStreams(seed=1012)
 
 class Layer(object):
     """
@@ -56,7 +56,8 @@ class Layer(object):
         if self.blackout_below is not None:
             assert self.blackout_below >= 0. and self.blackout_below <= 1., \
                     'blackout_below is not in range [0,1]'
-            state_below = theano_rand.binomial(n=1, p=(1-self.blackout_below),
+            state_below = theano_rand.binomial(ndim=self.dim, n=1,
+                                               p=(1-self.blackout_below),
                                                dtype=floatX) * state_below
         return state_below
 

@@ -88,19 +88,19 @@ model_config = DD({
                     # 'experiment_name'       : 'AE0829_Standardize_GCN_Blocks_2049_500_tanh_gpu',
                     # 'experiment_name'       : 'AE0901_Warp_Blocks_500_180_tanh_gpu',
 
-                    # 'experiment_name'       : 'AE0911_Warp_Blocks_2049_500_tanh_tanh_gpu', #helios
-                    # 'experiment_name'       : 'AE0911_Warp_Blocks_2049_500_tanh_tanh_gpu_clean', #helios
+                    # 'experiment_name'       : 'AE0911_Warp_Blocks_500_180_tanh_tanh_gpu', #helios
+                    # 'experiment_name'       : 'AE0911_Warp_Blocks_500_180_tanh_tanh_gpu_clean', #helios
                     #
-                    # 'experiment_name'       : 'AE0911_Blocks_2049_500_tanh_sigmoid_gpu', #helios
-                    # 'experiment_name'       : 'AE0912_Blocks_2049_500_tanh_sigmoid_gpu_clean', #helios
+                    # 'experiment_name'       : 'AE0911_Blocks_500_180_tanh_sigmoid_gpu', #helios
+                    # 'experiment_name'       : 'AE0912_Blocks_500_180_tanh_sigmoid_gpu_clean', #helios
 
-                    # 'experiment_name'       : 'AE0912_Blocks_2049_500_tanh_tanh_gpu',
-                    # 'experiment_name'       : 'AE0912_Blocks_2049_500_tanh_tanh_gpu_clean',
+                    # 'experiment_name'       : 'AE0912_Blocks_500_180_tanh_tanh_gpu',
+                    # 'experiment_name'       : 'AE0912_Blocks_500_180_tanh_tanh_gpu_clean',
 
-                    'experiment_name'       : 'AE0913_warp_blocks_blackout',
+                    'experiment_name'       : 'AE0914_warp_blocks_blackout',
 
 
-                    'description'           : '',
+                    'description'           : 'using_ndim_equals_self.dim',
                     'save_outputs'          : True,
                     'save_hyperparams'      : True,
                     'save_model'            : True,
@@ -163,8 +163,8 @@ model_config = DD({
                     # 'dropout_below'         : 0.5,
 
                     # 'blackout_below'        : None,
-                    'blackout_below'         : (0.1, 0.2, 0.3, 0.4, 0.5),
-                    # 'blackout_below'        : 0.5
+                    # 'blackout_below'         : (0.1, 0.2, 0.3, 0.4, 0.5),
+                    'blackout_below'        : 0.5
                     }), # end hidden_layer
 
             'hidden2' : DD({

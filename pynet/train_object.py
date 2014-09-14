@@ -42,7 +42,7 @@ class TrainObject():
             # use default Log setting
             self.log = Log(logger=internal_logger)
 
-        else:
+        elif self.log.save_to_database:
             self.log.print_records()
 
         self.log.info( '..begin setting up train object')
