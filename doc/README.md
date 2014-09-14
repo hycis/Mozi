@@ -57,7 +57,7 @@ import numpy as np
 
 from pynet.model AutoEncoder
 from pynet.layer import RELU, Sigmoid, Softmax, Linear 
-from pynet.datasets.spec import P276
+from pynet.datasets.spec import *
 from pynet.learning_rule import LearningRule
 from pynet.log import Log
 from pynet.train_object import TrainObject
@@ -65,6 +65,25 @@ from pynet.cost import Cost
 from pynet.datasets.preprocessor import Standardize, GCN
 
 def autoencoder():
+
+    # set environment
+    NNdir = os.path.dirname(os.path.realpath(__file__))
+    NNdir = os.path.dirname(NNdir)
+    NNdir = os.path.dirname(NNdir)
+
+    if not os.getenv('PYNET_DATA_PATH'):
+        os.environ['PYNET_DATA_PATH'] = NNdir + '/data'
+
+    if not os.getenv('PYNET_DATABASE_PATH'):
+        os.environ['PYNET_DATABASE_PATH'] = NNdir + '/database'
+        if not os.path.exists(os.environ['PYNET_DATABASE_PATH']):
+            os.mkdir(os.environ['PYNET_DATABASE_PATH'])
+
+    if not os.getenv('PYNET_SAVE_PATH'):
+        os.environ['PYNET_SAVE_PATH'] = NNdir + '/save'
+        if not os.path.exists(os.environ['PYNET_SAVE_PATH']):
+            os.mkdir(os.environ['PYNET_SAVE_PATH'])
+
 
     # logging is optional
     log = Log(experiment_name = 'AE',
@@ -74,21 +93,22 @@ def autoencoder():
             save_model = True,
             send_to_database = 'Database_Name.db')
 
-    learning_rule = LearningRule(max_col_norm = None,
-                            learning_rate = 0.01,
-                            momentum = 0.1,
-                            momentum_type = 'normal',
-                            L1_lambda = None,
-                            L2_lambda = None,
-                            cost = Cost(type='mse'),
-                            stopping_criteria = {'max_epoch' : 100,
-                                                'cost' : Cost(type='mse'),
-                                                'epoch_look_back' : 10,
-                                                'percent_decrease' : 0.001}
-                            )
+    learning_rule = LearningRule(max_col_norm = None, # max length of the weight vector from lower layer going into upper neuron
+                                learning_rate = 0.01,
+                                momentum = 0.1,
+                                momentum_type = 'normal',
+                                L1_lambda = None, # L1 regularization coefficient
+                                L2_lambda = None, # L2 regularization coefficient
+                                cost = Cost(type='mse'), # cost type use for backprop during training
+                                stopping_criteria = {'max_epoch' : 100, # maximum number of epochs for the training
+                                                    'cost' : Cost(type='mse'), # cost type use for testing the quality of the trained model
+                                                    'epoch_look_back' : 10, # number of epoch to look back for error improvement
+                                                    'percent_decrease' : 0.001} # requires at least 0.001 = 0.1% decrease in error when look back of 10 epochs
+                                )
+                            
     
     # building dataset, batch_size and preprocessor
-    data = P276(train_valid_test_ratio=[5,1,1], batch_size=100, preprocessor=GCN())
+    data = Laura_Blocks(train_valid_test_ratio=[8,1,1], batch_size=100, preprocessor=GCN())
     
     # for AutoEncoder, the inputs and outputs must be the same
     train = data.get_train()
@@ -102,13 +122,16 @@ def autoencoder():
     
     # building autoencoder
     ae = AutoEncoder(input_dim = data.feature_size(), rand_seed=None)
-    h1_layer = RELU(dim=100, name='h1_layer', W=None, b=None)
+    h1_layer = Tanh(dim=500, name='h1_layer', W=None, b=None)
     
     # adding encoding layer
     ae.add_encode_layer(h1_layer)
     
-    # adding decoding mirror layer, lock the weights of the output layer to be transpose of input layer
-    ae.add_decode_layer(Sigmoid(dim=data.target_size(), name='output_layer', W=h1_layer.W.T, b=None))
+    # mirror layer has W = h1_layer.W.T
+    h1_mirror = Tanh(name='h1_mirror', W=h1_layer.W.T, b=None)
+    
+    # adding decoding mirror layer
+    ae.add_decode_layer(h1_mirror)
 
     # put all the components into a TrainObject
     train_object = TrainObject(model = ae,

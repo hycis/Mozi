@@ -56,7 +56,7 @@ class Layer(object):
         if self.blackout_below is not None:
             assert self.blackout_below >= 0. and self.blackout_below <= 1., \
                     'blackout_below is not in range [0,1]'
-            state_below = theano_rand.binomial(n=1, p=(1-self.dropout_below),
+            state_below = theano_rand.binomial(n=1, p=(1-self.blackout_below),
                                                dtype=floatX) * state_below
         return state_below
 
