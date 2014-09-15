@@ -95,8 +95,8 @@ model_config = DD({
                     # 'experiment_name'       : 'AE0914_Blocks_500_180_tanh_tanh_gpu',
                     # 'experiment_name'       : 'AE0914_Blocks_500_180_tanh_tanh_gpu_clean',
 
-                    'experiment_name'       : 'AE0915_Warp_Blocks_500_180_tanh_gpu_dropout',
-                    # 'experiment_name'       : 'AE0915_Warp_Blocks_2049_500_Dropout',
+                    # 'experiment_name'       : 'AE0915_Warp_Blocks_500_180_tanh_gpu_dropout',
+                    'experiment_name'       : 'AE0915_Blocks_2049_500_tanh_sig_gpu_Dropout',
 
 
 
@@ -126,16 +126,16 @@ model_config = DD({
 
             #===========================[ Dataset ]===========================#
             'dataset' : DD({
-                    'type'                  : 'Laura_Warp_Blocks_500_Tanh',
+                    # 'type'                  : 'Laura_Warp_Blocks_500_Tanh',
                     # 'type'                  : 'Laura_Cut_Warp_Blocks_300',
                     # 'type'                  : 'Laura_Blocks_500',
-                    # 'type'                  : 'Laura_Blocks',
+                    'type'                  : 'Laura_Blocks',
                     # 'type'                  : 'Laura_Warp_Blocks',
                     # 'type'                  : 'Laura_Warp_Standardize_Blocks',
                     # 'type'                  : 'Laura_Standardize_Blocks',
                     # 'type'                  : 'Mnist',
 
-                    'feature_size'          : 500,
+                    'feature_size'          : 2049,
                     'train_valid_test_ratio': [8, 1, 1],
 
                     'preprocessor'          : None,
@@ -156,7 +156,7 @@ model_config = DD({
             'hidden1' : DD({
                     'name'                  : 'hidden1',
                     'type'                  : 'Tanh',
-                    'dim'                   : 180,
+                    'dim'                   : 500,
 
                     # 'dropout_below'         : None,
                     'dropout_below'         : (0.1, 0.2, 0.3, 0.4, 0.5),
@@ -180,7 +180,7 @@ model_config = DD({
 
             'h1_mirror' : DD({
                     'name'                  : 'h1_mirror',
-                    'type'                  : 'Tanh',
+                    'type'                  : 'Sigmoid',
                     # 'dim'                   : 2049, # dim = input.dim
                     'dropout_below'         : None,
                     }) # end output_layer
