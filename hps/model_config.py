@@ -96,7 +96,7 @@ model_config = DD({
                     # 'experiment_name'       : 'AE0914_Blocks_500_180_tanh_tanh_gpu_clean',
 
                     # 'experiment_name'       : 'AE0915_Warp_Blocks_500_180_tanh_gpu_dropout',
-                    'experiment_name'       : 'AE0915_Blocks_2049_500_tanh_sig_gpu_Dropout',
+                    'experiment_name'       : 'AE0915_Warp_Blocks_2049_500_tanh_tanh_gpu_Dropout',
 
 
 
@@ -129,8 +129,8 @@ model_config = DD({
                     # 'type'                  : 'Laura_Warp_Blocks_500_Tanh',
                     # 'type'                  : 'Laura_Cut_Warp_Blocks_300',
                     # 'type'                  : 'Laura_Blocks_500',
-                    'type'                  : 'Laura_Blocks',
-                    # 'type'                  : 'Laura_Warp_Blocks',
+                    # 'type'                  : 'Laura_Blocks',
+                    'type'                  : 'Laura_Warp_Blocks',
                     # 'type'                  : 'Laura_Warp_Standardize_Blocks',
                     # 'type'                  : 'Laura_Standardize_Blocks',
                     # 'type'                  : 'Mnist',
@@ -138,9 +138,9 @@ model_config = DD({
                     'feature_size'          : 2049,
                     'train_valid_test_ratio': [8, 1, 1],
 
-                    'preprocessor'          : None,
+                    # 'preprocessor'          : None,
                     # 'preprocessor'          : 'Scale',
-                    # 'preprocessor'          : 'GCN',
+                    'preprocessor'          : 'GCN',
                     # 'preprocessor'          : 'LogGCN',
                     # 'preprocessor'          : 'Standardize',
 
@@ -180,7 +180,7 @@ model_config = DD({
 
             'h1_mirror' : DD({
                     'name'                  : 'h1_mirror',
-                    'type'                  : 'Sigmoid',
+                    'type'                  : 'Tanh',
                     # 'dim'                   : 2049, # dim = input.dim
                     'dropout_below'         : None,
                     }) # end output_layer
