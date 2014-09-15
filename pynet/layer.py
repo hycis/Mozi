@@ -50,9 +50,11 @@ class Layer(object):
         """
 
         if self.dropout_below is not None:
-            assert self.dropout_below >= 0. and self.dropout_below <= 1., 'dropout_below is not in range [0,1]'
-            state_below = self.theano_rand.binomial(size=self.state.shape, n=1, p=(1-self.dropout_below),
-                                                    dtype=floatX) * state_below
+            assert self.dropout_below >= 0. and self.dropout_below <= 1., \
+                    'dropout_below is not in range [0,1]'
+            state_below = theano_rand.binomial(size=state_below.shape, n=1,
+                                               p=(1-self.dropout_below),
+                                               dtype=floatX) * state_below
 
         return T.dot(state_below, self.W) + self.b
 

@@ -95,7 +95,7 @@ model_config = DD({
                     # 'experiment_name'       : 'AE0914_Blocks_500_180_tanh_tanh_gpu',
                     # 'experiment_name'       : 'AE0914_Blocks_500_180_tanh_tanh_gpu_clean',
 
-                    'experiment_name'       : 'AE0915_Warp_Blocks_500_180_Blackout',
+                    'experiment_name'       : 'AE0915_Warp_Blocks_500_180_tanh_gpu_dropout',
                     # 'experiment_name'       : 'AE0915_Warp_Blocks_2049_500_Dropout',
 
 
@@ -159,8 +159,8 @@ model_config = DD({
                     'dim'                   : 180,
 
                     # 'dropout_below'         : None,
-                    # 'dropout_below'         : (0.1, 0.2, 0.3, 0.4, 0.5),
-                    'dropout_below'         : 0.5,
+                    'dropout_below'         : (0.1, 0.2, 0.3, 0.4, 0.5),
+                    # 'dropout_below'         : 0.5,
 
                     }), # end hidden_layer
 
