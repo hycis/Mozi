@@ -104,7 +104,7 @@ model_config = DD({
                     'save_outputs'          : True,
                     'save_hyperparams'      : True,
                     'save_model'            : True,
-                    'save_to_database_name' : 'Database_Name.db'
+                    'save_to_database_name' : 'Laura.db'
                     }), # end log
 
 
