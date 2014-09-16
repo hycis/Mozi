@@ -21,7 +21,7 @@ PYNET_DATABASE_PATH # after training, the hyperparameters and training results f
                       # experiments is saved into a database for comparisions
 ```
 
-__2. Model Script __
+__2. Model Script__
 
 In order to build and run an AutoEncoder, we need to put together the various components
 (model, layer, dataset, learning_rule, log, cost function) into a train_object and run the
@@ -144,7 +144,7 @@ cat model_config.py # this will show the configurations of different models
 Inside model_config.py, if the values is in tuple for a variable, it means that during the generation of
 of values for the variable, the value are sampled uniformly from the values in the tuple.
 For example for
-```'learning_rate'         : (1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.5),```
+```'learning_rate' : (1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.5)```,
 learning_rate is randomly set as any of the 6 values in the tuple.
 
 To sample one hyperparams and run it locally, issue
@@ -161,7 +161,7 @@ python launch.py --model Laura -n 5 -g
 showq -u hycis
 ```
 
-After finish running, you can checkout the results from the database
+After finished running, you can checkout the results from the database
 ```bash
 cdwu
 sqlite3 Pynet/database/Laura.db
@@ -171,6 +171,13 @@ sqlite3 Pynet/database/Laura.db
 >>> select * from some_table order by test_error;
 ```
 
-I have save the best results for each pretrain layer in the http://1drv.ms/1qSyrZI
+I have named the training sets so that it is easier for understanding, for example
+```AE0912_Blocks_2049_500_tanh_tanh_gpu_clean_20140914_1242_27372903```
+means AE0912 trained on Linear Blocks of autoencoder with 2049-500-2049 dims, and tanh-tanh units,
+it's run on gpu and it's a clean model without noise during training, the last few numbers are the
+actual date_time_microsec in which the model is generated```
+
+
+I have saved the best results for each pretrain layer in the http://1drv.ms/1qSyrZI
 To reproduce those results you can plug the hyperparams search by the hps into [example](../example/AE_example.py)
 and run one job.
