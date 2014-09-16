@@ -9,7 +9,7 @@ there are basically following hyperparams that will affect the training result
 5. rand_seed # the seed for initializing the weights in autoencoder
 
 By setting the hyperparams and run the Model Script below, it can generates one result.
-In order to do hyperparams search, run the script in [hps directory](../hps/)
+
 
 __1. Setting Environment Variables__
 
@@ -26,7 +26,7 @@ __2. Model Script__
 
 In order to build and run an AutoEncoder, we need to put together the various components
 (model, layer, dataset, learning_rule, log, cost function) into a train_object and run the
-training. To run the example model goto [example](../example/AE_example.py).
+training. The example model below is saved to the script [AE_example.py](../example/AE_example.py).
 
 ```python
 import theano
@@ -133,7 +133,9 @@ def autoencoder():
 
 ```
 
-To generate many models to train on the cluster. Log into helios
+__3. Hyperparams Search__
+In order to do hyperparams search, run the script in [launch.py](../hps/launch.py) in [hps dir](../hps).
+To do that, first log into helios
 
 ```bash
 ssh hycis@helios.calculquebec.ca
@@ -142,19 +144,20 @@ cd Pynet/hps
 cat model_config.py # this will show the configurations of different models
 ```
 
-Inside model_config.py, if the values is in tuple for a variable, it means that during the generation of
-of values for the variable, the value are sampled uniformly from the values in the tuple.
+Inside model_config.py, if the values is placed in a tuple for a variable,
+it means that during the sampling of values for a variable,
+the value are sampled uniformly from the values in the tuple.
 For example for
 ```'learning_rate' : (1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.5)```,
-learning_rate is randomly set as any of the 6 values in the tuple.
+learning_rate is uniformly set as any of the 6 values in the tuple.
 
-To sample one hyperparams and run it locally, issue
+To sample one set of hyperparams and run it locally, issue
 ```bash
 cdwu
 cd Pynet/hps
 python launch.py --model Laura -c 1
 ```
-To submit 5 jobs to the gpu cluster
+To submit 5 jobs to the gpu cluster, issue
 ```bash
 cdwu
 cd Pynet/hps
@@ -172,13 +175,18 @@ sqlite3 Pynet/database/Laura.db
 >>> select * from some_table order by test_error;
 ```
 
-I have named the training sets so that it is easier for understanding, for example
-```AE0912_Blocks_2049_500_tanh_tanh_gpu_clean_20140914_1242_27372903```
+I have named the the experiment group in as way that is easier for understanding, for example for
+for an experiment group name of
+```AE0912_Blocks_2049_500_tanh_tanh_gpu_clean```
 means AE0912 trained on Linear Blocks of autoencoder with 2049-500-2049 dims, and tanh-tanh units,
-it's run on gpu and it's a clean model without noise during training, the last few numbers are the
-actual date_time_microsec in which the model is generated```
+it's run on gpu and it's a clean model without noise during training.
+The best model for the experiment group is
+```AE0912_Blocks_2049_500_tanh_tanh_gpu_clean_20140914_1242_27372903```
+where the last few numbers are the actual date_time_microsec in which the model is generated.
 
 
-I have saved the best results for each pretrain layer in the http://1drv.ms/1qSyrZI .
-To reproduce those results you can plug the hyperparams save in the database into [example](../example/AE_example.py)
-and run one job.
+I have saved the best results for each pretrain layer in the http://1drv.ms/1qSyrZI under the combinations section.
+
+__4. Reproduce Best Results__
+To reproduce the results you can plug the hyperparams saved in the database into [example](../example/AE_example.py)
+and run the job locally.
