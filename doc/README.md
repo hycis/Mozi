@@ -142,8 +142,9 @@ cat model_config.py # this will show the configurations of different models
 ```
 
 Inside model_config.py, if the values is in tuple for a variable, it means that during the generation of
-of values for the variable, the value are sampled uniformly from the values in the tuple. For example for
-'learning_rate'         : (1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.5),
+of values for the variable, the value are sampled uniformly from the values in the tuple.
+For example for
+```'learning_rate'         : (1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.5),```
 learning_rate is randomly set as any of the 6 values in the tuple.
 
 To sample one hyperparams and run it locally, issue
