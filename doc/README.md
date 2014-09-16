@@ -187,5 +187,5 @@ I have saved the best results for each pretrain layer in the http://1drv.ms/1qSy
 
 __4. Reproduce Best Results__
 
-To reproduce the results you can plug the hyperparams saved in the database into [example](../example/AE_example.py)
+To reproduce the results you can plug the hyperparams saved in the database into [AE_example.py](../example/AE_example.py)
 and run the job locally.
