@@ -1,6 +1,7 @@
 
 Below is the basic structure for pretraining of one layer autoencoder,
 there are basically following hyperparams that will affect the training result
+
 1. max_col_norm
 2. learning_rate
 3. momentum
