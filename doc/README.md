@@ -176,17 +176,16 @@ sqlite3 Pynet/database/Laura.db
 ```
 
 I have named the the experiment group in as way that is easier for understanding, for example for
-for an experiment group name of
-```AE0912_Blocks_2049_500_tanh_tanh_gpu_clean```
+for an experiment group name of ```AE0912_Blocks_2049_500_tanh_tanh_gpu_clean```
 means AE0912 trained on Linear Blocks of autoencoder with 2049-500-2049 dims, and tanh-tanh units,
 it's run on gpu and it's a clean model without noise during training.
-The best model for the experiment group is
-```AE0912_Blocks_2049_500_tanh_tanh_gpu_clean_20140914_1242_27372903```
+The best model for the experiment group is ```AE0912_Blocks_2049_500_tanh_tanh_gpu_clean_20140914_1242_27372903```
 where the last few numbers are the actual date_time_microsec in which the model is generated.
 
 
-I have saved the best results for each pretrain layer in the http://1drv.ms/1qSyrZI under the combinations section.
+I have saved the best results for each pretrain layer in the http://1drv.ms/1qSyrZI under the *combinations* section.
 
 __4. Reproduce Best Results__
+
 To reproduce the results you can plug the hyperparams saved in the database into [example](../example/AE_example.py)
 and run the job locally.
