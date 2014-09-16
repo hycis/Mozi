@@ -92,10 +92,10 @@ model_config = DD({
                     # 'experiment_name'       : 'AE0914_Blocks_500_180_tanh_sigmoid_gpu', #helios
                     # 'experiment_name'       : 'AE0914_Blocks_500_180_tanh_sigmoid_gpu_clean', #helios
 
-                    # 'experiment_name'       : 'AE0914_Blocks_500_180_tanh_tanh_gpu',
+                    'experiment_name'       : 'AE0914_Blocks_500_180_tanh_tanh_gpu_dropout',
                     # 'experiment_name'       : 'AE0914_Blocks_500_180_tanh_tanh_gpu_clean',
 
-                    'experiment_name'       : 'AE0915_Warp_Blocks_180_120_tanh_gpu_dropout_clean',
+                    # 'experiment_name'       : 'AE0915_Warp_Blocks_180_120_tanh_gpu_dropout_clean',
                     # 'experiment_name'       : 'AE0915_Warp_Blocks_2049_500_tanh_tanh_gpu_Dropout',
 
 
@@ -126,8 +126,9 @@ model_config = DD({
 
             #===========================[ Dataset ]===========================#
             'dataset' : DD({
-                    'type'                  : 'Laura_Warp_Blocks_180_Tanh',
+                    # 'type'                  : 'Laura_Warp_Blocks_180_Tanh',
                     # 'type'                  : 'Laura_Cut_Warp_Blocks_300',
+                    'type'                  : 'Laura_Blocks_500_Tanh_Tanh',
                     # 'type'                  : 'Laura_Blocks_500',
                     # 'type'                  : 'Laura_Blocks',
                     # 'type'                  : 'Laura_Warp_Blocks',
@@ -135,7 +136,7 @@ model_config = DD({
                     # 'type'                  : 'Laura_Standardize_Blocks',
                     # 'type'                  : 'Mnist',
 
-                    'feature_size'          : 180,
+                    'feature_size'          : 500,
                     'train_valid_test_ratio': [8, 1, 1],
 
                     'preprocessor'          : None,
@@ -158,8 +159,8 @@ model_config = DD({
                     'type'                  : 'Tanh',
                     'dim'                   : 120,
 
-                    'dropout_below'         : None,
-                    # 'dropout_below'         : (0.1, 0.2, 0.3, 0.4, 0.5),
+                    # 'dropout_below'         : None,
+                    'dropout_below'         : (0.1, 0.2, 0.3, 0.4, 0.5),
                     # 'dropout_below'         : 0.5,
 
                     }), # end hidden_layer
