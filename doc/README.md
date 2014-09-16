@@ -1,11 +1,11 @@
 
 Below is the basic structure for pretraining of one layer autoencoder,
 there are basically following hyperparams that will affect the training result
-*. max_col_norm
-*. learning_rate
-*. momentum
-*. batch_size
-*. rand_seed # the seed for initializing the weights in autoencoder
+1. max_col_norm
+2. learning_rate
+3. momentum
+4. batch_size
+5. rand_seed # the seed for initializing the weights in autoencoder
 
 By setting the hyperparams and run the Model Script below, it can generates one result.
 In order to do hyperparams search, run the script in [hps directory](../hps/)
