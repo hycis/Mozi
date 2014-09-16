@@ -1,4 +1,14 @@
 
+Below is the basic structure for pretraining of one layer autoencoder,
+there are basically following hyperparams that will affect the training result
+1. max_col_norm
+2. learning_rate
+3. momentum
+4. batch_size
+5. rand_seed # the seed for initializing the weights in autoencoder
+
+By setting the hyperparams and run the Model Script below, it can generates one result.
+In order to do hyperparams search, run the script in [hps directory](../hps/)
 
 __1. Setting Environment Variables__
 
@@ -6,16 +16,16 @@ In pynet, there are three environment variables to be set.
 
 ```python
 PYNET_DATA_PATH   # the directory for all the datasets
-PYNET_SAVE_PATH   # the directory to save the best models, the outputs logs and the hyperparameters 
-PYNET_DATABASE_PATH # after training, the hyperparameters and training results from various 
+PYNET_SAVE_PATH   # the directory to save the best models, the outputs logs and the hyperparameters
+PYNET_DATABASE_PATH # after training, the hyperparameters and training results from various
                       # experiments is saved into a database for comparisions
-``` 
+```
 
-__2. Building the Model__
+__2. Model Script __
 
 In order to build and run an AutoEncoder, we need to put together the various components
 (model, layer, dataset, learning_rule, log, cost function) into a train_object and run the
-training. For more examples goto [example](../example/).
+training. To run the example model goto [example](../example/AE_example.py).
 
 ```python
 import theano
@@ -23,7 +33,7 @@ import theano.tensor as T
 import numpy as np
 
 from pynet.model AutoEncoder
-from pynet.layer import RELU, Sigmoid, Softmax, Linear 
+from pynet.layer import RELU, Sigmoid, Softmax, Linear
 from pynet.datasets.spec import *
 from pynet.learning_rule import LearningRule
 from pynet.log import Log
@@ -71,7 +81,7 @@ def autoencoder():
             ) # end log
 
 
-    learning_rule = LearningRule(max_col_norm = None, # max length of the weight vector from lower layer going into upper neuron
+    learning_rule = LearningRule(max_col_norm = 1, # max length of the weight vector from lower layer going into upper neuron
                                 learning_rate = 0.01,
                                 momentum = 0.1,
                                 momentum_type = 'normal',
@@ -83,31 +93,31 @@ def autoencoder():
                                                     'epoch_look_back' : 10, # number of epoch to look back for error improvement
                                                     'percent_decrease' : 0.001} # requires at least 0.001 = 0.1% decrease in error when look back of 10 epochs
                                 )
-                            
-    
+
+
     # building dataset, batch_size and preprocessor
     data = Laura_Blocks(train_valid_test_ratio=[8,1,1], batch_size=100, preprocessor=GCN())
-    
+
     # for AutoEncoder, the inputs and outputs must be the same
     train = data.get_train()
     data.set_train(train.X, train.X)
-    
+
     valid = data.get_valid()
     data.set_valid(valid.X, valid.X)
-    
+
     test = data.get_test()
     data.set_test(test.X, test.X)
-    
+
     # building autoencoder
-    ae = AutoEncoder(input_dim = data.feature_size(), rand_seed=None)
+    ae = AutoEncoder(input_dim = data.feature_size(), rand_seed=123)
     h1_layer = Tanh(dim=500, name='h1_layer', W=None, b=None)
-    
+
     # adding encoding layer
     ae.add_encode_layer(h1_layer)
-    
+
     # mirror layer has W = h1_layer.W.T
     h1_mirror = Tanh(name='h1_mirror', W=h1_layer.W.T, b=None)
-    
+
     # adding decoding mirror layer
     ae.add_decode_layer(h1_mirror)
 
@@ -116,10 +126,50 @@ def autoencoder():
                                 dataset = data,
                                 learning_rule = learning_rule,
                                 log = log)
-    
-    # finally run the training                         
+
+    # finally run the training
     train_object.run()
-    
+
 ```
 
+To generate many models to train on the cluster. Log into helios
 
+```bash
+ssh hycis@helios.calculquebec.ca
+cdwu # change to the scratch directory
+cd Pynet/hps
+cat model_config.py # this will show the configurations of different models
+```
+
+Inside model_config.py, if the values is in tuple for a variable, it means that during the generation of
+of values for the variable, the value are sampled uniformly from the values in the tuple. For example for
+'learning_rate'         : (1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.5),
+learning_rate is randomly set as any of the 6 values in the tuple.
+
+To sample one hyperparams and run it locally, issue
+```bash
+cdwu
+cd Pynet/hps
+python launch.py --model Laura -c 1
+```
+To submit 5 jobs to the gpu cluster
+```bash
+cdwu
+cd Pynet/hps
+python launch.py --model Laura -n 5 -g
+showq -u hycis
+```
+
+After finish running, you can checkout the results from the database
+```bash
+cdwu
+sqlite3 Pynet/database/Laura.db
+>>> .header on
+>>> .mode column
+>>> .table
+>>> select * from some_table order by test_error;
+```
+
+I have save the best results for each pretrain layer in the http://1drv.ms/1qSyrZI
+To reproduce those results you can plug the hyperparams search by the hps into [example](../example/AE_example.py)
+and run one job.

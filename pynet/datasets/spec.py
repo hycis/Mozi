@@ -164,6 +164,12 @@ class Laura_Cut_Warp_Blocks_300(Laura_Warp_Blocks):
         super(Laura_Cut_Warp_Blocks_300, self).__init__(feature_size, target_size, **kwargs)
         self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura_warp_cut_AE0730_Cut_Warp_Blocks_700_300_20140730_0134_17129588'
 
+class Laura_Blocks_500_Tanh_Tanh(Laura_Blocks):
+
+    def __init__(self, feature_size, target_size, **kwargs):
+        super(Laura_Blocks_500_Tanh_Tanh, self).__init__(feature_size, target_size, **kwargs)
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura_AE0912_Blocks_2049_500_tanh_tanh_gpu_20140914_1211_46292389'
+
 class Laura_Blocks_500(Laura_Blocks):
 
     def __init__(self, feature_size, target_size, **kwargs):
