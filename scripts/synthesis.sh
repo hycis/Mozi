@@ -16,10 +16,10 @@ while [ "$1" != "" ]; do
                                 ;;
         --spec_ext )            shift
                                 SPEC_EXT=$1
-                                ;; 
+                                ;;
         --wav_dir )          shift
                                 WAV_DIR=$1
-                                ;; 
+                                ;;
         --warp_txt_file )       shift
                                 files=`cat $1`
                                 ;;
@@ -36,7 +36,7 @@ while [ "$1" != "" ]; do
 done
 
 
-# VCTK_HOME=/Volumes/Storage
+VCTK_HOME=/Volumes/Storage
 # VCTK_HOME=/home/smg/zhenzhou
 . $VCTK_HOME/VCTK/Research-Demo/fa-tts/STRAIGHT-TTS/local.conf.0
 TMP_DIR=$VCTK_HOME/VCTK/Research-Demo/fa-tts/STRAIGHT-TTS/tmp/England/Laura

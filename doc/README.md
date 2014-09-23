@@ -7,6 +7,7 @@ there are basically following hyperparams that will affect the training result
 3. momentum
 4. batch_size
 5. rand_seed # the seed for initializing the weights in autoencoder
+6. dropout_below # the dropout below for the denoising autoencoder
 
 By setting the hyperparams and run the Model Script below, it can generates one result.
 
@@ -151,6 +152,117 @@ For example for
 ```'learning_rate' : (1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.5)```,
 learning_rate is uniformly set as any of the 6 values in the tuple.
 
+Below is the sample of model Laura from [model_config.py](../hps/model_config.py)  
+```python
+    'Laura' : DD({
+            'model' : DD({
+                    'rand_seed'             : None
+                    }), # end mlp
+
+            'log' : DD({
+                    'experiment_name'       : 'AE0918_Warp_Blocks_180_120_tanh_tanh_gpu_dropout', #helios
+                    # 'experiment_name'       : 'AE0914_Warp_Blocks_500_180_tanh_tanh_gpu_clean', #helios
+            
+                    # 'experiment_name'       : 'AE0919_Blocks_180_120_tanh_tanh_gpu_dropout', #helios
+                    # 'experiment_name'       : 'AE0918_Blocks_180_120_tanh_tanh_gpu_clean', #helios
+
+                    # 'experiment_name'       : 'AE0916_Blocks_180_120_tanh_tanh_gpu_output_sig_dropout',
+                    # 'experiment_name'       : 'AE0916_Blocks_180_120_tanh_tanh_gpu_output_sig_clean',
+
+
+                    'description'           : '',
+                    'save_outputs'          : True,
+                    'save_hyperparams'      : True,
+                    'save_model'            : True,
+                    'save_to_database_name' : 'Laura.db'
+                    }), # end log
+
+
+            'learning_rule' : DD({
+                    'max_col_norm'          : (1, 10, 50),
+                    'learning_rate'         : (1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.5),
+                    'momentum'              : (1e-3, 1e-2, 1e-1, 0.5, 0.9),
+                    'momentum_type'         : 'normal',
+                    'L1_lambda'             : None,
+                    'L2_lambda'             : None,
+                    'cost'                  : 'mse',
+                    'stopping_criteria'     : DD({
+                                                'max_epoch'         : 100,
+                                                'epoch_look_back'   : 10,
+                                                'cost'              : 'mse',
+                                                'percent_decrease'  : 0.05
+                                                }) # end stopping_criteria
+                    }), # end learning_rule
+
+            #===========================[ Dataset ]===========================#
+            'dataset' : DD({
+                    # 'type'                  : 'Laura_Warp_Blocks_500_Tanh',
+                    'type'                 : 'Laura_Warp_Blocks_180_Tanh_Dropout',
+                    # 'type'                  : 'Laura_Cut_Warp_Blocks_300',
+                    # 'type'                  : 'Laura_Blocks_180_Tanh_Tanh',
+                    # 'type'                  : 'Laura_Blocks_180_Tanh_Tanh_Dropout',
+                    # 'type'                  : 'Laura_Blocks_500_Tanh_Sigmoid',
+                    # 'type'                  : 'Laura_Blocks_500',
+                    # 'type'                  : 'Laura_Blocks',
+                    # 'type'                  : 'Laura_Warp_Blocks',
+                    # 'type'                  : 'Laura_Warp_Standardize_Blocks',
+                    # 'type'                  : 'Laura_Standardize_Blocks',
+                    # 'type'                  : 'Mnist',
+
+                    'feature_size'          : 180,
+                    'train_valid_test_ratio': [8, 1, 1],
+
+                    'preprocessor'          : None,
+                    # 'preprocessor'          : 'Scale',
+                    # 'preprocessor'          : 'GCN',
+                    # 'preprocessor'          : 'LogGCN',
+                    # 'preprocessor'          : 'Standardize',
+
+                    'batch_size'            : (50, 100, 150, 200),
+                    'num_batches'           : None,
+                    'iter_class'            : 'SequentialSubsetIterator',
+                    'rng'                   : None
+                    }), # end dataset
+
+            #============================[ Layers ]===========================#
+            'num_layers' : 1,
+
+            'hidden1' : DD({
+                    'name'                  : 'hidden1',
+                    'type'                  : 'Tanh',
+                    'dim'                   : 120,
+
+                    # 'dropout_below'         : None,
+                    'dropout_below'         : (0.1, 0.2, 0.3, 0.4, 0.5),
+                    # 'dropout_below'         : 0.5,
+
+                    }), # end hidden_layer
+
+            'hidden2' : DD({
+                    'name'                  : 'hidden2',
+                    'type'                  : 'RELU',
+                    'dim'                   : 100,
+                    'dropout_below'         : None,
+                    }), # end hidden_layer
+
+            'h2_mirror' : DD({
+                    'name'                  : 'h2_mirror',
+                    'type'                  : 'RELU',
+                    # 'dim'                   : 2049, # dim = input.dim
+                    'dropout_below'         : None,
+                    }), # end output_layer
+
+            'h1_mirror' : DD({
+                    'name'                  : 'h1_mirror',
+                    'type'                  : 'Tanh',
+                    # 'dim'                   : 2049, # dim = input.dim
+                    'dropout_below'         : None,
+                    }) # end output_layer
+
+            }), # end autoencoder
+```
+
+
 To sample one set of hyperparams and run it locally, issue
 ```bash
 cdwu
@@ -188,4 +300,118 @@ I have saved the best results for each pretrain layer in the http://1drv.ms/1qSy
 __4. Reproduce Best Results__
 
 To reproduce the results you can plug the hyperparams saved in the database into [AE_example.py](../example/AE_example.py)
-and run the job locally.
+and run the job locally, or you can modify the [model_config.py](../hps/model_config.py) and
+set the hyperparams in the config file and run ```python launch.py --model Laura -c 1```
+
+*Stacking up Models*
+
+To reproduce the stackup of trained model is very simple. Just put the name of the best 
+model under 'hidden1' and 'hidden2' in the model_config.py and set the hyperparams, and issue 
+```python launch.py --model Laura_Two_Layers -c 1``` to run the job locally. 
+
+```python
+'Laura_Two_Layers' : DD({
+        'model' : DD({
+                'rand_seed'             : None
+                }), # end mlp
+
+        'log' : DD({
+                # 'experiment_name'       : 'AE0917_Blocks_2layers_finetune_2049_180_tanh_tanh_gpu_clean',
+                # 'experiment_name'       : 'AE0918_Blocks_2layers_finetune_2049_180_tanh_tanh_gpu_noisy',
+
+                # 'experiment_name'       : 'AE0918_Blocks_2layers_finetune_2049_180_tanh_sigmoid_gpu_clean',
+                # 'experiment_name'       : 'AE0917_Blocks_2layers_finetune_2049_180_tanh_sigmoid_gpu_noisy',
+
+                # 'experiment_name'       : 'AE0917_Warp_Blocks_2layers_finetune_2049_180_tanh_tanh_gpu_clean',
+                'experiment_name'       : 'AE0918_Warp_Blocks_2layers_finetune_2049_180_tanh_tanh_gpu_noisy',
+
+
+
+                'description'           : '',
+                'save_outputs'          : True,
+                'save_hyperparams'      : True,
+                'save_model'            : True,
+                'save_to_database_name' : 'Laura.db'
+                }), # end log
+
+
+        'learning_rule' : DD({
+                'max_col_norm'          : (1, 10, 50),
+                'learning_rate'         : (1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.5),
+                # 'learning_rate'         : ((1e-5, 9e-1), float),
+                # 'learning_rate'         : 0.01,
+                'momentum'              : (1e-3, 1e-2, 1e-1, 0.5, 0.9),
+                # 'momentum'              : 0.05,
+                'momentum_type'         : 'normal',
+                'L1_lambda'             : None,
+                'L2_lambda'             : None,
+                'cost'                  : 'mse',
+                'stopping_criteria'     : DD({
+                                            'max_epoch'         : 100,
+                                            'epoch_look_back'   : 10,
+                                            'cost'              : 'mse',
+                                            'percent_decrease'  : 0.05
+                                            }) # end stopping_criteria
+                }), # end learning_rule
+
+        #===========================[ Dataset ]===========================#
+        'dataset' : DD({
+                # 'type'                  : 'Laura_Warp_Blocks_500',
+                # 'type'                  : 'Laura_Blocks_500',
+                # 'type'                  : 'Laura_Blocks',
+                'type'                  : 'Laura_Warp_Blocks',
+                # 'type'                  : 'Mnist_Blocks',
+                'feature_size'          : 2049,
+                'train_valid_test_ratio': [8, 1, 1],
+
+                # 'preprocessor'          : None,
+                # 'preprocessor'          : 'Scale',
+                'preprocessor'          : 'GCN',
+                # 'preprocessor'          : 'LogGCN',
+                # 'preprocessor'          : 'Standardize',
+
+                'batch_size'            : (50, 100, 150, 200),
+                'num_batches'           : None,
+                'iter_class'            : 'SequentialSubsetIterator',
+                'rng'                   : None
+                }), # end dataset
+
+        # #============================[ Layers ]===========================#
+
+        'hidden1' : DD({
+                'name'                  : 'hidden1',
+
+                # 'model'                 : 'AE0912_Blocks_2049_500_tanh_tanh_gpu_clean_20140914_1242_27372903',
+                # 'model'                 : 'AE0915_Blocks_2049_500_tanh_tanh_gpu_Dropout_20140915_1900_37160748',
+
+                # 'model'                 : 'AE0912_Blocks_2049_500_tanh_sigmoid_gpu_clean_20140913_1342_18300926',
+
+                # 'model'                 : 'AE0911_Warp_Blocks_2049_500_tanh_tanh_gpu_clean_20140912_2337_04263067',
+                'model'                 : 'AE0916_Warp_Blocks_2049_500_tanh_tanh_gpu_dropout_20140916_1705_29139505',
+
+
+                'dropout_below'         : None,
+                # 'dropout_below'         : 0.1,
+                }), # end hidden_layer
+
+        'hidden2' : DD({
+                'name'                  : 'hidden2',
+                # 'model'                 : 'AE0916_Blocks_500_180_tanh_tanh_gpu_clean_20140916_2255_06553688',
+                # 'model'                 : 'AE0914_Blocks_500_180_tanh_tanh_gpu_dropout_20140916_1059_59760060',
+                # 'model'                 : 'AE0918_Blocks_500_180_tanh_tanh_gpu_dropout_20140918_0920_42738052',
+
+                # 'model'                 : 'AE0916_Blocks_500_180_tanh_tanh_gpu_output_sig_clean_20140917_0301_44075773',
+
+                # 'model'                 : 'AE0914_Warp_Blocks_500_180_tanh_tanh_gpu_clean_20140915_0400_30113212',
+                # 'model'                 : 'AE0916_Warp_Blocks_500_180_tanh_tanh_gpu_dropout_20140916_1326_09742695',
+                'model'                 : 'AE0918_Warp_Blocks_500_180_tanh_tanh_gpu_dropout_20140918_1125_23612485',
+
+                'dropout_below'         : None,
+                }), # end hidden_layer
+
+
+        }), # end autoencoder
+```
+
+
+

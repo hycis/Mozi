@@ -290,6 +290,8 @@ class Laura_Two_Layers(AE):
 
         if self.state.log.save_to_database_name:
             database = self.build_database(dataset, learning_rule, model)
+            database['records']['h1_model'] = self.state.hidden1.model
+            database['records']['h2_model'] = self.state.hidden2.model
             log = self.build_log(database)
 
         train_obj = TrainObject(log = log,
@@ -341,6 +343,9 @@ class Laura_Three_Layers(AE):
 
         if self.state.log.save_to_database_name:
             database = self.build_database(dataset, learning_rule, model)
+            database['records']['h1_model'] = self.state.hidden1.model
+            database['records']['h2_model'] = self.state.hidden2.model
+            database['records']['h3_model'] = self.state.hidden3.model
             log = self.build_log(database)
 
         train_obj = TrainObject(log = log,
@@ -348,12 +353,12 @@ class Laura_Three_Layers(AE):
                                 learning_rule = learning_rule,
                                 model = model)
 
-        train_obj.run()
+        # train_obj.run()
 
         # fine tuning
         log.info("fine tuning")
-        train_obj.model.layers[0].dropout_below = None
-        train_obj.setup()
+        # train_obj.model.layers[0].dropout_below = None
+        # train_obj.setup()
         train_obj.run()
 
 
