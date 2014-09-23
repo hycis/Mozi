@@ -135,6 +135,7 @@ def autoencoder():
 ```
 
 __3. Hyperparams Search__
+
 In order to do hyperparams search, run the script in [launch.py](../hps/launch.py) in [hps dir](../hps).
 To do that, first log into helios
 
@@ -287,7 +288,7 @@ sqlite3 Pynet/database/Laura.db
 >>> select * from some_table order by test_error;
 ```
 
-I have named the the experiment group in as way that is easier for understanding, for example for
+I have named the the experiment group in as way that is easier for understanding, for example
 for an experiment group name of ```AE0912_Blocks_2049_500_tanh_tanh_gpu_clean```
 means AE0912 trained on Linear Blocks of autoencoder with 2049-500-2049 dims, and tanh-tanh units,
 it's run on gpu and it's a clean model without noise during training.
