@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser(description='pass numpy data file through an Au
 parser.add_argument('--model', metavar='PATH', help='path for the model')
 parser.add_argument('--preprocessor', metavar='NAME', help='name of the preprocessor')
 parser.add_argument('--dataset', metavar='PATH', help='path to the numpy data file')
-parser.add_argument('--output_dir', metavar='DIR', 
+parser.add_argument('--output_dir', metavar='DIR',
                     help='directory to which to save the generated spec files')
 
 args = parser.parse_args()
@@ -38,10 +38,10 @@ for f_path in dataset_files:
         proc = getattr(procs, args.preprocessor)()
         print 'applying preprocessing: ' + args.preprocessor
         dataset_proc = proc.apply(dataset_raw)
-    
+
     else:
         dataset_proc = dataset_raw
-        
+
     del dataset_raw
     print 'encoding..'
     dataset_out = model.encode(dataset_proc)
@@ -49,18 +49,12 @@ for f_path in dataset_files:
 
     print 'saving to.. ' + args.output_dir
     name = os.path.basename(f_path)
-    
+
     with open(args.output_dir + '/%s'%name, 'wb') as f:
-        np.save(f, dataset_out)    
-   
+        np.save(f, dataset_out)
+
     del dataset_out
-   
+
     print 'closing files..'
     f.close()
     print 'Done!'
-    
-
-
-
-
-

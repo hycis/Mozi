@@ -19,7 +19,7 @@ helios='hycis@helios.calculquebec.ca:/scratch/jvb-000-aa/hycis/Pynet/save/log'
 
 hostname = socket.gethostname()
 
-tbl = {'nii': 'cn01040804.ecloud.nii.ac.jp', 'helios' : 'helios-login1',
+tbl = {'nii': 'cn01051002.ecloud.nii.ac.jp', 'helios' : 'helios-login1',
         'biaree': 'briaree1', 'gill' : 'lg-1r17-n04'}
 
 if tbl[args.from_to[0]] == hostname:

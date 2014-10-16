@@ -258,10 +258,6 @@ class LogGCN(GCN):
             return np.exp(X)
 
 
-
-
-
-
 class Scale(Preprocessor):
 
     """

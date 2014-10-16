@@ -42,9 +42,23 @@ def AE_Testing_exp(state, channel):
 
     return channel.COMPLETE
 
+def Laura_Mapping_exp(state, channel):
+    setEnv()
+    hps = Laura_Mapping(state)
+    hps.run()
+
+    return channel.COMPLETE
+
 def Laura_exp(state, channel):
     setEnv()
     hps = Laura(state)
+    hps.run()
+
+    return channel.COMPLETE
+
+def Laura_Continue_exp(state, channel):
+    setEnv()
+    hps = Laura_Continue(state)
     hps.run()
 
     return channel.COMPLETE

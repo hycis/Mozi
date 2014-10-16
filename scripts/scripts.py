@@ -234,19 +234,20 @@ if __name__ == '__main__':
 #         graphs_spec('/Volumes/Storage/VCTK/data/inter-module/mcep/England/p274/p274_024.spec', dtype='<f4', frame=frame)
 #         blue_name = '1119_1.spec'
         file_name = '1119_1_full_picture'
-        red_name='1119_1.spec.f8'
-        green_name = '1119_1.spec.f8'
+        green_name='1119_1.spec.warp.f4'
+        red_name = '1119_1.spec.map2.f4'
         blue = None
 #         orig=
 #         blue = '/Volumes/Storage/generated_specs/Laura/orig_specs/%s'%blue_name
 #         reconstruct1 = '/Volumes/Storage/comparing/loggcn400/%s.f8'%name #red
 #         model="warp_specs"
 #         model='AE0707_2layers_10blks_20140707_2009_35589670'
-        model = 'res_spec'
+        # model = 'res_spec'
 #         save_dir = '/Volumes/Storage/generated_specs/Laura/%s'%model
 #         reconstruct1 = '%s/%s.f8'%(save_dir,name)
-        save_dir = '/Volumes/Storage/generated_specs/Laura/%s'%model
-        red='/Volumes/Storage/generated_specs/Laura/orig_specs/%s'%red_name
+        # save_dir = '/Volumes/Storage/generated_specs/Laura/%s'%model
+        save_dir = '/Volumes/Storage/models/mapper'
+        green='/Volumes/Storage/generated_specs/Laura/warp_specs/%s'%green_name
 #         red = '/Volumes/Storage/generated_specs/Laura/%s/%s.unwarp.f8'%(model, name)
 #         red = '/Volumes/Storage/generated_specs/Laura/orig_specs/1689_1.straight.f8'
 #         red = '/Volumes/Storage/generated_specs/Laura/unwarp_specs/.f8'
@@ -254,9 +255,9 @@ if __name__ == '__main__':
 #         green = '/Volumes/Storage/generated_specs/Laura/warp_specs/%s.warp.f4'%name
 #         green = '/Volumes/Storage/generated_specs/Laura/unwarp_specs/%s.unwarp.f8'%name
 #         green = '/Volumes/Storage/generated_specs/Laura/dct_specs/%s.double'%name
-        green='/Volumes/Storage/generated_specs/Laura/%s/%s'%(model,green_name)
-        graphs_spec(orig_path=blue, file_name=file_name, struct_path=red, dct_path=green, red_type='<f8', green_type='<f8',
-        save_dir=save_dir, save=True, frame=frame, frame_size=2049)
+        red='/Volumes/Storage/models/mapper/%s'%red_name
+        graphs_spec(orig_path=blue, file_name=file_name, struct_path=red, dct_path=green, red_type='<f8', green_type='<f4',
+        save_dir=save_dir, save=False, frame=frame, frame_size=2049)
 #
 #     savenpy('/RQusagers/hycis/smartNN/data/Laura')
 #     testpreproc('/Applications/VCTK/data/inter-module/mcep/England/p276/p276.npy')

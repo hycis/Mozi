@@ -53,6 +53,15 @@ class Layer(object):
                                                dtype=floatX) * state_below
         return state_below
 
+    def _blackout_below(self, state_below):
+        if self.blackout_below is not None:
+            assert self.blackout_below >= 0. and self.blackout_below <= 1., \
+                    'blackout_below is not in range [0,1]'
+            state_below = theano_rand.binomial(size=(), n=1, p=(1-self.dropout_below),
+                                               dtype=floatX) * state_below
+        return state_below
+
+
 
     def _linear_part(self, state_below):
         """
@@ -81,7 +90,7 @@ class Layer(object):
         # mean_length = T.mean(w_len).astype(floatX)
         # min_length = T.min(w_len).astype(floatX)
         # max_output = T.max(layer_output).astype(floatX)
-        # mean_output = T.mean(T.gt(T.abs_(state_below),0).astype(floatX))
+        # mean_output = T.mean(T.abs_(layer_output)).astype(floatX)
         # min_output = T.min(layer_output).astype(floatX)
         # state_below = self._mask_state_below(state_below)
         #
@@ -96,13 +105,14 @@ class Layer(object):
         # mean_state = T.mean(T.abs_(state_below))
         # test_state = T.gt(mean_state, 0).astype(floatX) and 1.0 or 0.0
         # true_state = T.mean(T.gt(T.abs_(state_below), 0)).astype(floatX)
-        return []
-        # ('max_col_length', max_length),
-        #         ('mean_col_length', mean_length),
-        #         ('min_col_length', min_length),
-                # ('output_max', max_output),
-                # ('output_mean', mean_output),
-                # # ('output_min', min_output),
+        # activity = T.mean(T.gt(layer_output, 0) * 1.0)
+        # return [('activity', activity.astype(floatX)),
+        # # ('max_col_length', max_length),
+        # #         ('mean_col_length', mean_length),
+        # #         ('min_col_length', min_length),
+        #         ('output_max', max_output),
+        #         ('output_mean', mean_output),
+        #         ('output_min', min_output)]
                 # ('pos', pos),
                 # ('test', out)]
                 # ('max_W', T.max(self.W)),
@@ -111,6 +121,7 @@ class Layer(object):
                 # ('max_b', T.max(self.b)),
                 # ('mean_b', T.mean(self.b)),
                 # ('min_b', T.min(self.b))]
+        return []
 
 class Linear(Layer):
     def _test_fprop(self, state_below):

@@ -7,6 +7,7 @@ from pynet.layer import *
 from pynet.datasets.mnist import Mnist, Mnist_Blocks
 import pynet.datasets.spec as spec
 import pynet.datasets.mnist as mnist
+import pynet.datasets.mapping as mapping
 from pynet.learning_rule import LearningRule
 from pynet.log import Log
 from pynet.train_object import TrainObject
@@ -181,9 +182,7 @@ class AE:
                                          'Dropout_Below'    : str([layer.dropout_below for layer in model.layers]),
                                          'Batch_Size'       : dataset.batch_size,
                                          'nblocks'          : dataset.nblocks(),
-                                         'Layer_Size'       : len(model.layers),
                                          'Layer_Types'      : str([layer.__class__.__name__ for layer in model.layers]),
-                                         'Feature_Size'     : dataset.feature_size(),
                                          'Layer_Dim'        : str([layer.dim for layer in model.layers]),
                                          'Preprocessor'     : dataset.preprocessor.__class__.__name__,
                                          'Learning_Rate'    : learning_rule.learning_rate,
@@ -222,6 +221,48 @@ class AE_Testing(AE):
         train_obj.setup()
         train_obj.run()
 
+class Laura_Mapping(AE):
+    def __init__(self, state):
+        self.state = state
+
+    def run(self):
+        preprocessor = None if self.state.dataset.preprocessor is None else \
+                       getattr(preproc, self.state.dataset.preprocessor)()
+        dataset = getattr(mapping, self.state.dataset.type)(feature_size = self.state.dataset.feature_size,
+                                                            target_size = self.state.dataset.target_size,
+                                                            train_valid_test_ratio = self.state.dataset.train_valid_test_ratio,
+                                                            preprocessor = preprocessor,
+                                                            batch_size = self.state.dataset.batch_size,
+                                                            num_batches = self.state.dataset.num_batches,
+                                                            iter_class = self.state.dataset.iter_class,
+                                                            rng = self.state.dataset.rng)
+        model = MLP(input_dim = self.state.dataset.feature_size, rand_seed=self.state.model.rand_seed)
+        hidden1 = getattr(layer, self.state.hidden1.type)(dim=self.state.hidden1.dim,
+                                                        name=self.state.hidden1.name,
+                                                        dropout_below=self.state.hidden1.dropout_below)
+        model.add_layer(hidden1)
+
+        hidden2 = getattr(layer, self.state.hidden2.type)(dim=self.state.hidden2.dim,
+                                                        name=self.state.hidden2.name,
+                                                        dropout_below=self.state.hidden2.dropout_below)
+        model.add_layer(hidden2)
+
+        output = getattr(layer, self.state.output.type)(dim=self.state.output.dim,
+                                                        name=self.state.output.name,
+                                                        dropout_below=self.state.output.dropout_below)
+        model.add_layer(output)
+
+        learning_rule = self.build_learning_rule()
+        database = self.build_database(dataset, learning_rule, model)
+        log = self.build_log(database)
+
+        train_obj = TrainObject(log = log,
+                                dataset = dataset,
+                                learning_rule = learning_rule,
+                                model = model)
+
+        train_obj.run()
+
 
 class Laura(AE):
 
@@ -257,6 +298,44 @@ class Laura(AE):
         train_obj.model.layers[0].dropout_below = None
         train_obj.setup()
         train_obj.run()
+
+class Laura_Continue(AE):
+
+    def __init__(self, state):
+        self.state = state
+
+
+    def build_model(self, input_dim):
+        with open(os.environ['PYNET_SAVE_PATH'] + '/log/'
+                    + self.state.hidden1.model + '/model.pkl') as f1:
+            model = cPickle.load(f1)
+        return model
+
+    def run(self):
+
+        dataset = self.build_dataset()
+        learning_rule = self.build_learning_rule()
+
+        model = self.build_model(dataset.feature_size())
+        model.layers[0].dropout_below = self.state.hidden1.dropout_below
+
+        if self.state.log.save_to_database_name:
+            database = self.build_database(dataset, learning_rule, model)
+            database['records']['model'] = self.state.hidden1.model
+            log = self.build_log(database)
+
+        train_obj = TrainObject(log = log,
+                                dataset = dataset,
+                                learning_rule = learning_rule,
+                                model = model)
+
+        train_obj.run()
+        log.info("fine tuning")
+        train_obj.model.layers[0].dropout_below = None
+        train_obj.setup()
+        train_obj.run()
+
+
 
 class Laura_Two_Layers(AE):
 

@@ -11,9 +11,9 @@ parser = argparse.ArgumentParser(description='reconstruct spec file from input s
 parser.add_argument('--model', metavar='PATH', help='directory of the model use for reconstruction')
 parser.add_argument('--preprocessor', metavar='NAME', help='preprocessor for the model')
 parser.add_argument('--spec_file', metavar='PATH', help='original spec file')
-parser.add_argument('--input_spec_dtype',  metavar='f4|f8', default='f4', 
+parser.add_argument('--input_spec_dtype',  metavar='f4|f8', default='f4',
                     help='dtype of the input spec files f4|f8')
-parser.add_argument('--output_spec_dtype', metavar='f4|f8', default='f8', 
+parser.add_argument('--output_spec_dtype', metavar='f4|f8', default='f8',
                     help='output datatype of spec file, f4|f8')
 parser.add_argument('--output_dir', metavar='PATH', default='./reconstructed_specs',
                     help='directory to which to save the generated spec files')
@@ -39,22 +39,22 @@ for spec_file in spec_files:
     assert spec.shape[0] % args.feature_size == 0, 'length of of spec file ' + spec.shape[0] + \
                                                     'not multiple of feature size ' + args.feature_size
     spec = spec.reshape(spec.shape[0]/args.feature_size, args.feature_size)
-    
+
     print 'applying preprocessing.. ' + args.preprocessor
     spec = proc.apply(spec)
-    
+
     print 'fproping.. '
     spec = model.fprop(spec)
-    
+
     print 'inverting preprocessing.. '
     spec = proc.invert(spec)
     spec = spec.astype(args.output_spec_dtype)
-    
+
     import pdb
     pdb.set_trace()
-    
+
     filename = os.path.basename(spec_file) + '.%s'%args.output_spec_dtype
     print 'saving..'
     spec.tofile(args.output_dir + '/' + filename, format='<%s'%args.output_spec_dtype)
-    
+
 print 'all reconstructed spec files save in ' + args.output_dir

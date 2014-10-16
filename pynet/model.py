@@ -47,6 +47,10 @@ class MLP(Model):
                                 high = 4 * np.sqrt(6. / (layer.dim + prev_layer_dim)),
                                 size = (prev_layer_dim, layer.dim)),
                                 dtype = floatX)
+            # W_values = np.asarray(np.random.uniform(low = 0,
+            #                     high = 4 * np.sqrt(6. / (layer.dim + prev_layer_dim)),
+            #                     size = (prev_layer_dim, layer.dim)),
+            #                     dtype = floatX)
 
             layer.W = theano.shared(value=W_values, name='W_'+layer.name, borrow=True)
 

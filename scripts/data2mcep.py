@@ -88,16 +88,3 @@ for f_path, fp in zip(data_paths, filename_paths):
 
 
 print 'All files saved to ' + outdir
-
-
-# if __name__ == '__main__':
-#     parser = argparse.ArgumentParser(description='''Generate spec files from splits of npy files''')
-#     parser.add_argument('--dataset', metavar='PATH', help='''path to data npy files''')
-#     parser.add_argument('--specnames', metavar='PATH', help='''path to specnames npy files''')
-#     parser.add_argument('--output_dir', metavar='DIR', help='''output for the mcep file''')
-#
-#     args = parser.parse_args()
-#
-#     print('..output data files dtype: %s'%args.output_spec_dtype)
-#
-#     generate_specs(args.dataset, args.specnames, , args.output_dir)

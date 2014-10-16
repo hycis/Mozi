@@ -29,20 +29,20 @@ lua_exclude = '--exclude-from=%s/exclude.txt'%lua_package
 if args.gill:
 	if args.pynet:
 	    os.system("rsync -rvu %s %s/Pynet hycis@guillimin.clumeq.ca:/sb/project/jvb-000-aa/zhenzhou"%(exclude, source))
-	
+
 	elif args.smartnn:
-		os.system("rsync -rvu %s %s/smartNN hycis@guillimin.clumeq.ca:/sb/project/jvb-000-aa/zhenzhou"%(exclude, source))  
+		os.system("rsync -rvu %s %s/smartNN hycis@guillimin.clumeq.ca:/sb/project/jvb-000-aa/zhenzhou"%(exclude, source))
 
 elif args.nii:
 	if args.image:
-		os.system("rsync -rvu zhenzhou@136.187.97.216:~/smartNN/save/images \
+		os.system("rsync -rvu zhenzhou@136.187.97.212:~/smartNN/save/images \
 					%s/smartNN/save/images/nii"%source)
-					
+
 	elif args.pynet:
-	    os.system("rsync -rvu %s %s/Pynet zhenzhou@136.187.97.216:~/"%(exclude, source))
-	
+	    os.system("rsync -rvu %s %s/Pynet zhenzhou@136.187.97.212:~/"%(exclude, source))
+
 	elif args.smartnn:
-		os.system("rsync -rvu %s %s/smartNN zhenzhou@136.187.97.216:~/"%(exclude, source))
+		os.system("rsync -rvu %s %s/smartNN zhenzhou@136.187.97.212:~/"%(exclude, source))
 
 elif args.biaree:
 	if args.image:
@@ -51,7 +51,7 @@ elif args.biaree:
 
 	elif args.pynet:
 		os.system("rsync -rvu %s %s/Pynet hycis@briaree.calculquebec.ca:/RQexec/hycis"%(exclude, source))
-    
+
 	elif args.smartnn:
 		os.system("rsync -rvu %s %s/smartNN hycis@briaree.calculquebec.ca:/RQexec/hycis"%(exclude, source))
 
@@ -63,7 +63,7 @@ elif args.udem:
     elif args.lua:
 	    os.system("rsync -rvu %s /Volumes/Storage/lua_packages \
                 wuzhen@frontal07.iro.umontreal.ca:/data/lisa/exp/wuzhen/"%lua_exclude)
-    
+
     elif args.pynet:
         os.system("rsync -rvu %s %s/Pynet \
                 wuzhen@frontal07.iro.umontreal.ca:~/"%(exclude, source))
@@ -74,7 +74,7 @@ elif args.udem:
 elif args.helios:
     if args.pynet:
         os.system("rsync -rvu %s %s/Pynet \
-                hycis@helios.calculquebec.ca:/scratch/jvb-000-aa/hycis"%(exclude, source))  
+                hycis@helios.calculquebec.ca:/scratch/jvb-000-aa/hycis"%(exclude, source))
 
 elif args.nik:
     if args.lua:

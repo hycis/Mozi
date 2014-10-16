@@ -139,6 +139,27 @@ class Laura_Warp_Blocks_180_Tanh(Laura_Warp_Blocks):
         super(Laura_Warp_Blocks_180_Tanh, self).__init__(feature_size, target_size, **kwargs)
         self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura_AE0914_Warp_Blocks_2layers_finetune_2049_180_gpu_20140915_0006_11454520'
 
+class Laura_Scale_Warp_Blocks_500_Tanh(Laura_Warp_Blocks):
+    def __init__(self, feature_size, target_size, **kwargs):
+        super(Laura_Scale_Warp_Blocks_500_Tanh, self).__init__(feature_size, target_size, **kwargs)
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/AE0930_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_clean_20140930_1345_29800576'
+
+class Laura_Scale_Warp_Blocks_180_Tanh(Laura_Warp_Blocks):
+    def __init__(self, feature_size, target_size, **kwargs):
+        super(Laura_Scale_Warp_Blocks_180_Tanh, self).__init__(feature_size, target_size, **kwargs)
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura_AE1001_Scale_Warp_Blocks_500_180_tanh_tanh_gpu_clean_20141002_0348_53679208'
+
+
+class Laura_Scale_Warp_Blocks_500_Tanh_Dropout(Laura_Warp_Blocks):
+    def __init__(self, feature_size, target_size, **kwargs):
+        super(Laura_Scale_Warp_Blocks_500_Tanh_Dropout, self).__init__(feature_size, target_size, **kwargs)
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/AE1002_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_dropout_20141001_0321_33382955'
+
+class Laura_Scale_Warp_Blocks_180_Tanh_Dropout(Laura_Warp_Blocks):
+    def __init__(self, feature_size, target_size, **kwargs):
+        super(Laura_Scale_Warp_Blocks_180_Tanh_Dropout, self).__init__(feature_size, target_size, **kwargs)
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura_AE1001_Scale_Warp_Blocks_500_180_tanh_tanh_gpu_dropout_20141001_2158_16765065'
+
 class Laura_Warp_Blocks_650(Laura_Warp_Blocks):
     def __init__(self, feature_size, target_size, **kwargs):
         super(Laura_Warp_Blocks_650, self).__init__(feature_size, target_size, **kwargs)
