@@ -13,7 +13,7 @@ model_config = DD({
                     'experiment_name'       : 'AE_Testing_Mnist_500_100',
                     'description'           : '',
                     'save_outputs'          : True,
-                    'save_hyperparams'      : True,
+                    'save_learning_rule'      : True,
                     'save_model'            : True,
                     'save_to_database_name' : 'Database_Name.db'
                     }), # end log
@@ -83,7 +83,7 @@ model_config = DD({
 
                     'description'           : '',
                     'save_outputs'          : True,
-                    'save_hyperparams'      : True,
+                    'save_learning_rule'      : True,
                     'save_model'            : True,
                     'save_to_database_name' : 'Laura.db'
                     }), # end log
@@ -168,8 +168,8 @@ model_config = DD({
                     # 'experiment_name'       : 'AE0829_Standardize_GCN_Blocks_2049_500_tanh_gpu',
                     # 'experiment_name'       : 'AE0901_Warp_Blocks_500_180_tanh_gpu',
 
-                    # 'experiment_name'       : 'AE1001_Warp_Blocks_180_120_tanh_tanh_gpu_dropout', #helios
-                    'experiment_name'       : 'AE1003_Scale_Warp_Blocks_500_120_tanh_tanh_gpu_clean', #helios
+                    # 'experiment_name'       : 'AE1016_Warp_Blocks_180_120_tanh_tanh_gpu_dropout', #helios
+                    'experiment_name'       : 'AE1016_Scale_Warp_Blocks_500_180_tanh_tanh_gpu_blackout', #helios
                     #
                     # 'experiment_name'       : 'AE0919_Blocks_180_120_tanh_tanh_gpu_dropout', #helios
                     # 'experiment_name'       : 'AE0918_Blocks_180_120_tanh_tanh_gpu_clean', #helios
@@ -183,9 +183,10 @@ model_config = DD({
 
                     'description'           : '',
                     'save_outputs'          : True,
-                    'save_hyperparams'      : True,
+                    'save_learning_rule'    : True,
                     'save_model'            : True,
-                    'save_to_database_name' : 'Laura2.db'
+                    'save_epoch_error'      : True,
+                    'save_to_database_name' : 'Laura3.db'
                     }), # end log
 
 
@@ -252,6 +253,9 @@ model_config = DD({
                     # 'dropout_below'         : (0.3, 0.4, 0.5),
                     # 'dropout_below'         : 0.5,
 
+                    # 'blackout_below'        : None,
+                    'blackout_below'         : 0.5
+
                     }), # end hidden_layer
 
             'hidden2' : DD({
@@ -259,6 +263,8 @@ model_config = DD({
                     'type'                  : 'RELU',
                     'dim'                   : 100,
                     'dropout_below'         : None,
+
+                    'blackout_below'        : None
                     }), # end hidden_layer
 
             'h2_mirror' : DD({
@@ -266,13 +272,19 @@ model_config = DD({
                     'type'                  : 'RELU',
                     # 'dim'                   : 2049, # dim = input.dim
                     'dropout_below'         : None,
+
+                    'blackout_below'        : None
                     }), # end output_layer
 
             'h1_mirror' : DD({
                     'name'                  : 'h1_mirror',
                     'type'                  : 'Tanh',
                     # 'dim'                   : 2049, # dim = input.dim
+
                     'dropout_below'         : None,
+                    # 'dropout_below'         : 0.5,
+
+                    'blackout_below'        : None
                     }) # end output_layer
 
             }), # end autoencoder
@@ -293,7 +305,7 @@ model_config = DD({
 
                 'description'           : '',
                 'save_outputs'          : True,
-                'save_hyperparams'      : True,
+                'save_learning_rule'      : True,
                 'save_model'            : True,
                 'save_to_database_name' : 'Laura2.db'
                 }), # end log
@@ -365,7 +377,7 @@ model_config = DD({
 
                 'description'           : '',
                 'save_outputs'          : True,
-                'save_hyperparams'      : True,
+                'save_learning_rule'      : True,
                 'save_model'            : True,
                 'save_to_database_name' : 'Laura2.db'
                 }), # end log
@@ -457,7 +469,7 @@ model_config = DD({
 
                 'description'           : '',
                 'save_outputs'          : True,
-                'save_hyperparams'      : True,
+                'save_learning_rule'      : True,
                 'save_model'            : True,
                 'save_to_database_name' : 'Laura2.db'
                 }), # end log
@@ -566,7 +578,7 @@ model_config = DD({
                 'experiment_name'       : 'AE0730_No_Transpose_Warp_Blocks_180_64',
                 'description'           : '',
                 'save_outputs'          : True,
-                'save_hyperparams'      : True,
+                'save_learning_rule'      : True,
                 'save_model'            : True,
                 'save_to_database_name' : 'Laura.db'
                 }), # end log

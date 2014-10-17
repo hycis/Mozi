@@ -38,8 +38,9 @@ def autoencoder():
     log = Log(experiment_name = 'AE',
             description = 'This experiment is about autoencoder',
             save_outputs = True, # saves to outputs.log
-            save_hyperparams = True,
+            save_learning_rule = True,
             save_model = True,
+            save_epoch_error = False,
             save_to_database = {'name': 'Example.db',
                                 'records' : {'Dataset' : data.__class__.__name__,
                                              'Weight_Init_Seed' : mlp.rand_seed,
@@ -114,7 +115,7 @@ def stacked_autoencoder():
     log = Log(experiment_name = name + '_layer1',
             description = 'This experiment is to test the model',
             save_outputs = True,
-            save_hyperparams = True,
+            save_learning_rule = True,
             save_model = True,
             save_to_database = {'name': 'Database.db',
                                 'records' : {'Dataset' : data.__class__.__name__,
@@ -174,7 +175,7 @@ def stacked_autoencoder():
     log2 = Log(experiment_name = name + '_layer2',
             description = 'This experiment is to test the model',
             save_outputs = True,
-            save_hyperparams = True,
+            save_learning_rule = True,
             save_model = True,
             send_to_database = 'Database_Name.db')
 
@@ -224,7 +225,7 @@ def stacked_autoencoder():
     log3 = Log(experiment_name = name + '_full',
             description = 'This experiment is to test the model',
             save_outputs = True,
-            save_hyperparams = True,
+            save_learning_rule = True,
             save_model = True,
             save_to_database = {'name': 'Database.db',
                                 'records' : {'Dataset' : data.__class__.__name__,

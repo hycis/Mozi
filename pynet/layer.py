@@ -11,7 +11,7 @@ class Layer(object):
     Abstract Class
     """
 
-    def __init__(self, dim, name, W=None, b=None, dropout_below=None):
+    def __init__(self, dim, name, W=None, b=None, dropout_below=None, blackout_below=None):
         """
         DESCRIPTION:
             This is an abstract layer class
@@ -26,9 +26,9 @@ class Layer(object):
         self.name = name
         self.W = W
         self.b = b
-        # assert not (dropout_below and blackout_below), 'cannot set both dropout and blackout'
+        assert not (dropout_below and blackout_below), 'cannot set both dropout and blackout'
         self.dropout_below = dropout_below
-        # self.blackout_below = blackout_below
+        self.blackout_below = blackout_below
 
         if self.W is not None and self.W.name is None:
             self.W.name = 'W_' + self.name
@@ -57,11 +57,9 @@ class Layer(object):
         if self.blackout_below is not None:
             assert self.blackout_below >= 0. and self.blackout_below <= 1., \
                     'blackout_below is not in range [0,1]'
-            state_below = theano_rand.binomial(size=(), n=1, p=(1-self.dropout_below),
+            state_below = theano_rand.binomial(size=(), n=1, p=(1-self.blackout_below),
                                                dtype=floatX) * state_below
         return state_below
-
-
 
     def _linear_part(self, state_below):
         """
@@ -71,6 +69,15 @@ class Layer(object):
 			state_below: 1d array of inputs from layer below
         """
         return T.dot(state_below, self.W) + self.b
+
+    def _dropout_test_fprop(self, state_below):
+        """
+        DESCRIPTION:
+            resize the weight during testing for models trained with dropout.
+            The weight will be resized to W' = self.dropout_below * W
+        """
+        return T.dot(state_below, (1-self.dropout_below) * self.W) + self.b
+
 
 
     def _layer_stats(self, state_below, layer_output):
@@ -125,65 +132,63 @@ class Layer(object):
 
 class Linear(Layer):
     def _test_fprop(self, state_below):
+        if self.dropout_below:
+            return self._dropout_test_fprop(state_below)
+        else:
+            return self._linear_part(state_below)
+
+    def _train_fprop(self, state_below):
+        state_below = self._mask_state_below(state_below)
+        state_below = self._blackout_below(state_below)
         output = self._linear_part(state_below)
         return output
 
-    def _train_fprop(self, state_below):
-        state_below = self._mask_state_below(state_below)
-        output = self._linear_part(state_below)
-        return output
 
-
-class Sigmoid(Layer):
+class Sigmoid(Linear):
     def _test_fprop(self, state_below):
-        output = self._linear_part(state_below)
+        output = super(Sigmoid, self)._test_fprop(state_below)
         return T.nnet.sigmoid(output)
 
     def _train_fprop(self, state_below):
-        state_below = self._mask_state_below(state_below)
-        output = self._linear_part(state_below)
+        output = super(Sigmoid, self)._train_fprop(state_below)
         return T.nnet.sigmoid(output)
 
 
-class RELU(Layer):
+class RELU(Linear):
     def _test_fprop(self, state_below):
-        output = self._linear_part(state_below)
+        output = super(RELU, self)._test_fprop(state_below)
         return output * (output > 0.)
 
     def _train_fprop(self, state_below):
-        state_below = self._mask_state_below(state_below)
-        output = self._linear_part(state_below)
+        output = super(RELU, self)._train_fprop(state_below)
         return output * (output > 0.)
 
 
-class Softmax(Layer):
+class Softmax(Linear):
     def _test_fprop(self, state_below):
-        output = self._linear_part(state_below)
+        output = super(Softmax, self)._test_fprop(state_below)
         return T.nnet.softmax(output)
 
     def _train_fprop(self, state_below):
-        state_below = self._mask_state_below(state_below)
-        output = self._linear_part(state_below)
+        output = super(Softmax, self)._train_fprop(state_below)
         return T.nnet.softmax(output)
 
 
-class Tanh(Layer):
+class Tanh(Linear):
     def _test_fprop(self, state_below):
-        output = self._linear_part(state_below)
+        output = super(Tanh, self)._test_fprop(state_below)
         return T.tanh(output)
 
     def _train_fprop(self, state_below):
-        state_below = self._mask_state_below(state_below)
-        output = self._linear_part(state_below)
+        output = super(Tanh, self)._train_fprop(state_below)
         return T.tanh(output)
 
 
-class Softplus(Layer):
+class Softplus(Linear):
     def _test_fprop(self, state_below):
-        output = self._linear_part(state_below)
+        output = super(Softplus, self)._test_fprop(state_below)
         return T.nnet.softplus(output)
 
     def _train_fprop(self, state_below):
-        state_below = self._mask_state_below(state_below)
-        output = self._linear_part(state_below)
+        output = super(Softplus, self)._train_fprop(state_below)
         return T.nnet.softplus(output)

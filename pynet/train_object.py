@@ -224,6 +224,7 @@ class TrainObject():
         test_stats_values = []
 
         epoch = 1
+        best_epoch = 1
         error_dcr = 0
         self.best_epoch_so_far = 0
 
@@ -330,25 +331,29 @@ class TrainObject():
                 mean_test_cost = total_test_cost / num_test_examples
                 test_stats_values /= num_test_examples
 
-            #========[ save model, save hyperparams, save to database ]=======#
+            #=======[ save model, save learning_rule, save to database ]======#
             if mean_test_error < best_test_error:
 
                 best_test_error = mean_test_error
+                best_epoch = epoch
 
                 if self.log.save_model:
                     self.log._save_model(self.model)
                     self.log.info('..model saved')
 
-                if self.log.save_hyperparams:
-                    self.log._save_hyperparams(self.learning_rule)
-                    self.log.info('..hyperparams saved')
+                if self.log.save_learning_rule:
+                    self.log._save_learning_rule(self.learning_rule)
+                    self.log.info('..learning rule saved')
 
-            #=======================[ save to database ]======================#
+            #==============[ save to database, save epoch error]==============#
             if self.log.save_to_database:
                 self.log._save_to_database(epoch, best_train_error, best_valid_error, best_test_error)
-
                 self.log.info('..sent to database: %s:%s' % (self.log.save_to_database['name'],
                                                         self.log.experiment_name))
+
+            if self.log.save_epoch_error:
+                self.log._save_epoch_error(best_epoch, best_train_error, best_valid_error, best_test_error)
+                self.log.info('..epoch error saved')
 
             end_time = time.time()
 

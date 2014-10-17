@@ -68,7 +68,7 @@ def autoencoder():
     log = Log(experiment_name = 'AE',
             description = 'This experiment is about autoencoder',
             save_outputs = True, # saves to outputs.log
-            save_hyperparams = True,
+            save_learning_rule = True,
             save_model = True,
             save_to_database = {'name': 'Example.db',
                                 'records' : {'Dataset' : data.__class__.__name__,
@@ -173,7 +173,7 @@ Below is the sample of model Laura from [model_config.py](../hps/model_config.py
 
                     'description'           : '',
                     'save_outputs'          : True,
-                    'save_hyperparams'      : True,
+                    'save_learning_rule'      : True,
                     'save_model'            : True,
                     'save_to_database_name' : 'Laura.db'
                     }), # end log
@@ -330,7 +330,7 @@ model under 'hidden1' and 'hidden2' in the model_config.py and set the hyperpara
 
                 'description'           : '',
                 'save_outputs'          : True,
-                'save_hyperparams'      : True,
+                'save_learning_rule'      : True,
                 'save_model'            : True,
                 'save_to_database_name' : 'Laura.db'
                 }), # end log

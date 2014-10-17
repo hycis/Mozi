@@ -16,14 +16,15 @@ floatX = theano.config.floatX
 class Log:
 
     def __init__(self, experiment_name="experiment", description=None,
-                save_outputs=False, save_hyperparams=False, save_model=False,
-                save_to_database=None, logger=None):
+                save_outputs=False, save_learning_rule=False, save_model=False,
+                save_epoch_error=False, save_to_database=None, logger=None):
 
         self.experiment_name = experiment_name
         self.description = description
         self.save_outputs = save_outputs
-        self.save_hyperparams = save_hyperparams
+        self.save_learning_rule = save_learning_rule
         self.save_model = save_model
+        self.save_epoch_error = save_epoch_error
         self.save_to_database = save_to_database
 
         dt = datetime.now()
@@ -31,7 +32,7 @@ class Log:
 
         self.exp_id = experiment_name + '_' + dt
 
-        if save_outputs or save_hyperparams or save_model:
+        if save_outputs or save_learning_rule or save_model:
             save_dir = os.environ['PYNET_SAVE_PATH'] + '/log'
             if not os.path.exists(save_dir):
                 os.mkdir(save_dir)
@@ -51,6 +52,12 @@ class Log:
             formatter = logging.Formatter('%(message)s')
             ch.setFormatter(formatter)
             self.logger.addHandler(ch)
+
+        if save_epoch_error:
+            self.epoch_error_tbl = {"epoch":[],
+                                   "train_error":[],
+                                   "valid_error":[],
+                                   "test_error":[]}
 
         self.logger.info('exp_id: ' + self.exp_id)
 
@@ -86,30 +93,38 @@ class Log:
         with open(self.exp_dir+'/model.pkl', 'wb') as pkl_file:
             cPickle.dump(model, pkl_file)
 
-    def _save_hyperparams(self, learning_rule):
-        with open(self.exp_dir+'/hyperparams.pkl', 'wb') as pkl_file:
+    def _save_learning_rule(self, learning_rule):
+        with open(self.exp_dir+'/learning_rule.pkl', 'wb') as pkl_file:
             cPickle.dump(learning_rule, pkl_file)
+
+    def _save_epoch_error(self, epoch, train_error, valid_error, test_error):
+        self.epoch_error_tbl["epoch"].append(epoch)
+        self.epoch_error_tbl["train_error"].append(train_error)
+        self.epoch_error_tbl["valid_error"].append(valid_error)
+        self.epoch_error_tbl["test_error"].append(test_error)
+        with open(self.exp_dir+'/epoch_error.pkl', 'wb') as pkl_file:
+            cPickle.dump(self.epoch_error_tbl, pkl_file)
 
     def _save_to_database(self, epoch, train_error, valid_error, test_error):
         conn = sqlite3.connect(os.environ['PYNET_DATABASE_PATH'] + '/' + self.save_to_database['name'])
         cur = conn.cursor()
 
-        query = 'CREATE TABLE IF NOT EXISTS ' + self.experiment_name + '(exp_id TEXT PRIMARY KEY NOT NULL,'
-
-        for k,v in self.save_to_database['records'].items():
-            if type(v) is str:
-                query += k + ' TEXT,'
-            elif type(v) is int:
-                query += k + ' INT,'
-            else:
-                query += k + ' REAL,'
-
-        query += 'epoch INT, train_error REAL, valid_error REAL, test_error REAL);'
-
-        cur.execute(query)
-
-
         if self.first_time_record:
+            query = 'CREATE TABLE IF NOT EXISTS ' + self.experiment_name + \
+                    '(exp_id TEXT PRIMARY KEY NOT NULL,'
+
+            for k,v in self.save_to_database['records'].items():
+                if type(v) is str:
+                    query += k + ' TEXT,'
+                elif type(v) is int:
+                    query += k + ' INT,'
+                else:
+                    query += k + ' REAL,'
+
+            query += 'epoch INT, train_error REAL, valid_error REAL, test_error REAL);'
+
+            cur.execute(query)
+
             try:
                 query = 'INSERT INTO ' + self.experiment_name + ' VALUES('
                 ls = [self.exp_id]
@@ -139,6 +154,5 @@ class Log:
                         train_error,
                         valid_error,
                         test_error])
-
         conn.commit()
         conn.close()
