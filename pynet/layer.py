@@ -78,8 +78,6 @@ class Layer(object):
         """
         return T.dot(state_below, (1-self.dropout_below) * self.W) + self.b
 
-
-
     def _layer_stats(self, state_below, layer_output):
         """
         DESCRIPTION:
