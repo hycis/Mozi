@@ -55,9 +55,9 @@ class Log:
 
         if save_epoch_error:
             self.epoch_error_tbl = {"epoch":[],
-                                   "train_error":[],
-                                   "valid_error":[],
-                                   "test_error":[]}
+                                    "train_error":[],
+                                    "valid_error":[],
+                                    "test_error":[]}
 
         self.logger.info('exp_id: ' + self.exp_id)
 

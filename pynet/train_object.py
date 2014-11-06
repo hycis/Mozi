@@ -12,6 +12,7 @@ internal_logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 from pynet.log import Log
+
 from pynet.utils.utils import split_list, generate_shared_list, \
                                 merge_lists, get_shared_values, \
                                 duplicate_param
@@ -352,7 +353,7 @@ class TrainObject():
                                                         self.log.experiment_name))
 
             if self.log.save_epoch_error:
-                self.log._save_epoch_error(best_epoch, best_train_error, best_valid_error, best_test_error)
+                self.log._save_epoch_error(epoch, mean_train_error, mean_valid_error, mean_test_error)
                 self.log.info('..epoch error saved')
 
             end_time = time.time()

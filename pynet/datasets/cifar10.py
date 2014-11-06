@@ -8,9 +8,9 @@ floatX = theano.config.floatX
 
 from pynet.utils.mnist_ubyte import read_mnist_images
 from pynet.utils.mnist_ubyte import read_mnist_labels
-from pynet.datasets.dataset import IterMatrix, Dataset, DataBlocks
+from pynet.datasets.dataset import SingleBlock
 
-class Cifar10(Dataset):
+class Cifar10(SingleBlock):
 
     def __init__(self, **kwargs):
 

@@ -11,7 +11,7 @@ class Layer(object):
     Abstract Class
     """
 
-    def __init__(self, dim, name, W=None, b=None, dropout_below=None, blackout_below=None):
+    def __init__(self, dim, name, W=None, b=None, dropout_below=None, noise=None, blackout_below=None):
         """
         DESCRIPTION:
             This is an abstract layer class
@@ -20,7 +20,7 @@ class Layer(object):
             name(string): name of the layer
             W(tensor variable): Weight of 2D tensor matrix
             b(tensor variable): bias of 2D tensor matrix
-            dropout_below: probability of the inputs from the layer below been masked out
+            dropout_below(float): probability of the inputs from the layer below been masked out
         """
         self.dim = dim
         self.name = name
@@ -28,6 +28,7 @@ class Layer(object):
         self.b = b
         assert not (dropout_below and blackout_below), 'cannot set both dropout and blackout'
         self.dropout_below = dropout_below
+        self.noise = noise
         self.blackout_below = blackout_below
 
         if self.W is not None and self.W.name is None:
@@ -43,8 +44,20 @@ class Layer(object):
     def _train_fprop(self, state_below):
         raise NotImplementedError(str(type(self))+" does not implement _train_fprop.")
 
+    def _apply_noise(self, state_below):
+        """
+        DESCRIPTION:
+            Adds noise to the layer during training
+        """
+        if self.noise:
+            state_below = self.noise.apply(state_below)
+        return state_below
 
-    def _mask_state_below(self, state_below):
+    def _dropout_below(self, state_below):
+        """
+        DESCRIPTION:
+            Applies dropout to the layer during training
+        """
         if self.dropout_below is not None:
             assert self.dropout_below >= 0. and self.dropout_below <= 1., \
                     'dropout_below is not in range [0,1]'
@@ -52,14 +65,16 @@ class Layer(object):
                                                p=(1-self.dropout_below),
                                                dtype=floatX) * state_below
         return state_below
-
-    def _blackout_below(self, state_below):
-        if self.blackout_below is not None:
-            assert self.blackout_below >= 0. and self.blackout_below <= 1., \
-                    'blackout_below is not in range [0,1]'
-            state_below = theano_rand.binomial(size=(), n=1, p=(1-self.blackout_below),
-                                               dtype=floatX) * state_below
-        return state_below
+    #
+    # def _blackout_below(self, state_below):
+    #     if self.blackout_below is not None:
+    #         assert self.blackout_below >= 0. and self.blackout_below <= 1., \
+    #                 'blackout_below is not in range [0,1]'
+    #         bin_rd = theano_rand.binomial(size=(state_below.shape[0],), n=1, p=(1-self.blackout_below),
+    #                                            dtype=floatX)
+    #         state_below = T.shape_padright(bin_rd) * state_below
+    #
+    #     return state_below
 
     def _linear_part(self, state_below):
         """
@@ -70,7 +85,7 @@ class Layer(object):
         """
         return T.dot(state_below, self.W) + self.b
 
-    def _dropout_test_fprop(self, state_below):
+    def _dropout_fprop(self, state_below):
         """
         DESCRIPTION:
             resize the weight during testing for models trained with dropout.
@@ -112,32 +127,33 @@ class Layer(object):
         # true_state = T.mean(T.gt(T.abs_(state_below), 0)).astype(floatX)
         # activity = T.mean(T.gt(layer_output, 0) * 1.0)
         # return [('activity', activity.astype(floatX)),
-        # # ('max_col_length', max_length),
-        # #         ('mean_col_length', mean_length),
-        # #         ('min_col_length', min_length),
-        #         ('output_max', max_output),
-        #         ('output_mean', mean_output),
-        #         ('output_min', min_output)]
-                # ('pos', pos),
-                # ('test', out)]
-                # ('max_W', T.max(self.W)),
-                # ('mean_W', T.mean(self.W)),
-                # ('min_W', T.min(self.W)),
-                # ('max_b', T.max(self.b)),
-                # ('mean_b', T.mean(self.b)),
-                # ('min_b', T.min(self.b))]
+        # ('max_col_length', max_length),
+        # ('mean_col_length', mean_length),
+        # ('min_col_length', min_length),
+        # ('output_max', max_output),
+        # ('output_mean', mean_output),
+        # ('output_min', min_output)]
+        # ('pos', pos),
+        # ('test', out)]
+        # ('max_W', T.max(self.W)),
+        # ('mean_W', T.mean(self.W)),
+        # ('min_W', T.min(self.W)),
+        # ('max_b', T.max(self.b)),
+        # ('mean_b', T.mean(self.b)),
+        # ('min_b', T.min(self.b))]
         return []
 
 class Linear(Layer):
     def _test_fprop(self, state_below):
         if self.dropout_below:
-            return self._dropout_test_fprop(state_below)
+            return self._dropout_fprop(state_below)
         else:
             return self._linear_part(state_below)
 
     def _train_fprop(self, state_below):
-        state_below = self._mask_state_below(state_below)
-        state_below = self._blackout_below(state_below)
+        state_below = self._dropout_below(state_below)
+        # state_below = self._blackout_below(state_below)
+        state_below = self._apply_noise(state_below)
         output = self._linear_part(state_below)
         return output
 

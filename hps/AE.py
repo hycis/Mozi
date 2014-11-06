@@ -13,7 +13,8 @@ from pynet.log import Log
 from pynet.train_object import TrainObject
 from pynet.cost import Cost
 import pynet.datasets.preprocessor as preproc
-
+import pynet.datasets.dataset_noise as noisy
+import pynet.layer_noise as layer_noise
 import cPickle
 import os
 
@@ -54,12 +55,25 @@ class AE:
     def build_dataset(self):
         dataset = None
 
-        preprocessor = None if self.state.dataset.preprocessor is None else \
-                       getattr(preproc, self.state.dataset.preprocessor)()
+        preprocessor = None if self.state.dataset.preprocessor.type is None else \
+                       getattr(preproc, self.state.dataset.preprocessor.type)()
+
+        # if self.state.dataset.noise.type == 'BlackOut' or self.state.dataset.noise.type == 'MaskOut':
+        #     noise = None if self.state.dataset.noise.type is None else \
+        #         getattr(noisy, self.state.dataset.noise.type)(ratio=self.state.dataset.noise.ratio)
+        # else:
+        #     noise = getattr(noisy, self.state.dataset.noise.type)()
+        noise = None if self.state.dataset.dataset_noise.type is None else \
+                getattr(noisy, self.state.dataset.dataset_noise.type)()
+
+        if self.state.dataset.preprocessor.type == 'Scale':
+            preprocessor.max = self.state.dataset.preprocessor.global_max
+            preprocessor.min = self.state.dataset.preprocessor.global_min
 
         if self.state.dataset.type == 'Mnist':
             dataset = Mnist(train_valid_test_ratio = self.state.dataset.train_valid_test_ratio,
                             preprocessor = preprocessor,
+                            noise = noise,
                             batch_size = self.state.dataset.batch_size,
                             num_batches = self.state.dataset.num_batches,
                             iter_class = self.state.dataset.iter_class,
@@ -77,6 +91,7 @@ class AE:
                             target_size = self.state.dataset.feature_size,
                             train_valid_test_ratio = self.state.dataset.train_valid_test_ratio,
                             preprocessor = preprocessor,
+                            noise = noise,
                             batch_size = self.state.dataset.batch_size,
                             num_batches = self.state.dataset.num_batches,
                             iter_class = self.state.dataset.iter_class,
@@ -86,6 +101,7 @@ class AE:
             dataset = getattr(spec, self.state.dataset.type)(
                             train_valid_test_ratio = self.state.dataset.train_valid_test_ratio,
                             preprocessor = preprocessor,
+                            noise = noise,
                             batch_size = self.state.dataset.batch_size,
                             num_batches = self.state.dataset.num_batches,
                             iter_class = self.state.dataset.iter_class,
@@ -103,6 +119,7 @@ class AE:
                             target_size = self.state.dataset.feature_size,
                             train_valid_test_ratio = self.state.dataset.train_valid_test_ratio,
                             preprocessor = preprocessor,
+                            noise = noise,
                             batch_size = self.state.dataset.batch_size,
                             num_batches = self.state.dataset.num_batches,
                             iter_class = self.state.dataset.iter_class,
@@ -127,17 +144,20 @@ class AE:
 
 
     def build_one_hid_model(self, input_dim):
-        model = AutoEncoder(input_dim = input_dim, rand_seed=self.state.model.rand_seed)
+        model = AutoEncoder(input_dim=input_dim, rand_seed=self.state.model.rand_seed)
+
         hidden1 = getattr(layer, self.state.hidden1.type)(dim=self.state.hidden1.dim,
                                                         name=self.state.hidden1.name,
                                                         dropout_below=self.state.hidden1.dropout_below,
-                                                        blackout_below=self.state.hidden1.blackout_below)
+                                                        noise=None if self.state.hidden1.layer_noise is None else \
+                                                              getattr(layer_noise, self.state.hidden1.layer_noise)())
+                                                        # blackout_below=self.state.hidden1.blackout_below)
         model.add_encode_layer(hidden1)
         h1_mirror = getattr(layer, self.state.h1_mirror.type)(dim=input_dim,
                                                             name=self.state.h1_mirror.name,
                                                             W=hidden1.W.T,
-                                                            dropout_below=self.state.h1_mirror.dropout_below,
-                                                            blackout_below=self.state.h1_mirror.blackout_below)
+                                                            dropout_below=self.state.h1_mirror.dropout_below)
+                                                            # blackout_below=self.state.h1_mirror.blackout_below)
         model.add_decode_layer(h1_mirror)
         return model
 
@@ -146,12 +166,14 @@ class AE:
         hidden1 = getattr(layer, self.state.hidden1.type)(dim=self.state.hidden1.dim,
                                                         name=self.state.hidden1.name,
                                                         dropout_below=self.state.hidden1.dropout_below,
-                                                        blackout_below=self.state.hidden1.blackout_below)
+                                                        noise=None if self.state.hidden1.layer_noise is None else \
+                                                              getattr(layer_noise, self.state.hidden1.layer_noise)())
+                                                        # blackout_below=self.state.hidden1.blackout_below)
         model.add_encode_layer(hidden1)
         h1_mirror = getattr(layer, self.state.h1_mirror.type)(dim=input_dim,
                                                             name=self.state.h1_mirror.name,
-                                                            dropout_below=self.state.h1_mirror.dropout_below,
-                                                            blackout_below=self.state.h1_mirror.blackout_below)
+                                                            dropout_below=self.state.h1_mirror.dropout_below)
+                                                            # blackout_below=self.state.h1_mirror.blackout_below)
         model.add_decode_layer(h1_mirror)
         return model
 
@@ -160,26 +182,30 @@ class AE:
         hidden1 = getattr(layer, self.state.hidden1.type)(dim=self.state.hidden1.dim,
                                                         name=self.state.hidden1.name,
                                                         dropout_below=self.state.hidden1.dropout_below,
-                                                        blackout_below=self.state.hidden1.blackout_below)
+                                                        noise=None if self.state.hidden1.layer_noise is None else \
+                                                              getattr(layer_noise, self.state.hidden1.layer_noise)())
+                                                        # blackout_below=self.state.hidden1.blackout_below)
         model.add_encode_layer(hidden1)
 
         hidden2 = getattr(layer, self.state.hidden2.type)(dim=self.state.hidden2.dim,
                                                         name=self.state.hidden2.name,
                                                         dropout_below=self.state.hidden2.dropout_below,
-                                                        blackout_below=self.state.hidden2.blackout_below)
+                                                        noise=None if self.state.hidden2.layer_noise is None else \
+                                                              getattr(layer_noise, self.state.hidden2.layer_noise)())
+                                                        # blackout_below=self.state.hidden2.blackout_below)
         model.add_encode_layer(hidden2)
 
         hidden2_mirror = getattr(layer, self.state.h2_mirror.type)(dim=self.state.hidden1.dim,
                                                                 name=self.state.h2_mirror.name,
                                                                 dropout_below=self.state.h2_mirror.dropout_below,
-                                                                blackout_below=self.state.h2_mirror.blackout_below,
+                                                                # blackout_below=self.state.h2_mirror.blackout_below,
                                                                 W = hidden2.W.T)
         model.add_decode_layer(hidden2_mirror)
 
         hidden1_mirror = getattr(layer, self.state.h1_mirror.type)(dim=input_dim,
                                                                 name=self.state.h1_mirror.name,
                                                                 dropout_below=self.state.h1_mirror.dropout_below,
-                                                                blackout_below=self.state.h1_mirror.blackout_below,
+                                                                # blackout_below=self.state.h1_mirror.blackout_below,
                                                                 W = hidden1.W.T)
         model.add_decode_layer(hidden1_mirror)
         return model
@@ -191,8 +217,10 @@ class AE:
                                          'max_col_norm'     : learning_rule.max_col_norm,
                                          'Weight_Init_Seed' : model.rand_seed,
                                          'Dropout_Below'    : str([layer.dropout_below for layer in model.layers]),
-                                         'Blackout_Below'   : str([layer.blackout_below for layer in model.layers]),
+                                        #  'Blackout_Below'   : str([layer.blackout_below for layer in model.layers]),
                                          'Batch_Size'       : dataset.batch_size,
+                                         'Dataset_Noise'    : dataset.noise.__class__.__name__,
+                                         'Layer_Noise'      : str([layer.noise.__class__.__name__ for layer in model.layers]),
                                          'nblocks'          : dataset.nblocks(),
                                          'Layer_Types'      : str([layer.__class__.__name__ for layer in model.layers]),
                                          'Layer_Dim'        : str([layer.dim for layer in model.layers]),
@@ -287,6 +315,9 @@ class Laura(AE):
         dataset = self.build_dataset()
         learning_rule = self.build_learning_rule()
 
+        # import pdb
+        # pdb.set_trace()
+
         if self.state.num_layers == 1:
             model = self.build_one_hid_model(dataset.feature_size())
         elif self.state.num_layers == 2:
@@ -297,6 +328,7 @@ class Laura(AE):
         database = self.build_database(dataset, learning_rule, model)
         log = self.build_log(database)
 
+        dataset.log = log
 
         train_obj = TrainObject(log = log,
                                 dataset = dataset,
@@ -305,9 +337,9 @@ class Laura(AE):
 
         train_obj.run()
 
-        # fine tuning
-        log.info("fine tuning")
+        log.info("Fine Tuning")
         train_obj.model.layers[0].dropout_below = None
+        # train_obj.model.layers[0].blackout_below = None
         train_obj.setup()
         train_obj.run()
 
@@ -317,7 +349,7 @@ class Laura_Continue(AE):
         self.state = state
 
 
-    def build_model(self, input_dim):
+    def build_model(self):
         with open(os.environ['PYNET_SAVE_PATH'] + '/log/'
                     + self.state.hidden1.model + '/model.pkl') as f1:
             model = cPickle.load(f1)
@@ -328,8 +360,12 @@ class Laura_Continue(AE):
         dataset = self.build_dataset()
         learning_rule = self.build_learning_rule()
 
-        model = self.build_model(dataset.feature_size())
-        model.layers[0].dropout_below = self.state.hidden1.dropout_below
+        model = self.build_model()
+
+        if self.state.fine_tuning_only:
+            model.layers[0].dropout_below = None
+            # model.layers[0].blackout_below = None
+            print "Fine Tuning Only"
 
         if self.state.log.save_to_database_name:
             database = self.build_database(dataset, learning_rule, model)
@@ -342,10 +378,13 @@ class Laura_Continue(AE):
                                 model = model)
 
         train_obj.run()
-        log.info("fine tuning")
-        train_obj.model.layers[0].dropout_below = None
-        train_obj.setup()
-        train_obj.run()
+
+        if not self.state.fine_tuning_only:
+            log.info("..Fine Tuning after Noisy Training")
+            train_obj.model.layers[0].dropout_below = None
+            # train_obj.model.layers[0].blackout_below = None
+            train_obj.setup()
+            train_obj.run()
 
 
 
@@ -390,7 +429,7 @@ class Laura_Two_Layers(AE):
                                 learning_rule = learning_rule,
                                 model = model)
 
-        log.info("fine tuning")
+        log.info("Fine Tuning")
         train_obj.model.layers[0].dropout_below = None
         train_obj.model.layers[1].dropout_below = None
         train_obj.run()
@@ -430,7 +469,16 @@ class Laura_Three_Layers(AE):
         learning_rule = self.build_learning_rule()
 
         model = self.build_model(dataset.feature_size())
-        model.layers[0].dropout_below = self.state.hidden1.dropout_below
+
+        if not self.state.fine_tuning_only:
+            model.layers[0].dropout_below = self.state.hidden1.dropout_below
+            # model.layers[0].blackout_below = self.state.hidden1.blackout_below
+
+            model.layers[1].dropout_below = self.state.hidden2.dropout_below
+            # model.layers[1].blackout_below = self.state.hidden2.blackout_below
+
+            model.layers[2].dropout_below = self.state.hidden3.dropout_below
+            # model.layers[2].blackout_below = self.state.hidden3.blackout_below
 
         if self.state.log.save_to_database_name:
             database = self.build_database(dataset, learning_rule, model)
@@ -444,13 +492,14 @@ class Laura_Three_Layers(AE):
                                 learning_rule = learning_rule,
                                 model = model)
 
-        # train_obj.run()
-
-        # fine tuning
-        log.info("fine tuning")
-        # train_obj.model.layers[0].dropout_below = None
-        # train_obj.setup()
         train_obj.run()
+
+        if not self.state.fine_tuning_only:
+            log.info("..Fine Tuning after Noisy Training")
+            train_obj.model.layers[0].dropout_below = None
+            # train_obj.model.layers[0].blackout_below = None
+            train_obj.setup()
+            train_obj.run()
 
 
 class Laura_Two_Layers_No_Transpose(AE):

@@ -1,4 +1,5 @@
-from hps.models import *
+from hps.AE import *
+from hps.MLP import NN
 import os
 
 
@@ -26,9 +27,14 @@ def setEnv():
     print('PYNET_SAVE_PATH = ' + os.environ['PYNET_SAVE_PATH'])
     print('PYNET_DATABASE_PATH = ' + os.environ['PYNET_DATABASE_PATH'])
 
+def NN_exp(state, channel):
+    setEnv()
+    hps = NN(state)
+    hps.run()
+
+    return channel.COMPLETE
 
 def AE_exp(state, channel):
-
     setEnv()
     hps = AE(state)
     hps.run()

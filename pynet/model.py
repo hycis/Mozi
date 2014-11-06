@@ -47,10 +47,6 @@ class MLP(Model):
                                 high = 4 * np.sqrt(6. / (layer.dim + prev_layer_dim)),
                                 size = (prev_layer_dim, layer.dim)),
                                 dtype = floatX)
-            # W_values = np.asarray(np.random.uniform(low = 0,
-            #                     high = 4 * np.sqrt(6. / (layer.dim + prev_layer_dim)),
-            #                     size = (prev_layer_dim, layer.dim)),
-            #                     dtype = floatX)
 
             layer.W = theano.shared(value=W_values, name='W_'+layer.name, borrow=True)
 
@@ -64,7 +60,6 @@ class MLP(Model):
         return self.layers.pop(index)
 
     def test_fprop(self, input_state):
-
         test_layers_stats = []
         for i in xrange(len(self.layers)):
             layer_output = self.layers[i]._test_fprop(input_state)
@@ -78,7 +73,6 @@ class MLP(Model):
 
 
     def train_fprop(self, input_state):
-
         train_layers_stats = []
         for i in xrange(len(self.layers)):
             layer_output = self.layers[i]._train_fprop(input_state)

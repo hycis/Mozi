@@ -1,11 +1,15 @@
 #!/bin/bash
 
-VCTK_HOME=
+VCTK_HOME=/Volumes/Storage
+# VCTK_HOME=/home/smg/zhenzhou
+
 SPEC_DIR=
 SPEC_EXT=
 WAV_DIR=
 files=
 dtype=
+
+
 
 while [ "$1" != "" ]; do
     case $1 in
@@ -41,8 +45,7 @@ while [ "$1" != "" ]; do
 done
 
 
-# VCTK_HOME=/Volumes/Storage
-VCTK_HOME=/home/smg/zhenzhou
+
 
 . $VCTK_HOME/VCTK/Research-Demo/fa-tts/STRAIGHT-TTS/local.conf.0
 TMP_DIR=$VCTK_HOME/VCTK/Research-Demo/fa-tts/STRAIGHT-TTS/tmp/England/Laura
