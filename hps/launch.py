@@ -128,7 +128,7 @@ if __name__=='__main__':
     parser.add_argument('-n', '--total_number_jobs', type=int, dest='n_jobs', default=1,
                         help='''The total number of jobs that will be launched on machines.''')
 
-    parser.add_argument('-m', '--mem', default='10000m',
+    parser.add_argument('-m', '--mem', default='8000m',
                         help='''Memory usage limit by job in MB.''')
 
     parser.add_argument('-c', '--n_concur_jobs', type=int,
@@ -149,7 +149,7 @@ if __name__=='__main__':
 
     parser.add_argument('--nb_proc', help='''number of jobs running at any one time''')
 
-    parser.add_argument('--pmem', default='10000m', help='''memory allocation per core''')
+    parser.add_argument('--pmem', default='8000m', help='''memory allocation per core''')
 
     parser.add_argument('--gpus', default='2', help='''memory allocation per core''')
 
