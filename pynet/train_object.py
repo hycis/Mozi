@@ -33,10 +33,11 @@ class TrainObject():
         param := param + delta
     '''
 
-    def __init__(self, model, dataset, learning_rule, log=None):
+    def __init__(self, model, dataset, learning_rule, learning_method, log=None):
         self.model = model
         self.dataset = dataset
         self.learning_rule = learning_rule
+        self.learning_method = learning_method
         self.log = log
 
         if self.log is None:
@@ -103,61 +104,66 @@ class TrainObject():
         train_x = T.matrix('train_x', dtype=floatX)
         train_y = T.matrix('train_y', dtype=floatX)
 
-        assert self.learning_rule.momentum_type == 'normal' or \
-                self.learning_rule.momentum_type == 'nesterov', \
-                'momentum is not normal | nesterov'
+        # assert self.learning_rule.momentum_type == 'normal' or \
+        #         self.learning_rule.momentum_type == 'nesterov', \
+        #         'momentum is not normal | nesterov'
 
-        if self.learning_rule.momentum_type == 'normal':
+        # if self.learning_rule.momentum_type == 'normal':
 
-            train_y_pred, train_layers_stats = self.model.train_fprop(train_x)
-            train_cost = self.learning_rule.cost.get_cost(train_y, train_y_pred)
+        train_y_pred, train_layers_stats = self.model.train_fprop(train_x)
+        train_cost = self.learning_rule.cost.get_cost(train_y, train_y_pred)
 
-            if self.learning_rule.L1_lambda is not None:
-                self.log.info('..applying L1_lambda: %f'%self.learning_rule.L1_lambda)
-                L1 = theano.shared(0.)
-                for layer in self.model.layers:
-                    if is_shared_var(layer.W):
-                        L1 += T.sqrt((layer.W ** 2).sum(axis=0)).sum()
-
-                    else:
-                        self.log.info(layer.W.name + ' is ' + layer.W.__class__.__name__ +
-                            ' is not used in L1 regularization')
-                train_cost += self.learning_rule.L1_lambda * L1
-
-            if self.learning_rule.L2_lambda is not None:
-                self.log.info('..applying L2_lambda: %f'%self.learning_rule.L2_lambda)
-                L2 = theano.shared(0.)
-                for layer in self.model.layers:
-                    if is_shared_var(layer.W):
-                        L2 += ((layer.W ** 2).sum(axis=0)).sum()
-
-                    else:
-                        self.log.info(layer.W.name + ' is ' + layer.W.__class__.__name__ +
-                            ' is not used in L2 regularization')
-                train_cost += self.learning_rule.L2_lambda * L2
-
-            train_updates = []
-            gparams = T.grad(train_cost, params)
-            for delta, param, gparam in zip(deltas, params, gparams):
-                train_updates += [(delta, self.learning_rule.momentum * delta
-                            - self.learning_rule.learning_rate * gparam)]
-
-                # applying max_col_norm regularisation
-                if param.name[0] == 'W' and self.learning_rule.max_col_norm is not None:
-                    W_update = param + delta
-                    w_len = T.sqrt((W_update ** 2).sum(axis=0))
-                    divisor = (w_len <= self.learning_rule.max_col_norm) + \
-                            (w_len > self.learning_rule.max_col_norm) * w_len / \
-                            self.learning_rule.max_col_norm
-                    W_update = W_update / divisor.reshape((1, divisor.shape[0]))
-                    train_updates += [(param, W_update)]
+        if self.learning_rule.L1_lambda is not None:
+            self.log.info('..applying L1_lambda: %f'%self.learning_rule.L1_lambda)
+            L1 = theano.shared(0.)
+            for layer in self.model.layers:
+                if is_shared_var(layer.W):
+                    L1 += T.sqrt((layer.W ** 2).sum(axis=0)).sum()
 
                 else:
-                    train_updates += [(param, param + delta)]
+                    self.log.info(layer.W.name + ' is ' + layer.W.__class__.__name__ +
+                        ' is not used in L1 regularization')
+            train_cost += self.learning_rule.L1_lambda * L1
 
-        # TODO
-        elif self.learning_rule.momentum_type == 'nesterov':
-            raise NotImplementedError('nesterov not implemented yet')
+        if self.learning_rule.L2_lambda is not None:
+            self.log.info('..applying L2_lambda: %f'%self.learning_rule.L2_lambda)
+            L2 = theano.shared(0.)
+            for layer in self.model.layers:
+                if is_shared_var(layer.W):
+                    L2 += ((layer.W ** 2).sum(axis=0)).sum()
+
+                else:
+                    self.log.info(layer.W.name + ' is ' + layer.W.__class__.__name__ +
+                        ' is not used in L2 regularization')
+            train_cost += self.learning_rule.L2_lambda * L2
+
+        train_updates = []
+        gparams = T.grad(train_cost, params)
+        for delta, param, gparam in zip(deltas, params, gparams):
+            # train_updates += [(ttl_sqr_gparam, ttl_sqr_gparam + gparam ** 2)]
+            # train_updates += [(delta, self.learning_rule.momentum * delta
+            #             - self.learning_rule.learning_rate * gparam / ttl_sqr_gparam)]
+            # import pdb
+            # pdb.set_trace()
+            train_updates += self.learning_method.update(delta, gparam)
+
+            # applying max_col_norm regularisation
+            if param.name[0] == 'W' and self.learning_rule.max_col_norm is not None:
+                W_update = param + delta
+                w_len = T.sqrt((W_update ** 2).sum(axis=0))
+                divisor = (w_len <= self.learning_rule.max_col_norm) + \
+                        (w_len > self.learning_rule.max_col_norm) * w_len / \
+                        self.learning_rule.max_col_norm
+                W_update = W_update / divisor.reshape((1, divisor.shape[0]))
+                train_updates += [(param, W_update)]
+
+            else:
+                train_updates += [(param, param + delta)]
+        # training_method.updates(gparams)
+
+        # # TODO
+        # elif self.learning_rule.momentum_type == 'nesterov':
+        #     raise NotImplementedError('nesterov not implemented yet')
 
         #----[ append updates of stats from each layer to train updates ]-----#
 

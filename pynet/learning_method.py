@@ -35,12 +35,13 @@ class AdaGrad(LearningMethod):
 
     def update(self, delta, gparam):
         # eps = self.k * T.ones_like(delta)
-        eps = theano.shared(self.k * np.ones(delta.shape.eval(), dtype=floatX))
+        # eps = theano.shared(self.k * np.ones(delta.shape.eval(), dtype=floatX))
+        eps = theano.shared(self.k * np.ones_like(delta.get_value(borrow=True, return_internal_type=True)))
         rlist = []
         rlist.append((eps, eps + gparam ** 2))
         rlist.append((delta, -self.learning_rate * gparam / T.sqrt(eps)))
         return rlist
-        
+
 
 class AdaDelta(LearningMethod):
 
@@ -57,10 +58,12 @@ class AdaDelta(LearningMethod):
     def update(self, delta, gparam):
         rlist = []
         # gparam_mean = T.zeros_like(gparam)
-        gparam_mean = theano.shared(np.zeros(delta.shape.eval(), dtype=floatX))
+        # gparam_mean = theano.shared(np.zeros(delta.shape.eval(), dtype=floatX))
+        gparam_mean = theano.shared(np.zeros_like(delta.get_value(borrow=True, return_internal_type=True)))
         rlist.append((gparam_mean, self.rho * gparam_mean + (1-self.rho) * gparam**2))
         # delta_mean = T.zeros_like(delta)
-        delta_mean = theano.shared(np.zeros(delta.shape.eval(), dtype=floatX))
+        # delta_mean = theano.shared(np.zeros(delta.shape.eval(), dtype=floatX))
+        delta_mean = theano.shared(np.zeros_like(delta.get_value(borrow=True, return_internal_type=True)))
         rlist.append((delta_mean, self.rho * delta_mean + (1-self.rho) * delta**2))
         rlist.append((delta, -T.sqrt(delta_mean+self.eps) / T.sqrt(gparam_mean+self.eps) * gparam))
         return rlist

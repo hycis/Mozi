@@ -8,6 +8,7 @@ from pynet.datasets.mnist import Mnist, Mnist_Blocks
 import pynet.datasets.spec as spec
 import pynet.datasets.mnist as mnist
 import pynet.datasets.mapping as mapping
+import pynet.learning_method as learning_methods
 from pynet.learning_rule import LearningRule
 from pynet.log import Log
 from pynet.train_object import TrainObject
@@ -128,11 +129,25 @@ class AE:
         return dataset
 
 
+    def build_learning_method(self):
+
+        if self.state.learning_method.type == 'SGD':
+            learn_method = getattr(learning_methods,
+                           self.state.learning_method.type)(
+                           learning_rate = self.state.learning_method.learning_rate,
+                           momentum = self.state.learning_method.momentum)
+
+        else:
+            learn_method = getattr(learning_methods, self.state.learning_method.type)()
+
+        return learn_method
+
+
     def build_learning_rule(self):
         learning_rule = LearningRule(max_col_norm = self.state.learning_rule.max_col_norm,
-                                    learning_rate = self.state.learning_rule.learning_rate,
-                                    momentum = self.state.learning_rule.momentum,
-                                    momentum_type = self.state.learning_rule.momentum_type,
+                                    # learning_rate = self.state.learning_rule.learning_rate,
+                                    # momentum = self.state.learning_rule.momentum,
+                                    # momentum_type = self.state.learning_rule.momentum_type,
                                     L1_lambda = self.state.learning_rule.L1_lambda,
                                     L2_lambda = self.state.learning_rule.L2_lambda,
                                     training_cost = Cost(type = self.state.learning_rule.cost),
@@ -211,13 +226,14 @@ class AE:
         return model
 
 
-    def build_database(self, dataset, learning_rule, model):
+    def build_database(self, dataset, learning_rule, learning_method, model):
         save_to_database = {'name' : self.state.log.save_to_database_name,
                             'records' : {'Dataset'          : dataset.__class__.__name__,
                                          'max_col_norm'     : learning_rule.max_col_norm,
                                          'Weight_Init_Seed' : model.rand_seed,
                                          'Dropout_Below'    : str([layer.dropout_below for layer in model.layers]),
                                         #  'Blackout_Below'   : str([layer.blackout_below for layer in model.layers]),
+                                         'Learning_Method'  : learning_method.__class__.__name__,
                                          'Batch_Size'       : dataset.batch_size,
                                          'Dataset_Noise'    : dataset.noise.__class__.__name__,
                                          'Layer_Noise'      : str([layer.noise.__class__.__name__ for layer in model.layers]),
@@ -225,11 +241,15 @@ class AE:
                                          'Layer_Types'      : str([layer.__class__.__name__ for layer in model.layers]),
                                          'Layer_Dim'        : str([layer.dim for layer in model.layers]),
                                          'Preprocessor'     : dataset.preprocessor.__class__.__name__,
-                                         'Learning_Rate'    : learning_rule.learning_rate,
-                                         'Momentum'         : learning_rule.momentum,
+                                        #  'Learning_Rate'    : learning_rule.learning_rate,
+                                        #  'Momentum'         : learning_rule.momentum,
                                          'Training_Cost'    : learning_rule.cost.type,
                                          'Stopping_Cost'    : learning_rule.stopping_criteria['cost'].type}
                             }
+
+        if learning_method.__class__.__name__ == "SGD":
+            save_to_database["records"]["Learning_rate"] = learning_method.learning_rate
+            save_to_database["records"]["Momentum"]    = learning_method.momentum
 
         return save_to_database
 
@@ -243,15 +263,18 @@ class AE_Testing(AE):
 
         dataset = self.build_dataset()
         learning_rule = self.build_learning_rule()
+        learn_method = self.build_learning_method()
+
         model = self.build_one_hid_model(dataset.feature_size())
 
         if self.state.log.save_to_database_name:
-            database = self.build_database(dataset, learning_rule, model)
+            database = self.build_database(dataset, learning_rule, learn_method, model)
             log = self.build_log(database)
 
         train_obj = TrainObject(log = log,
                                 dataset = dataset,
                                 learning_rule = learning_rule,
+                                learning_method = learn_method,
                                 model = model)
         train_obj.run()
 
@@ -293,12 +316,14 @@ class Laura_Mapping(AE):
         model.add_layer(output)
 
         learning_rule = self.build_learning_rule()
-        database = self.build_database(dataset, learning_rule, model)
+        learn_method = self.build_learning_method()
+        database = self.build_database(dataset, learning_rule, learn_method, model)
         log = self.build_log(database)
 
         train_obj = TrainObject(log = log,
                                 dataset = dataset,
                                 learning_rule = learning_rule,
+                                learning_method = learn_method,
                                 model = model)
 
         train_obj.run()
@@ -314,6 +339,7 @@ class Laura(AE):
 
         dataset = self.build_dataset()
         learning_rule = self.build_learning_rule()
+        learn_method = self.build_learning_method()
 
         # import pdb
         # pdb.set_trace()
@@ -325,7 +351,7 @@ class Laura(AE):
         else:
             raise ValueError()
 
-        database = self.build_database(dataset, learning_rule, model)
+        database = self.build_database(dataset, learning_rule, learn_method, model)
         log = self.build_log(database)
 
         dataset.log = log
@@ -333,13 +359,19 @@ class Laura(AE):
         train_obj = TrainObject(log = log,
                                 dataset = dataset,
                                 learning_rule = learning_rule,
+                                learning_method = learn_method,
                                 model = model)
 
         train_obj.run()
 
         log.info("Fine Tuning")
-        train_obj.model.layers[0].dropout_below = None
+        # train_obj.model.layers[0].dropout_below = None
         # train_obj.model.layers[0].blackout_below = None
+
+        for layer in train_obj.model.layers:
+            layer.dropout_below = None
+            layer.noise = None
+
         train_obj.setup()
         train_obj.run()
 
@@ -359,6 +391,7 @@ class Laura_Continue(AE):
 
         dataset = self.build_dataset()
         learning_rule = self.build_learning_rule()
+        learn_method = self.build_learning_method()
 
         model = self.build_model()
 
@@ -368,13 +401,14 @@ class Laura_Continue(AE):
             print "Fine Tuning Only"
 
         if self.state.log.save_to_database_name:
-            database = self.build_database(dataset, learning_rule, model)
+            database = self.build_database(dataset, learning_rule, learn_method, model)
             database['records']['model'] = self.state.hidden1.model
             log = self.build_log(database)
 
         train_obj = TrainObject(log = log,
                                 dataset = dataset,
                                 learning_rule = learning_rule,
+                                learning_method = learn_method,
                                 model = model)
 
         train_obj.run()
@@ -414,12 +448,13 @@ class Laura_Two_Layers(AE):
 
         dataset = self.build_dataset()
         learning_rule = self.build_learning_rule()
+        learn_method = self.build_learning_method()
 
         model = self.build_model(dataset.feature_size())
         model.layers[0].dropout_below = self.state.hidden1.dropout_below
 
         if self.state.log.save_to_database_name:
-            database = self.build_database(dataset, learning_rule, model)
+            database = self.build_database(dataset, learning_rule, learn_method, model)
             database['records']['h1_model'] = self.state.hidden1.model
             database['records']['h2_model'] = self.state.hidden2.model
             log = self.build_log(database)
@@ -427,6 +462,7 @@ class Laura_Two_Layers(AE):
         train_obj = TrainObject(log = log,
                                 dataset = dataset,
                                 learning_rule = learning_rule,
+                                learning_method = learn_method,
                                 model = model)
 
         log.info("Fine Tuning")
@@ -467,6 +503,7 @@ class Laura_Three_Layers(AE):
 
         dataset = self.build_dataset()
         learning_rule = self.build_learning_rule()
+        learn_method = self.build_learning_method()
 
         model = self.build_model(dataset.feature_size())
 
@@ -481,7 +518,7 @@ class Laura_Three_Layers(AE):
             # model.layers[2].blackout_below = self.state.hidden3.blackout_below
 
         if self.state.log.save_to_database_name:
-            database = self.build_database(dataset, learning_rule, model)
+            database = self.build_database(dataset, learning_rule, learn_method, model)
             database['records']['h1_model'] = self.state.hidden1.model
             database['records']['h2_model'] = self.state.hidden2.model
             database['records']['h3_model'] = self.state.hidden3.model
@@ -490,6 +527,7 @@ class Laura_Three_Layers(AE):
         train_obj = TrainObject(log = log,
                                 dataset = dataset,
                                 learning_rule = learning_rule,
+                                learning_method = learn_method,
                                 model = model)
 
         train_obj.run()
@@ -512,6 +550,7 @@ class Laura_Two_Layers_No_Transpose(AE):
 
         dataset = self.build_dataset()
         learning_rule = self.build_learning_rule()
+        learn_method = self.build_learning_method()
 
         if self.state.num_layers == 1:
             model = self.build_one_hid_model_no_transpose(dataset.feature_size())
@@ -519,12 +558,13 @@ class Laura_Two_Layers_No_Transpose(AE):
             raise ValueError()
 
         if self.state.log.save_to_database_name:
-            database = self.build_database(dataset, learning_rule, model)
+            database = self.build_database(dataset, learning_rule, learn_method, model)
             log = self.build_log(database)
 
         train_obj = TrainObject(log = log,
                                 dataset = dataset,
                                 learning_rule = learning_rule,
+                                learning_method = learn_method,
                                 model = model)
 
         train_obj.run()

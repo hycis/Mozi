@@ -4,7 +4,7 @@ model_config = DD({
         'NN' : DD({
 
             'model' : DD({
-                    'rand_seed'             : None
+                    'rand_seed'             : 1234
                     }), # end mlp
 
             'log' : DD({
@@ -17,18 +17,29 @@ model_config = DD({
                     'save_to_database_name' : 'Testing2.db'
                     }), # end log
 
+            'learning_method' : DD({
+                    # 'type'                  : 'SGD',
+                    # 'type'                  : 'AdaGrad',
+                    'type'                  : 'AdaDelta',
+
+                    'learning_rate'         : 0.9,
+                    'momentum'              : 0.01,
+                    }),
 
             'learning_rule' : DD({
-                    'max_col_norm'          : (1, 10, 50),
-                    'learning_rate'         : (1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.9),
-                    'momentum'              : (1e-2, 1e-1, 0.5, 0.9),
+                    # 'max_col_norm'          : (1, 10, 50),
+                    # 'learning_rate'         : (1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.9),
+                    # 'momentum'              : (1e-2, 1e-1, 0.5, 0.9),
+                    'max_col_norm'          : 50,
+                    'learning_rate'         : 0.9,
+                    'momentum'              : 0.01,
                     'momentum_type'         : 'normal',
                     'L1_lambda'             : None,
                     'L2_lambda'             : None,
                     'cost'                  : 'entropy',
                     'stopping_criteria'     : DD({
-                                                'max_epoch'         : 100,
-                                                'epoch_look_back'   : 10,
+                                                'max_epoch'         : 5,
+                                                'epoch_look_back'   : 2,
                                                 'cost'              : 'error',
                                                 'percent_decrease'  : 0.05
                                                 }) # end stopping_criteria
@@ -47,8 +58,8 @@ model_config = DD({
                     # 'preprocessor'          : 'Standardize',
 
                     'preprocessor'          : DD({
-                                                # 'type' : None,
-                                                'type' : 'Scale',
+                                                'type' : None,
+                                                # 'type' : 'Scale',
                                                 # 'type' : 'GCN',
                                                 # 'type' : 'LogGCN',
                                                 # 'type' : 'Standardize',
@@ -58,7 +69,7 @@ model_config = DD({
                                                 'global_min' : -23
                                                 }),
 
-                    'batch_size'            : (50, 100, 150, 200),
+                    'batch_size'            : 50,
                     'num_batches'           : None,
                     'iter_class'            : 'SequentialSubsetIterator',
                     'rng'                   : None
@@ -124,6 +135,17 @@ model_config = DD({
                                                 'percent_decrease'  : 0.05
                                                 }) # end stopping_criteria
                     }), # end learning_rule
+
+
+            'learning_method' : DD({
+                    'type'                  : 'SGD',
+                    # 'type'                  : 'AdaGrad',
+                    # 'type'                  : 'AdaDelta',
+
+                    'learning_rate'         : 0.9,
+                    'momentum'              : 0.01,
+                    }), # end learning_method
+
 
             'dataset' : DD({
 
@@ -197,6 +219,16 @@ model_config = DD({
                                                 }) # end stopping_criteria
                     }), # end learning_rule
 
+
+            'learning_method' : DD({
+                    'type'                  : 'SGD',
+                    # 'type'                  : 'AdaGrad',
+                    # 'type'                  : 'AdaDelta',
+
+                    'learning_rate'         : 0.9,
+                    'momentum'              : 0.01,
+                    }), # end learning_method
+
             #===========================[ Dataset ]===========================#
             'dataset' : DD({
                     # 'type'                  : 'Laura_Blocks_GCN_Mapping',
@@ -248,7 +280,7 @@ model_config = DD({
         'Laura' : DD({
 
             'model' : DD({
-                    'rand_seed'             : None
+                    'rand_seed'             : 4520
                     }), # end mlp
 
             'log' : DD({
@@ -269,9 +301,7 @@ model_config = DD({
                     # 'experiment_name'       : 'AE0916_Blocks_180_120_tanh_tanh_gpu_output_sig_clean',
 
                     # 'experiment_name'       : 'AE1001_Scale_Warp_Blocks_180_120_tanh_tanh_gpu_dropout', #helios
-                    'experiment_name'       : 'AE1105_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_clean', #helios
-
-
+                    'experiment_name'       : 'AE1107_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_adadelta', #helios
 
                     'description'           : '',
                     'save_outputs'          : True,
@@ -285,9 +315,9 @@ model_config = DD({
             'learning_rule' : DD({
                     'max_col_norm'          : 1,
                     # 'learning_rate'         : ((1e-5, 0.5), float),
-                    'learning_rate'         : (1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.5),
-                    'momentum'              : (1e-3, 1e-2, 1e-1, 0.5, 0.9),
-                    'momentum_type'         : 'normal',
+                    # 'learning_rate'         : (1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.5),
+                    # 'momentum'              : (1e-3, 1e-2, 1e-1, 0.5, 0.9),
+                    # 'momentum_type'         : 'normal',
                     'L1_lambda'             : None,
                     'L2_lambda'             : None,
                     'cost'                  : 'mse',
@@ -298,6 +328,16 @@ model_config = DD({
                                                 'percent_decrease'  : 0.05
                                                 }) # end stopping_criteria
                     }), # end learning_rule
+
+
+            'learning_method' : DD({
+                    # 'type'                  : 'SGD',
+                    # 'type'                  : 'AdaGrad',
+                    'type'                  : 'AdaDelta',
+
+                    'learning_rate'         : 0.001,
+                    'momentum'              : 0.5,
+                    }), # end learning_method
 
             #===========================[ Dataset ]===========================#
             'dataset' : DD({
@@ -342,7 +382,7 @@ model_config = DD({
                                                 'global_min' : -23
                                                 }),
 
-                    'batch_size'            : (50, 100, 150, 200),
+                    'batch_size'            : 50,
                     'num_batches'           : None,
                     'iter_class'            : 'SequentialSubsetIterator',
                     'rng'                   : None
@@ -363,10 +403,11 @@ model_config = DD({
                     # 'blackout_below'        : None,
                     # 'blackout_below'         : 0.5
 
-                    'layer_noise'           : None,
+                    # 'layer_noise'           : None,
                     # 'layer_noise'           : 'BlackOut',
                     # 'layer_noise'           : 'Gaussian',
                     # 'layer_noise'           : 'MaskOut',
+                    'layer_noise'           : 'BatchOut',
 
                     }), # end hidden_layer
 
@@ -444,6 +485,16 @@ model_config = DD({
                                             'percent_decrease'  : 0.05
                                             }) # end stopping_criteria
                 }), # end learning_rule
+
+
+        'learning_method' : DD({
+                'type'                  : 'SGD',
+                # 'type'                  : 'AdaGrad',
+                # 'type'                  : 'AdaDelta',
+
+                'learning_rate'         : 0.9,
+                'momentum'              : 0.01,
+                }), # end learning_method
 
         #===========================[ Dataset ]===========================#
         'dataset' : DD({
@@ -523,6 +574,16 @@ model_config = DD({
                                             'percent_decrease'  : 0.05
                                             }) # end stopping_criteria
                 }), # end learning_rule
+
+
+        'learning_method' : DD({
+                'type'                  : 'SGD',
+                # 'type'                  : 'AdaGrad',
+                # 'type'                  : 'AdaDelta',
+
+                'learning_rate'         : 0.9,
+                'momentum'              : 0.01,
+                }), # end learning_method
 
         #===========================[ Dataset ]===========================#
         'dataset' : DD({
@@ -626,6 +687,16 @@ model_config = DD({
                                             'percent_decrease'  : 0.05
                                             }) # end stopping_criteria
                 }), # end learning_rule
+
+
+        'learning_method' : DD({
+                'type'                  : 'SGD',
+                # 'type'                  : 'AdaGrad',
+                # 'type'                  : 'AdaDelta',
+
+                'learning_rate'         : 0.9,
+                'momentum'              : 0.01,
+                }), # end learning_method
 
         #===========================[ Dataset ]===========================#
         'dataset' : DD({
@@ -747,6 +818,16 @@ model_config = DD({
                                             'percent_decrease'  : 0.05
                                             }) # end stopping_criteria
                 }), # end learning_rule
+
+
+        'learning_method' : DD({
+                'type'                  : 'SGD',
+                # 'type'                  : 'AdaGrad',
+                # 'type'                  : 'AdaDelta',
+
+                'learning_rate'         : 0.9,
+                'momentum'              : 0.01,
+                }), # end learning_method
 
         #===========================[ Dataset ]===========================#
         'dataset' : DD({

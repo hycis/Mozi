@@ -92,7 +92,7 @@ class SingleBlock(Dataset):
 
         assert len(self.ratio) == 3, 'the size of list is not 3'
 
-        if X and y:
+        if X is not None and y is not None:
             assert X.shape[0] == y.shape[0], 'the number of examples in input and target dont match'
             if self.preprocessor:
                 self.log.info('..applying preprocessing: ' + self.preprocessor.__class__.__name__)

@@ -73,3 +73,20 @@ class BlackOut(Noise):
     def apply(self, X):
         rd = theano_rand.binomial(size=(X.shape[0],), n=1, p=(1-self.ratio), dtype=floatX)
         return X * T.shape_padright(rd)
+
+class BatchOut(Noise):
+    """
+    This noise masked out a random batch in an epoch,
+    adding noise in the time dimension
+    """
+
+    def __init__(self, ratio=0.5):
+        """
+        PARAM:
+            ratio : float
+                The portion of the batch that is masked out
+        """
+        self.ratio = ratio
+
+    def apply(self, X):
+        return X * theano_rand.binomial(n=1, p=(1-self.ratio), dtype=floatX)
