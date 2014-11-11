@@ -137,17 +137,27 @@ class AE:
                            learning_rate = self.state.learning_method.learning_rate,
                            momentum = self.state.learning_method.momentum)
 
+        elif self.state.learning_method.type == 'AdaGrad':
+            learn_method = getattr(learning_methods,
+                           self.state.learning_method.type)(
+                           learning_rate = self.state.learning_method.learning_rate,
+                           momentum = self.state.learning_method.momentum)
+
+        elif self.state.learning_method.type == 'AdaDelta':
+            learn_method = getattr(learning_methods,
+                           self.state.learning_method.type)(
+                           rho = self.state.learning_method.rho,
+                           eps = self.state.learning_method.eps)
+
         else:
-            learn_method = getattr(learning_methods, self.state.learning_method.type)()
+            raise TypeError("not SGD, AdaGrad or AdaDelta")
+
 
         return learn_method
 
 
     def build_learning_rule(self):
         learning_rule = LearningRule(max_col_norm = self.state.learning_rule.max_col_norm,
-                                    # learning_rate = self.state.learning_rule.learning_rate,
-                                    # momentum = self.state.learning_rule.momentum,
-                                    # momentum_type = self.state.learning_rule.momentum_type,
                                     L1_lambda = self.state.learning_rule.L1_lambda,
                                     L2_lambda = self.state.learning_rule.L2_lambda,
                                     training_cost = Cost(type = self.state.learning_rule.cost),
@@ -161,11 +171,19 @@ class AE:
     def build_one_hid_model(self, input_dim):
         model = AutoEncoder(input_dim=input_dim, rand_seed=self.state.model.rand_seed)
 
+        h1_noise = None if self.state.hidden1.layer_noise.type is None else \
+              getattr(layer_noise, self.state.hidden1.layer_noise.type)()
+        if self.state.hidden1.layer_noise.type in ['BlackOut', 'MaskOut', 'BatchOut']:
+            h1_noise.ratio = self.state.hidden1.layer_noise.ratio
+
+        elif self.state.hidden1.layer_noise.type is 'Gaussian':
+            h1_noise.std = self.state.hidden1.layer_noise.std
+            h1_noise.mean = self.state.hidden1.layer_noise.mean
+
         hidden1 = getattr(layer, self.state.hidden1.type)(dim=self.state.hidden1.dim,
                                                         name=self.state.hidden1.name,
                                                         dropout_below=self.state.hidden1.dropout_below,
-                                                        noise=None if self.state.hidden1.layer_noise is None else \
-                                                              getattr(layer_noise, self.state.hidden1.layer_noise)())
+                                                        noise=h1_noise)
                                                         # blackout_below=self.state.hidden1.blackout_below)
         model.add_encode_layer(hidden1)
         h1_mirror = getattr(layer, self.state.h1_mirror.type)(dim=input_dim,
@@ -232,17 +250,13 @@ class AE:
                                          'max_col_norm'     : learning_rule.max_col_norm,
                                          'Weight_Init_Seed' : model.rand_seed,
                                          'Dropout_Below'    : str([layer.dropout_below for layer in model.layers]),
-                                        #  'Blackout_Below'   : str([layer.blackout_below for layer in model.layers]),
                                          'Learning_Method'  : learning_method.__class__.__name__,
                                          'Batch_Size'       : dataset.batch_size,
                                          'Dataset_Noise'    : dataset.noise.__class__.__name__,
-                                         'Layer_Noise'      : str([layer.noise.__class__.__name__ for layer in model.layers]),
                                          'nblocks'          : dataset.nblocks(),
                                          'Layer_Types'      : str([layer.__class__.__name__ for layer in model.layers]),
                                          'Layer_Dim'        : str([layer.dim for layer in model.layers]),
                                          'Preprocessor'     : dataset.preprocessor.__class__.__name__,
-                                        #  'Learning_Rate'    : learning_rule.learning_rate,
-                                        #  'Momentum'         : learning_rule.momentum,
                                          'Training_Cost'    : learning_rule.cost.type,
                                          'Stopping_Cost'    : learning_rule.stopping_criteria['cost'].type}
                             }
@@ -250,6 +264,30 @@ class AE:
         if learning_method.__class__.__name__ == "SGD":
             save_to_database["records"]["Learning_rate"] = learning_method.learning_rate
             save_to_database["records"]["Momentum"]    = learning_method.momentum
+        elif learning_method.__class__.__name__ == "AdaGrad":
+            save_to_database["records"]["Learning_rate"] = learning_method.learning_rate
+            save_to_database["records"]["Momentum"]    = learning_method.momentum
+        elif learning_method.__class__.__name__ == "AdaDelta":
+            save_to_database["records"]["rho"] = learning_method.rho
+            save_to_database["records"]["eps"] = learning_method.eps
+        else:
+            raise TypeError("not SGD, AdaGrad or AdaDelta")
+
+        layer_noise = []
+        layer_noise_params = []
+        for layer in model.layers:
+            layer_noise.append(layer.noise.__class__.__name__)
+            if layer.noise.__class__.__name__ in ['BlackOut', 'MaskOut', 'BatchOut']:
+                layer_noise_params.append(layer.noise.ratio)
+
+            elif layer.noise.__class__.__name__ is 'Gaussian':
+                layer_noise_params.append((layer.noise.mean, layer.noise.std))
+
+            else:
+                layer_noise_params.append(None)
+
+        save_to_database["records"]["Layer_Noise"] = str(layer_noise)
+        save_to_database["records"]["Layer_Noise_Params"] = str(layer_noise_params)
 
         return save_to_database
 
@@ -365,8 +403,6 @@ class Laura(AE):
         train_obj.run()
 
         log.info("Fine Tuning")
-        # train_obj.model.layers[0].dropout_below = None
-        # train_obj.model.layers[0].blackout_below = None
 
         for layer in train_obj.model.layers:
             layer.dropout_below = None
@@ -396,8 +432,9 @@ class Laura_Continue(AE):
         model = self.build_model()
 
         if self.state.fine_tuning_only:
-            model.layers[0].dropout_below = None
-            # model.layers[0].blackout_below = None
+            for layer in model.layers:
+                layer.dropout_below = None
+                layer.noise = None
             print "Fine Tuning Only"
 
         if self.state.log.save_to_database_name:
@@ -415,8 +452,9 @@ class Laura_Continue(AE):
 
         if not self.state.fine_tuning_only:
             log.info("..Fine Tuning after Noisy Training")
-            train_obj.model.layers[0].dropout_below = None
-            # train_obj.model.layers[0].blackout_below = None
+            for layer in train_obj.model.layers:
+                layer.dropout_below = None
+                layer.noise = None
             train_obj.setup()
             train_obj.run()
 

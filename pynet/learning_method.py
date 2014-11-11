@@ -25,12 +25,13 @@ class SGD(LearningMethod):
 
 class AdaGrad(LearningMethod):
 
-    def __init__(self, learning_rate=0.9, k=1):
+    def __init__(self, learning_rate=0.9, momentum=0., k=1.0):
         """
         dx = -learning_rate / sqrt(k + sum(gparam^2)) * gparam
         ref : Chris Dyer : Notes on AdaGrad
         """
         self.learning_rate = learning_rate
+        self.momentum = momentum
         self.k = k
 
     def update(self, delta, gparam):
@@ -39,7 +40,7 @@ class AdaGrad(LearningMethod):
         eps = theano.shared(self.k * np.ones_like(delta.get_value(borrow=True, return_internal_type=True)))
         rlist = []
         rlist.append((eps, eps + gparam ** 2))
-        rlist.append((delta, -self.learning_rate * gparam / T.sqrt(eps)))
+        rlist.append((delta, self.momentum * delta - self.learning_rate * gparam / T.sqrt(eps)))
         return rlist
 
 

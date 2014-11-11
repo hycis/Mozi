@@ -1,4 +1,4 @@
-  
+
 
 import argparse
 import cPickle
@@ -38,12 +38,15 @@ for f_path in dataset_files:
         proc = getattr(procs, args.preprocessor)()
         print 'applying preprocessing: ' + args.preprocessor
         dataset_proc = proc.apply(dataset_raw)
+        if proc.__class__.__name__ == "Scale":
+            print "global_max", proc.max
+            print "global_min", proc.min
 
     else:
         dataset_proc = dataset_raw
 
     del dataset_raw
-    print 'encoding..'
+    print 'encoding.. '
     dataset_out = model.encode(dataset_proc)
     del dataset_proc
 

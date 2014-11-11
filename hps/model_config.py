@@ -8,40 +8,39 @@ model_config = DD({
                     }), # end mlp
 
             'log' : DD({
-                    'experiment_name'       : 'MLP_Testing_Mnist_blackout',
+                    'experiment_name'       : 'MLP_Testing_Mnist_blackout3',
                     'description'           : '',
                     'save_outputs'          : True,
                     'save_learning_rule'    : False,
                     'save_model'            : False,
                     'save_epoch_error'      : True,
-                    'save_to_database_name' : 'Testing2.db'
+                    'save_to_database_name' : "testing.db"
                     }), # end log
 
             'learning_method' : DD({
                     # 'type'                  : 'SGD',
-                    # 'type'                  : 'AdaGrad',
-                    'type'                  : 'AdaDelta',
+                    'type'                  : 'AdaGrad',
+                    # 'type'                  : 'AdaDelta',
 
+                    # for SGD and AdaGrad
                     'learning_rate'         : 0.9,
-                    'momentum'              : 0.01,
+                    'momentum'              : 0.,
+
+                    # for AdaDelta
+                    'rho'                   : ((0.90, 0.99), float),
+                    'eps'                   : (1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7),
                     }),
 
             'learning_rule' : DD({
-                    # 'max_col_norm'          : (1, 10, 50),
-                    # 'learning_rate'         : (1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.9),
-                    # 'momentum'              : (1e-2, 1e-1, 0.5, 0.9),
-                    'max_col_norm'          : 50,
-                    'learning_rate'         : 0.9,
-                    'momentum'              : 0.01,
-                    'momentum_type'         : 'normal',
+                    'max_col_norm'          : 1,
                     'L1_lambda'             : None,
                     'L2_lambda'             : None,
                     'cost'                  : 'entropy',
                     'stopping_criteria'     : DD({
-                                                'max_epoch'         : 5,
-                                                'epoch_look_back'   : 2,
+                                                'max_epoch'         : 100,
+                                                'epoch_look_back'   : 5,
                                                 'cost'              : 'error',
-                                                'percent_decrease'  : 0.05
+                                                'percent_decrease'  : 0.025
                                                 }) # end stopping_criteria
                     }), # end learning_rule
 
@@ -51,11 +50,13 @@ model_config = DD({
                     'train_valid_test_ratio': [8, 1, 1],
                     'feature_size'          : 784,
 
-                    # 'preprocessor'          : None,
-                    # 'preprocessor'          : 'Scale',
-                    # 'preprocessor'          : 'GCN',
-                    # 'preprocessor'          : 'LogGCN',
-                    # 'preprocessor'          : 'Standardize',
+
+                    'dataset_noise'         : DD({
+                                                # 'type'              : 'BlackOut',
+                                                # 'type'              : 'MaskOut',
+                                                # 'type'              : 'Gaussian',
+                                                'type'              : None
+                                                }),
 
                     'preprocessor'          : DD({
                                                 'type' : None,
@@ -85,7 +86,20 @@ model_config = DD({
                     # 'dropout_below'         : 0.5,
                     'dropout_below'         : None,
 
-                    'blackout_below'        : 0.5
+                    'layer_noise'           : DD({
+                                                # 'type'      : None,
+                                                'type'      : 'BlackOut',
+                                                # 'type'      : 'Gaussian',
+                                                # 'type'      : 'MaskOut',
+                                                # 'type'      : 'BatchOut',
+
+                                                # for BlackOut, MaskOut and BatchOut
+                                                'ratio'     : 0.5,
+
+                                                # for Gaussian
+                                                'std'       : 0.1,
+                                                'mean'      : 0,
+                                                })
                     }), # end hidden_layer
 
             'output' : DD({
@@ -95,7 +109,20 @@ model_config = DD({
                     # 'dropout_below'         : 0.5,
                     'dropout_below'         : None,
 
-                    'blackout_below'        : None
+                    'layer_noise'           : DD({
+                                                'type'      : None,
+                                                # 'type'      : 'BlackOut',
+                                                # 'type'      : 'Gaussian',
+                                                # 'type'      : 'MaskOut',
+                                                # 'type'      : 'BatchOut',
+
+                                                # for BlackOut, MaskOut and BatchOut
+                                                'ratio'     : 0.5,
+
+                                                # for Gaussian
+                                                'std'       : 0.1,
+                                                'mean'      : 0,
+                                                })
                     }) # end output_layer
             }), # end autoencoder
 
@@ -130,9 +157,9 @@ model_config = DD({
                     'cost'                  : 'mse',
                     'stopping_criteria'     : DD({
                                                 'max_epoch'         : 100,
-                                                'epoch_look_back'   : 10,
+                                                'epoch_look_back'   : 5,
                                                 'cost'              : 'mse',
-                                                'percent_decrease'  : 0.05
+                                                'percent_decrease'  : 0.02
                                                 }) # end stopping_criteria
                     }), # end learning_rule
 
@@ -280,7 +307,9 @@ model_config = DD({
         'Laura' : DD({
 
             'model' : DD({
-                    'rand_seed'             : 4520
+                    # 'rand_seed'             : 4520,
+                    # 'rand_seed'             : None,
+                    'rand_seed'             : 2137
                     }), # end mlp
 
             'log' : DD({
@@ -301,46 +330,54 @@ model_config = DD({
                     # 'experiment_name'       : 'AE0916_Blocks_180_120_tanh_tanh_gpu_output_sig_clean',
 
                     # 'experiment_name'       : 'AE1001_Scale_Warp_Blocks_180_120_tanh_tanh_gpu_dropout', #helios
-                    'experiment_name'       : 'AE1107_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_adadelta', #helios
+                    'experiment_name'       : 'AE1110_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_sgd_clean_testing', #helios
 
                     'description'           : '',
                     'save_outputs'          : True,
                     'save_learning_rule'    : True,
                     'save_model'            : True,
                     'save_epoch_error'      : True,
-                    'save_to_database_name' : 'Laura5.db'
+                    'save_to_database_name' : 'Laura6.db'
                     }), # end log
 
 
             'learning_rule' : DD({
                     'max_col_norm'          : 1,
-                    # 'learning_rate'         : ((1e-5, 0.5), float),
-                    # 'learning_rate'         : (1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.5),
-                    # 'momentum'              : (1e-3, 1e-2, 1e-1, 0.5, 0.9),
-                    # 'momentum_type'         : 'normal',
                     'L1_lambda'             : None,
                     'L2_lambda'             : None,
                     'cost'                  : 'mse',
                     'stopping_criteria'     : DD({
                                                 'max_epoch'         : 100,
-                                                'epoch_look_back'   : 10,
+                                                'epoch_look_back'   : 5,
                                                 'cost'              : 'mse',
-                                                'percent_decrease'  : 0.05
+                                                'percent_decrease'  : 0.025
                                                 }) # end stopping_criteria
                     }), # end learning_rule
 
 
             'learning_method' : DD({
-                    # 'type'                  : 'SGD',
+                    'type'                  : 'SGD',
                     # 'type'                  : 'AdaGrad',
-                    'type'                  : 'AdaDelta',
+                    # 'type'                  : 'AdaDelta',
 
-                    'learning_rate'         : 0.001,
-                    'momentum'              : 0.5,
+                    ### for SGD and AdaGrad ###
+                    'learning_rate'         : 0.000271,
+                    # 'learning_rate'         : (1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.5),
+
+                    'momentum'              : 0.9,
+                    # 'momentum'              : 0.,
+                    # 'momentum'              : (1e-2, 1e-1, 0.5, 0.9),
+
+                    ### for AdaDelta ###
+                    'rho'                   : 0.95,
+                    'eps'                   : 1e-6,
                     }), # end learning_method
 
             #===========================[ Dataset ]===========================#
             'dataset' : DD({
+                    # 'type'                  : 'Laura_Blocks',
+                    # 'type'                  : 'Laura_Warp_Blocks',
+
                     # 'type'                  : 'Laura_Warp_Blocks_500_Tanh',
                     # 'type'                 : 'Laura_Warp_Blocks_180_Tanh_Dropout',
                     # 'type'                  : 'Laura_Cut_Warp_Blocks_300',
@@ -348,8 +385,7 @@ model_config = DD({
                     # 'type'                  : 'Laura_Blocks_180_Tanh_Tanh_Dropout',
                     # 'type'                  : 'Laura_Blocks_500_Tanh_Sigmoid',
                     # 'type'                  : 'Laura_Blocks_500',
-                    # 'type'                  : 'Laura_Blocks',
-                    'type'                  : 'Laura_Warp_Blocks',
+
                     # 'type'                  : 'Laura_Warp_Standardize_Blocks',
                     # 'type'                  : 'Laura_Standardize_Blocks',
 
@@ -360,7 +396,9 @@ model_config = DD({
 
                     # 'type'                  : 'Mnist',
 
-                    'feature_size'          : 2049,
+                    'type'                  : 'Laura_Warp_Blocks_500_Tanh_Noisy_Clean',
+
+                    'feature_size'          : 500,
                     'train_valid_test_ratio': [8, 1, 1],
 
                     'dataset_noise'         : DD({
@@ -371,8 +409,8 @@ model_config = DD({
                                                 }),
 
                     'preprocessor'          : DD({
-                                                # 'type' : None,
-                                                'type' : 'Scale',
+                                                'type' : None,
+                                                # 'type' : 'Scale',
                                                 # 'type' : 'GCN',
                                                 # 'type' : 'LogGCN',
                                                 # 'type' : 'Standardize',
@@ -381,8 +419,8 @@ model_config = DD({
                                                 'global_max' : 89,
                                                 'global_min' : -23
                                                 }),
-
-                    'batch_size'            : 50,
+                    'batch_size'            : 100,
+                    # 'batch_size'            : (50, 100, 150, 200),
                     'num_batches'           : None,
                     'iter_class'            : 'SequentialSubsetIterator',
                     'rng'                   : None
@@ -394,20 +432,26 @@ model_config = DD({
             'hidden1' : DD({
                     'name'                  : 'hidden1',
                     'type'                  : 'Tanh',
-                    'dim'                   : 500,
+                    'dim'                   : 180,
 
                     'dropout_below'         : None,
                     # 'dropout_below'         : (0.3, 0.4, 0.5),
                     # 'dropout_below'         : 0.5,
 
-                    # 'blackout_below'        : None,
-                    # 'blackout_below'         : 0.5
+                    'layer_noise'           : DD({
+                                                'type'      : None,
+                                                # 'type'      : 'BlackOut',
+                                                # 'type'      : 'Gaussian',
+                                                # 'type'      : 'MaskOut',
+                                                # 'type'      : 'BatchOut',
 
-                    # 'layer_noise'           : None,
-                    # 'layer_noise'           : 'BlackOut',
-                    # 'layer_noise'           : 'Gaussian',
-                    # 'layer_noise'           : 'MaskOut',
-                    'layer_noise'           : 'BatchOut',
+                                                # for BlackOut, MaskOut and BatchOut
+                                                'ratio'     : 0.5,
+
+                                                # for Gaussian
+                                                'std'       : 0.1,
+                                                'mean'      : 0,
+                                                })
 
                     }), # end hidden_layer
 
@@ -437,7 +481,6 @@ model_config = DD({
                     'dropout_below'         : None,
                     # 'dropout_below'         : 0.5,
 
-                    # 'blackout_below'        : None
                     }) # end output_layer
 
             }), # end autoencoder
@@ -449,12 +492,12 @@ model_config = DD({
 
 
         'model' : DD({
-                'rand_seed'             : 5343
+                'rand_seed'             : None
                 }), # end mlp
 
         'log' : DD({
 
-                'experiment_name'       : 'AE1029_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_blackout_continue',
+                'experiment_name'       : 'AE1110_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_sgd_batchout_continue',
 
 
 
@@ -463,26 +506,20 @@ model_config = DD({
                 'save_learning_rule'    : True,
                 'save_model'            : True,
                 'save_epoch_error'      : True,
-                'save_to_database_name' : 'Laura4.db'
+                'save_to_database_name' : 'Laura6.db'
                 }), # end log
 
 
         'learning_rule' : DD({
                 'max_col_norm'          : 1,
-                'learning_rate'         : 0.001,
-                # 'learning_rate'         : ((1e-5, 9e-1), float),
-                # 'learning_rate'         : 0.01,
-                'momentum'              : 0.01,
-                # 'momentum'              : 0.05,
-                'momentum_type'         : 'normal',
                 'L1_lambda'             : None,
                 'L2_lambda'             : None,
                 'cost'                  : 'mse',
                 'stopping_criteria'     : DD({
                                             'max_epoch'         : 100,
-                                            'epoch_look_back'   : 10,
+                                            'epoch_look_back'   : 5,
                                             'cost'              : 'mse',
-                                            'percent_decrease'  : 0.05
+                                            'percent_decrease'  : 0.02
                                             }) # end stopping_criteria
                 }), # end learning_rule
 
@@ -492,8 +529,13 @@ model_config = DD({
                 # 'type'                  : 'AdaGrad',
                 # 'type'                  : 'AdaDelta',
 
-                'learning_rate'         : 0.9,
-                'momentum'              : 0.01,
+                # for SGD and AdaGrad
+                'learning_rate'         : 0.001,
+                'momentum'              : 0.5,
+
+                # for AdaDelta
+                'rho'                   : 0.95,
+                'eps'                   : 1e-6,
                 }), # end learning_method
 
         #===========================[ Dataset ]===========================#
@@ -507,6 +549,13 @@ model_config = DD({
                 'feature_size'          : 2049,
                 'train_valid_test_ratio': [8, 1, 1],
 
+                'dataset_noise'         : DD({
+                                            # 'type'              : 'BlackOut',
+                                            # 'type'              : 'MaskOut',
+                                            # 'type'              : 'Gaussian',
+                                            'type'              : None
+                                            }),
+
                 'preprocessor'          : DD({
                                             # 'type' : None,
                                             'type' : 'Scale',
@@ -519,7 +568,7 @@ model_config = DD({
                                             'global_min' : -23
                                             }),
 
-                'batch_size'            : 150,
+                'batch_size'            : 50,
                 'num_batches'           : None,
                 'iter_class'            : 'SequentialSubsetIterator',
                 'rng'                   : None
@@ -529,7 +578,7 @@ model_config = DD({
         'fine_tuning_only'              : True,
         'hidden1' : DD({
                 'name'                  : 'hidden1',
-                'model'                 : 'AE1028_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_blackout_continue_20141028_2013_56321135',
+                'model'                 : 'AE1110_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_sgd_batchout_continue_20141110_1251_06407652',
                 }), # end hidden_layer
 
 
@@ -569,9 +618,9 @@ model_config = DD({
                 'cost'                  : 'mse',
                 'stopping_criteria'     : DD({
                                             'max_epoch'         : 100,
-                                            'epoch_look_back'   : 10,
+                                            'epoch_look_back'   : 5,
                                             'cost'              : 'mse',
-                                            'percent_decrease'  : 0.05
+                                            'percent_decrease'  : 0.02
                                             }) # end stopping_criteria
                 }), # end learning_rule
 
@@ -682,9 +731,9 @@ model_config = DD({
                 'cost'                  : 'mse',
                 'stopping_criteria'     : DD({
                                             'max_epoch'         : 100,
-                                            'epoch_look_back'   : 10,
+                                            'epoch_look_back'   : 5,
                                             'cost'              : 'mse',
-                                            'percent_decrease'  : 0.05
+                                            'percent_decrease'  : 0.02
                                             }) # end stopping_criteria
                 }), # end learning_rule
 
@@ -786,63 +835,77 @@ model_config = DD({
     'Laura_Two_Layers_No_Transpose' : DD({
 
         'model' : DD({
-                'rand_seed'             : None
+                'rand_seed'             : 4520
                 }), # end mlp
 
         'log' : DD({
-                'experiment_name'       : 'AE0730_No_Transpose_Warp_Blocks_180_64',
+                'experiment_name'       : 'AE1107_No_Transpose_Scale_Warp_Blocks_2049_500_gpu_adagrad_dropout',
                 'description'           : '',
                 'save_outputs'          : True,
                 'save_learning_rule'    : True,
                 'save_model'            : True,
                 'save_epoch_error'      : True,
-                'save_to_database_name' : 'Laura.db'
+                'save_to_database_name' : 'Laura5.db'
                 }), # end log
 
 
         'learning_rule' : DD({
-                'max_col_norm'          : (1, 10, 50),
-                'learning_rate'         : (1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.5),
-                # 'learning_rate'         : ((1e-5, 9e-1), float),
-                # 'learning_rate'         : 0.01,
-                'momentum'              : (1e-3, 1e-2, 1e-1, 0.5, 0.9),
-                # 'momentum'              : 0.05,
-                'momentum_type'         : 'normal',
+                'max_col_norm'          : 1,
                 'L1_lambda'             : None,
                 'L2_lambda'             : None,
                 'cost'                  : 'mse',
                 'stopping_criteria'     : DD({
                                             'max_epoch'         : 100,
-                                            'epoch_look_back'   : 10,
+                                            'epoch_look_back'   : 5,
                                             'cost'              : 'mse',
-                                            'percent_decrease'  : 0.05
+                                            'percent_decrease'  : 0.02
                                             }) # end stopping_criteria
                 }), # end learning_rule
 
 
         'learning_method' : DD({
-                'type'                  : 'SGD',
-                # 'type'                  : 'AdaGrad',
+                # 'type'                  : 'SGD',
+                'type'                  : 'AdaGrad',
                 # 'type'                  : 'AdaDelta',
 
+                # for SGD and AdaGrad
                 'learning_rate'         : 0.9,
                 'momentum'              : 0.01,
+
+                # for AdaDelta
+                'rho'                   : 0.95,
+                'eps'                   : 1e-6,
                 }), # end learning_method
 
         #===========================[ Dataset ]===========================#
         'dataset' : DD({
-                'type'                  : 'Laura_Warp_Blocks_180',
+                # 'type'                  : 'Laura_Warp_Blocks_180',
                 # 'type'                  : 'Laura_Cut_Warp_Blocks_300',
                 # 'type'                  : 'Laura_Blocks_500',
                 # 'type'                  : 'Laura_Blocks',
-                # 'type'                  : 'Laura_Warp_Blocks',
-                'feature_size'          : 180,
+                'type'                  : 'Laura_Warp_Blocks',
+                'feature_size'          : 2049,
                 'train_valid_test_ratio': [8, 1, 1],
-                'preprocessor'          : None,
-                # 'preprocessor'          : 'Scale',
-                # 'preprocessor'          : 'GCN',
-                # 'preprocessor'          : 'LogGCN',
-#                     'preprocessor'          : 'Standardize',
+
+                'dataset_noise'         : DD({
+                                            # 'type'              : 'BlackOut',
+                                            # 'type'              : 'MaskOut',
+                                            # 'type'              : 'Gaussian',
+                                            'type'              : None
+                                            }),
+
+                'preprocessor'          : DD({
+                                            # 'type' : None,
+                                            'type' : 'Scale',
+                                            # 'type' : 'GCN',
+                                            # 'type' : 'LogGCN',
+                                            # 'type' : 'Standardize',
+
+                                            # for Scale
+                                            'global_max' : 89,
+                                            'global_min' : -23
+                                            }),
+
                 'batch_size'            : (50, 100, 150, 200),
                 'num_batches'           : None,
                 'iter_class'            : 'SequentialSubsetIterator',
@@ -855,17 +918,26 @@ model_config = DD({
         'hidden1' : DD({
                 'name'                  : 'hidden1',
                 'type'                  : 'Tanh',
-                'dim'                   : 64,
-                'dropout_below'         : (0.1, 0.2, 0.3, 0.4, 0.5),
-                # 'dropout_below'         : 0.1,
+                'dim'                   : 500,
+                'dropout_below'         : 0.5,
+                'layer_noise'           : None,
+                # 'layer_noise'           : 'BlackOut',
+                # 'layer_noise'           : 'Gaussian',
+                # 'layer_noise'           : 'MaskOut',
+                # 'layer_noise'           : 'BatchOut',
                 }), # end hidden_layer
 
 
         'h1_mirror' : DD({
                 'name'                  : 'h1_mirror',
-                'type'                  : 'RELU',
+                'type'                  : 'Tanh',
                 # 'dim'                   : 2049, # dim = input.dim
-                'dropout_below'         : None
+                'dropout_below'         : 0.5,
+                'layer_noise'           : None,
+                # 'layer_noise'           : 'BlackOut',
+                # 'layer_noise'           : 'Gaussian',
+                # 'layer_noise'           : 'MaskOut',
+                # 'layer_noise'           : 'BatchOut',
                 }) # end output_layer
 
 

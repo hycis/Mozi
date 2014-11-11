@@ -65,16 +65,6 @@ class Layer(object):
                                                p=(1-self.dropout_below),
                                                dtype=floatX) * state_below
         return state_below
-    #
-    # def _blackout_below(self, state_below):
-    #     if self.blackout_below is not None:
-    #         assert self.blackout_below >= 0. and self.blackout_below <= 1., \
-    #                 'blackout_below is not in range [0,1]'
-    #         bin_rd = theano_rand.binomial(size=(state_below.shape[0],), n=1, p=(1-self.blackout_below),
-    #                                            dtype=floatX)
-    #         state_below = T.shape_padright(bin_rd) * state_below
-    #
-    #     return state_below
 
     def _linear_part(self, state_below):
         """
@@ -152,7 +142,6 @@ class Linear(Layer):
 
     def _train_fprop(self, state_below):
         state_below = self._dropout_below(state_below)
-        # state_below = self._blackout_below(state_below)
         state_below = self._apply_noise(state_below)
         output = self._linear_part(state_below)
         return output
@@ -177,6 +166,25 @@ class RELU(Linear):
         output = super(RELU, self)._train_fprop(state_below)
         return output * (output > 0.)
 
+
+class Noisy_RELU(Linear):
+    def __init__(self, sparsity_factor, threshold_lr, std, alpha_range=[0.5, 1000, 0.05], **kwargs):
+        '''
+         sparsityFactor: the micro sparsity of signals through each neuron
+         threshold_lr: the learning rate of learning the optimum threshold for each neuron
+                       so that the activeness of the neuron approaches sparsityFactor
+         alpha_range: {start_weight, num_batches, final_weight} for setting the weight on the
+                      contemporary sparsity when calculating the mean sparsity over many batches.
+                      For the start, it will place more weight on the contemporary, but as more
+                      epoch goes through, the weight on contemporary batch should decrease, so
+                      that mean_sparsity will be more stable.
+        std: the standard deviation of the noise
+        '''
+        super(Linear, self).__init__(**kwargs)
+        self.sparsity_factor = sparsity_factor
+        self.threshold_lr = threshold_lr
+        self.alpha_range = alpha_range
+        self.std = std
 
 class Softmax(Linear):
     def _test_fprop(self, state_below):

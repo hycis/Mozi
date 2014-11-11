@@ -14,6 +14,8 @@ from pynet.log import Log
 from pynet.train_object import TrainObject
 from pynet.cost import Cost
 import pynet.datasets.preprocessor as preproc
+import pynet.datasets.dataset_noise as noisy
+import pynet.layer_noise as layer_noise
 
 import cPickle
 import os
@@ -43,20 +45,11 @@ class NN(AE):
                                 model = model)
         train_obj.run()
         log.info("fine tuning")
+        for layer in train_obj.model.layers:
+            layer.dropout_below = None
+            layer.noise = None
         train_obj.setup()
         train_obj.run()
-
-
-    # def build_log(self, save_to_database=None, id=None):
-    #     log = Log(experiment_name = id is not None and '%s_%s'%(self.state.log.experiment_name,id) \
-    #                                 or self.state.log.experiment_name,
-    #             description = self.state.log.description,
-    #             save_outputs = self.state.log.save_outputs,
-    #             save_learning_rule = self.state.log.save_learning_rule,
-    #             save_model = self.state.log.save_model,
-    #             save_epoch_error = self.state.log.save_epoch_error,
-    #             save_to_database = save_to_database)
-    #     return log
 
 
     def build_dataset(self):
@@ -88,70 +81,38 @@ class NN(AE):
         return dataset
 
 
-    # def build_learning_rule(self):
-    #     learning_rule = LearningRule(max_col_norm = self.state.learning_rule.max_col_norm,
-    #                                 # learning_rate = self.state.learning_rule.learning_rate,
-    #                                 # momentum = self.state.learning_rule.momentum,
-    #                                 # momentum_type = self.state.learning_rule.momentum_type,
-    #                                 L1_lambda = self.state.learning_rule.L1_lambda,
-    #                                 L2_lambda = self.state.learning_rule.L2_lambda,
-    #                                 training_cost = Cost(type = self.state.learning_rule.cost),
-    #                                 stopping_criteria = {'max_epoch' : self.state.learning_rule.stopping_criteria.max_epoch,
-    #                                                     'epoch_look_back' : self.state.learning_rule.stopping_criteria.epoch_look_back,
-    #                                                     'cost' : Cost(type=self.state.learning_rule.stopping_criteria.cost),
-    #                                                     'percent_decrease' : self.state.learning_rule.stopping_criteria.percent_decrease})
-    #     return learning_rule
-
-
     def build_model(self, dataset):
         model = MLP(input_dim=dataset.feature_size(), rand_seed=self.state.model.rand_seed)
 
+        h1_noise = None if self.state.hidden1.layer_noise.type is None else \
+              getattr(layer_noise, self.state.hidden1.layer_noise.type)()
+        if self.state.hidden1.layer_noise.type in ['BlackOut', 'MaskOut', 'BatchOut']:
+            h1_noise.ratio = self.state.hidden1.layer_noise.ratio
+
+        elif self.state.hidden1.layer_noise.type is 'Gaussian':
+            h1_noise.std = self.state.hidden1.layer_noise.std
+            h1_noise.mean = self.state.hidden1.layer_noise.mean
+
         hidden1 = getattr(layer, self.state.hidden1.type)(dim=self.state.hidden1.dim,
-                                                          name=self.state.hidden1.name,
-                                                          dropout_below=self.state.hidden1.dropout_below,
-                                                          blackout_below=self.state.hidden1.blackout_below)
+                                                        name=self.state.hidden1.name,
+                                                        dropout_below=self.state.hidden1.dropout_below,
+                                                        noise=h1_noise)
         model.add_layer(hidden1)
+
+
+        output_noise = None if self.state.output.layer_noise.type is None else \
+              getattr(layer_noise, self.state.output.layer_noise.type)()
+        if self.state.output.layer_noise.type in ['BlackOut', 'MaskOut', 'BatchOut']:
+            output_noise.ratio = self.state.output.layer_noise.ratio
+
+        elif self.state.output.layer_noise.type is 'Gaussian':
+            output_noise.std = self.state.output.layer_noise.std
+            output_noise.mean = self.state.output.layer_noise.mean
 
         output = getattr(layer, self.state.output.type)(dim=dataset.target_size(),
                                                         name=self.state.output.name,
                                                         dropout_below=self.state.output.dropout_below,
-                                                        blackout_below=self.state.output.blackout_below)
+                                                        noise=output_noise)
+
         model.add_layer(output)
         return model
-
-
-    # def build_learning_method(self):
-    #
-    #     if self.state.learning_method.type == 'SGD':
-    #         learn_method = getattr(learning_methods,
-    #                        self.state.learning_method.type)(
-    #                        learning_rate = self.state.learning_method.learning_rate,
-    #                        momentum = self.state.learning_method.momentum)
-    #
-    #     else:
-    #         learn_method = getattr(learning_methods, self.state.learning_method.type)()
-    #
-    #     return learn_method
-
-
-    # def build_database(self, dataset, learning_rule, model):
-    #     save_to_database = {'name' : self.state.log.save_to_database_name,
-    #                         'records' : {'Dataset'          : dataset.__class__.__name__,
-    #                                      'max_col_norm'     : learning_rule.max_col_norm,
-    #                                      'Weight_Init_Seed' : model.rand_seed,
-    #                                      'Dropout_Below'    : str([layer.dropout_below for layer in model.layers]),
-    #                                     #  'Blackout_Below'   : str([layer.blackout_below for layer in model.layers]),
-    #                                      'Batch_Size'       : dataset.batch_size,
-    #                                      'nblocks'          : dataset.nblocks(),
-    #                                      'Layer_Types'      : str([layer.__class__.__name__ for layer in model.layers]),
-    #                                      'Layer_Dim'        : str([layer.dim for layer in model.layers]),
-    #                                      'Preprocessor'     : dataset.preprocessor.__class__.__name__,
-    #                                     #  'Learning_Rate'    : learning_rule.learning_rate,
-    #                                     #  'Momentum'         : learning_rule.momentum,
-    #                                      'Training_Cost'    : learning_rule.cost.type,
-    #                                      'Stopping_Cost'    : learning_rule.stopping_criteria['cost'].type}
-    #                         }
-    #     if learning_method.__class__.__name__ == "SGD":
-    #         save_to_database["records"]["Learning_rate"] = learning_method.learning_rate
-    #         save_to_database["records"]["Momentum"]    = learning_method.momentum
-    #     return save_to_database

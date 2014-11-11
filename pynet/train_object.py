@@ -46,6 +46,7 @@ class TrainObject():
 
         elif self.log.save_to_database:
             self.log.print_records()
+            print('\n')
 
         self.log.info( '..begin setting up train object')
         self.setup()
@@ -329,9 +330,11 @@ class TrainObject():
                 mean_valid_cost = total_valid_cost / num_valid_examples
                 valid_stats_values /= num_valid_examples
 
-                if best_valid_error - mean_valid_error > 0:
+                if mean_valid_error < best_valid_error:
                     error_dcr = best_valid_error - mean_valid_error
                     best_valid_error = mean_valid_error
+                else:
+                    error_dcr = 0
 
             if test_set.dataset_size() > 0:
                 mean_test_error = total_test_stopping_cost / num_test_examples
@@ -395,6 +398,9 @@ class TrainObject():
 
 
     def continue_learning(self, epoch, error_dcr, best_valid_error):
+        print "error_dcr", error_dcr
+        print "best_valid_error", best_valid_error
+        print "best_epoch", self.best_epoch_so_far
 
         if epoch > self.learning_rule.stopping_criteria['max_epoch']:
             return False
