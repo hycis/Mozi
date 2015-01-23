@@ -121,3 +121,20 @@ def tile_raster_graphs(dct_reconstruct, orig, ae_reconstruct, tile_shape, tile_s
         else:
             plt.axis(axis)
     return plt
+
+def make_one_hot(X, onehot_size):
+    """
+    DESCRIPTION:
+        Make a one-hot version of X
+    PARAM:
+        X: 1d numpy with each value in X representing the class of X
+        onehot_size: length of the one hot vector
+    RETURN:
+        2d numpy tensor, with each row been the onehot vector
+    """
+
+    rX = np.zeros((X.shape[0], onehot_size), dtype=theano.config.floatX)
+    for i in xrange(X.shape[0]):
+        rX[i, X[i]] = 1
+
+    return rX

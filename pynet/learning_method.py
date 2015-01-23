@@ -12,15 +12,22 @@ class LearningMethod(object):
         """
         raise NotImplementedError(str(type(self))+" does not implement delta.")
 
+    @property
+    def learning_rate(self):
+        return float(self.lr.get_value())
+
+    @property
+    def momentum(self):
+        return float(self.mom.get_value())
 
 class SGD(LearningMethod):
 
-    def __init__(self, learning_rate, momentum):
-        self.learning_rate = learning_rate
-        self.momentum = momentum
+    def __init__(self, learning_rate=0.01, momentum=0.9):
+        self.lr = theano.shared(np.asarray(learning_rate, dtype=floatX))
+        self.mom = theano.shared(np.asarray(momentum, dtype=floatX))
 
     def update(self, delta, gparam):
-        return [(delta, self.momentum * delta - self.learning_rate * gparam)]
+        return [(delta, self.mom * delta - self.lr * gparam)]
 
 
 class AdaGrad(LearningMethod):
@@ -30,19 +37,16 @@ class AdaGrad(LearningMethod):
         dx = -learning_rate / sqrt(k + sum(gparam^2)) * gparam
         ref : Chris Dyer : Notes on AdaGrad
         """
-        self.learning_rate = learning_rate
-        self.momentum = momentum
-        self.k = k
+        self.lr = theano.shared(np.asarray(learning_rate, dtype=floatX))
+        self.mom = theano.shared(np.asarray(momentum, dtype=floatX))
+        self.k = theano.shared(np.asarray(k, dtype=floatX))
 
     def update(self, delta, gparam):
-        # eps = self.k * T.ones_like(delta)
-        # eps = theano.shared(self.k * np.ones(delta.shape.eval(), dtype=floatX))
         eps = theano.shared(self.k * np.ones_like(delta.get_value(borrow=True, return_internal_type=True)))
         rlist = []
         rlist.append((eps, eps + gparam ** 2))
-        rlist.append((delta, self.momentum * delta - self.learning_rate * gparam / T.sqrt(eps)))
+        rlist.append((delta, self.mom * delta - self.lr * gparam / T.sqrt(eps)))
         return rlist
-
 
 class AdaDelta(LearningMethod):
 
@@ -53,17 +57,13 @@ class AdaDelta(LearningMethod):
         E_t(dx^s) = rho E_{t-1}(dx^2) + (1-rho) dx^2
         ref : Matthew D. Zeiler: ADADELTA: AN ADAPTIVE LEARNING RATE METHOD
         """
-        self.eps = eps
-        self.rho = rho
+        self.eps = theano.shared(np.asarray(eps, dtype=floatX))
+        self.rho = theano.shared(np.asarray(rho, dtype=floatX))
 
     def update(self, delta, gparam):
         rlist = []
-        # gparam_mean = T.zeros_like(gparam)
-        # gparam_mean = theano.shared(np.zeros(delta.shape.eval(), dtype=floatX))
         gparam_mean = theano.shared(np.zeros_like(delta.get_value(borrow=True, return_internal_type=True)))
         rlist.append((gparam_mean, self.rho * gparam_mean + (1-self.rho) * gparam**2))
-        # delta_mean = T.zeros_like(delta)
-        # delta_mean = theano.shared(np.zeros(delta.shape.eval(), dtype=floatX))
         delta_mean = theano.shared(np.zeros_like(delta.get_value(borrow=True, return_internal_type=True)))
         rlist.append((delta_mean, self.rho * delta_mean + (1-self.rho) * delta**2))
         rlist.append((delta, -T.sqrt(delta_mean+self.eps) / T.sqrt(gparam_mean+self.eps) * gparam))

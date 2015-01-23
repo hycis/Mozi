@@ -17,7 +17,7 @@ from pynet.utils.utils import split_list, generate_shared_list, \
                                 merge_lists, get_shared_values, \
                                 duplicate_param
 
-from pynet.utils.check_memory import print_mem_usage
+from pynet.utils.check_memory import get_mem_usage
 
 
 class TrainObject():
@@ -53,19 +53,18 @@ class TrainObject():
 
     def setup(self):
 
+
         #================[ check output dim with target size ]================#
-
-        assert self.model.layers[-1].dim == self.dataset.target_size(), \
-                'output dim: ' + str(self.model.layers[-1].dim) + \
-                ', is not equal to target size: ' + str(self.dataset.target_size())
-
 
         assert self.model.input_dim == self.dataset.feature_size(), \
                 'input dim: ' + str(self.model.input_dim) + \
                 ', is not equal to feature size: ' + str(self.dataset.feature_size())
 
-        #===================[ build params and deltas list ]==================#
+        assert self.model.layers[-1].dim == self.dataset.target_size(), \
+                'output dim: ' + str(self.model.layers[-1].dim) + \
+                ', is not equal to target size: ' + str(self.dataset.target_size())
 
+        #===================[ build params and deltas list ]==================#
 
         def is_shared_var(var):
             return var.__class__.__name__ == 'TensorSharedVariable' or \
@@ -77,6 +76,12 @@ class TrainObject():
 
         prev_layer_dim = self.model.input_dim
         for layer in self.model.layers:
+
+            # append layer params that will be updated during training
+            if len(layer.params) > 0:
+                for param in layer.params:
+                    params += [param]
+                    deltas += [theano.shared(np.zeros(param.shape.eval(), dtype=floatX))]
 
             if is_shared_var(layer.W):
                 assert layer.W.dtype == floatX
@@ -98,6 +103,7 @@ class TrainObject():
 
             prev_layer_dim = layer.dim
 
+
         #=====================[ training params updates ]=====================#
 
         self.log.info("..update params: " + str(params))
@@ -105,16 +111,10 @@ class TrainObject():
         train_x = T.matrix('train_x', dtype=floatX)
         train_y = T.matrix('train_y', dtype=floatX)
 
-        # assert self.learning_rule.momentum_type == 'normal' or \
-        #         self.learning_rule.momentum_type == 'nesterov', \
-        #         'momentum is not normal | nesterov'
-
-        # if self.learning_rule.momentum_type == 'normal':
-
         train_y_pred, train_layers_stats = self.model.train_fprop(train_x)
         train_cost = self.learning_rule.cost.get_cost(train_y, train_y_pred)
 
-        if self.learning_rule.L1_lambda is not None:
+        if self.learning_rule.L1_lambda:
             self.log.info('..applying L1_lambda: %f'%self.learning_rule.L1_lambda)
             L1 = theano.shared(0.)
             for layer in self.model.layers:
@@ -126,7 +126,7 @@ class TrainObject():
                         ' is not used in L1 regularization')
             train_cost += self.learning_rule.L1_lambda * L1
 
-        if self.learning_rule.L2_lambda is not None:
+        if self.learning_rule.L2_lambda:
             self.log.info('..applying L2_lambda: %f'%self.learning_rule.L2_lambda)
             L2 = theano.shared(0.)
             for layer in self.model.layers:
@@ -140,16 +140,14 @@ class TrainObject():
 
         train_updates = []
         gparams = T.grad(train_cost, params)
+        # import pdb
+        # pdb.set_trace()
         for delta, param, gparam in zip(deltas, params, gparams):
-            # train_updates += [(ttl_sqr_gparam, ttl_sqr_gparam + gparam ** 2)]
-            # train_updates += [(delta, self.learning_rule.momentum * delta
-            #             - self.learning_rule.learning_rate * gparam / ttl_sqr_gparam)]
-            # import pdb
-            # pdb.set_trace()
+
             train_updates += self.learning_method.update(delta, gparam)
 
             # applying max_col_norm regularisation
-            if param.name[0] == 'W' and self.learning_rule.max_col_norm is not None:
+            if param.name[0] == 'W' and self.learning_rule.max_col_norm:
                 W_update = param + delta
                 w_len = T.sqrt((W_update ** 2).sum(axis=0))
                 divisor = (w_len <= self.learning_rule.max_col_norm) + \
@@ -160,11 +158,6 @@ class TrainObject():
 
             else:
                 train_updates += [(param, param + delta)]
-        # training_method.updates(gparams)
-
-        # # TODO
-        # elif self.learning_rule.momentum_type == 'nesterov':
-        #     raise NotImplementedError('nesterov not implemented yet')
 
         #----[ append updates of stats from each layer to train updates ]-----#
 
@@ -215,26 +208,28 @@ class TrainObject():
 
     def run(self):
 
-        best_train_error = float("inf")
-        best_valid_error = float("inf")
-        best_test_error = float("inf")
+        best_train_error = float(sys.maxint)
+        best_valid_error = float(sys.maxint)
+        best_test_error = float(sys.maxint)
 
-        mean_train_error = float("inf")
-        mean_valid_error = float("inf")
-        mean_test_error = float("inf")
+        mean_train_error = float(sys.maxint)
+        mean_valid_error = float(sys.maxint)
+        mean_test_error = float(sys.maxint)
 
-        mean_train_cost = float("inf")
-        mean_valid_cost = float("inf")
-        mean_test_cost = float("inf")
+        mean_train_cost = float(sys.maxint)
+        mean_valid_cost = float(sys.maxint)
+        mean_test_cost = float(sys.maxint)
+
+        best_train_cost = float(sys.maxint)
 
         train_stats_values = []
         valid_stats_values = []
         test_stats_values = []
 
-        epoch = 1
-        best_epoch = 1
+        epoch = 0
         error_dcr = 0
-        self.best_epoch_so_far = 0
+        self.best_epoch_last_update = 0
+        self.best_valid_last_update = float(sys.maxint)
 
         train_stats_names = ['train_' + name for name in self.train_stats_names]
         valid_stats_names = ['valid_' + name for name in self.test_stats_names]
@@ -243,6 +238,14 @@ class TrainObject():
         job_start = time.time()
 
         while (self.continue_learning(epoch, error_dcr, best_valid_error)):
+
+            if epoch > 0:
+                self.log.info("best_epoch_last_update: %d"%self.best_epoch_last_update)
+                self.log.info("valid_error_decrease: %f"%error_dcr)
+                self.log.info("best_valid_last_update: %f"%self.best_valid_last_update)
+                self.log.info("========[ End of Epoch ]========\n\n")
+
+            epoch += 1
 
             start_time = time.time()
 
@@ -314,7 +317,7 @@ class TrainObject():
                         test_stats_values += len(idx) * get_shared_values(self.test_stats_shared)
 
                 self.log.info('block time: %0.2fs'%(time.time()-block_time))
-                self.log.info(print_mem_usage())
+                self.log.info(get_mem_usage())
 
             #==============[ Update best cost and error values ]==============#
             if train_set.dataset_size() > 0:
@@ -325,14 +328,27 @@ class TrainObject():
                 if mean_train_error < best_train_error:
                     best_train_error = mean_train_error
 
+                if mean_train_cost < 0.999 * best_train_cost:
+                    best_train_cost = mean_train_cost
+                else:
+                    self.log.info('training cost is not improving after epoch %d, '%epoch)
+                    if self.learning_rule.learning_rate_decay_factor and hasattr(self.learning_method, 'learning_rate'):
+                        self.log.info('decay learning_rate by factor %.3f'%self.learning_rule.learning_rate_decay_factor)
+                        new_lr = self.learning_method.learning_rate.get_value(return_internal_type=True) \
+                                / self.learning_rule.learning_rate_decay_factor
+                        self.log.info('new learning rate %.3f'%new_lr)
+                        self.learning_method.learning_rate.set_value(new_lr)
+
             if valid_set.dataset_size() > 0:
                 mean_valid_error = total_valid_stopping_cost / num_valid_examples
                 mean_valid_cost = total_valid_cost / num_valid_examples
                 valid_stats_values /= num_valid_examples
 
                 if mean_valid_error < best_valid_error:
-                    error_dcr = best_valid_error - mean_valid_error
                     best_valid_error = mean_valid_error
+
+                if mean_valid_error < self.best_valid_last_update:
+                    error_dcr = self.best_valid_last_update - mean_valid_error
                 else:
                     error_dcr = 0
 
@@ -343,10 +359,7 @@ class TrainObject():
 
             #=======[ save model, save learning_rule, save to database ]======#
             if mean_test_error < best_test_error:
-
                 best_test_error = mean_test_error
-                best_epoch = epoch
-
                 if self.log.save_model:
                     self.log._save_model(self.model)
                     self.log.info('..model saved')
@@ -388,19 +401,17 @@ class TrainObject():
 
             outputs += merged_train + merged_valid + merged_test
             self.log._log_outputs(outputs)
-            epoch += 1
+
 
         job_end = time.time()
         self.log.info('Job Completed on %s'%time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(job_end)))
         ttl_time = int(job_end - job_start)
         dt = datetime.timedelta(seconds=ttl_time)
-        self.log.info('Total Time Taken: %s\n'%str(dt))
+        self.log.info('Total Time Taken: %s'%str(dt))
+        self.log.info("========[ End of Job ]========\n\n")
 
 
     def continue_learning(self, epoch, error_dcr, best_valid_error):
-        print "error_dcr", error_dcr
-        print "best_valid_error", best_valid_error
-        print "best_epoch", self.best_epoch_so_far
 
         if epoch > self.learning_rule.stopping_criteria['max_epoch']:
             return False
@@ -409,12 +420,13 @@ class TrainObject():
             self.learning_rule.stopping_criteria['epoch_look_back'] is None:
             return True
 
-        elif np.abs(error_dcr * 1.0 / best_valid_error) \
+        elif np.abs(error_dcr * 1.0 / self.best_valid_last_update) \
             >= self.learning_rule.stopping_criteria['percent_decrease']:
-            self.best_epoch_so_far = epoch
+            self.best_valid_last_update = best_valid_error
+            self.best_epoch_last_update = epoch
             return True
 
-        elif epoch - self.best_epoch_so_far > \
+        elif epoch - self.best_epoch_last_update > \
             self.learning_rule.stopping_criteria['epoch_look_back']:
             return False
 

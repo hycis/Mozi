@@ -7,12 +7,14 @@ import os
 import socket
 import sys
 import time
+import importlib
 from jobman import DD, flatten
 from datetime import datetime
 
 
 sys.path.insert(0, os.getcwd())
-from model_config import model_config
+# from model_config import model_config
+# from model_configs import *
 
 def worker(num, cmd):
     """worker function"""
@@ -51,10 +53,12 @@ def cmd_line_embed(cmd, config):
     return cmd
 
 
-def get_cmd(model, mem, use_gpu, queue, host, duree, ppn, nb_proc, pmem, gpus):
+def get_cmd(model, mem, use_gpu, queue, host, duree, ppn, nb_proc, pmem, gpus, proj):
     dt = datetime.now()
     dt = dt.strftime('%Y%m%d_%H%M_%S%f')
-    cmd = 'jobdispatch --file=commands.txt --exp_dir=%s_%s'%(model,dt)
+    cmd = 'jobdispatch --file=commands.txt --exp_dir=%s_%s'%(model, dt)
+
+
 
     if nb_proc:
         cmd += ' --nb_proc=%s '%nb_proc
@@ -93,6 +97,9 @@ def get_cmd(model, mem, use_gpu, queue, host, duree, ppn, nb_proc, pmem, gpus):
     if duree:
         cmd += ' --duree=%s '%duree
 
+    if proj:
+        cmd += ' --project=%s '%proj
+
     if 'umontreal' in host:
         # Lisa cluster.
         cmd += ' --condor '
@@ -101,13 +108,17 @@ def get_cmd(model, mem, use_gpu, queue, host, duree, ppn, nb_proc, pmem, gpus):
     elif 'ip05' in host:
         # Mammouth cluster.
         cmd += ' --bqtools '
-    elif 'briaree1' in host:
+    elif host[:7]  == 'briaree':
         # Briaree cluster.
         if not use_gpu:
             cmd += ' --env=THEANO_FLAGS=floatX=float32 '
-    elif 'helios-login1' in host:
+        if not proj:
+            cmd += ' --project=jvb-000-ae '
+    elif host[:5] == 'helios':
         if gpus:
             cmd += ' --extra_param=:gpus=%s '%gpus
+        if not proj:
+            cmd += ' --project=jvb-000-aa '
 
     else:
         host = 'local'
@@ -153,6 +164,7 @@ if __name__=='__main__':
 
     parser.add_argument('--gpus', default='2', help='''memory allocation per core''')
 
+    parser.add_argument('--project', help='''project to which the job is assigned''')
 
     # TODO: ajouter assert pour s'assurer que lorsqu'on lance des jobs avec gpu, seulement
     # 1 job puisse etre lance localement.
@@ -161,13 +173,13 @@ if __name__=='__main__':
     cmds = []
     exps_by_model = {}
 
+    model_config = importlib.import_module("hps.model_configs.%s"%args.model).config
+
     ######### MODEL #########
     print('..Model: ' + args.model)
     model = args.model
     jobs_folder = 'jobs'
     #########################
-
-    exp_model = 'experiment.%s_exp'%model
 
     host = socket.gethostname()
     print 'Host = ', host
@@ -175,22 +187,20 @@ if __name__=='__main__':
     if args.n_concur_jobs:
         host = 'local'
     cmd = get_cmd(model, args.mem, args.use_gpu, args.queue, host,
-                args.duree, args.ppn, args.nb_proc, args.pmem, args.gpus)
+                args.duree, args.ppn, args.nb_proc, args.pmem, args.gpus, args.project)
     if not os.path.exists(jobs_folder):
         os.mkdir(jobs_folder)
     f = open('jobs/commands.txt','w')
 
     print '..commands: ', cmd
 
-
-
     for i in range(args.n_jobs):
         # TODO: do not hardcode the common options!
         if args.record:
             print('..outputs of job (' + str(i) + ') will be recorded')
-            exp_cmd = 'jobman -r cmdline %s '%exp_model
+            exp_cmd = 'jobman -r cmdline experiment.job '
         else:
-            exp_cmd = 'jobman cmdline %s '%exp_model
+            exp_cmd = 'jobman cmdline experiment.job '
 
         print exp_cmd
 
@@ -199,7 +209,7 @@ if __name__=='__main__':
         if args.use_gpu and host is 'local':
             exp_cmd = 'THEANO_FLAGS=device=gpu,floatX=float32 ' + exp_cmd
 
-        exp_cmd = cmd_line_embed(exp_cmd, flatten(model_config[model]))
+        exp_cmd = cmd_line_embed(exp_cmd, flatten(model_config))
         f.write(exp_cmd+'\n')
         exps_by_model.setdefault(model, [])
         exps_by_model[model].append(exp_cmd)

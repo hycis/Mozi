@@ -45,7 +45,7 @@ class Gaussian(Noise):
     Applies gaussian noise to each value of X
     """
 
-    def __init__(self, std=0.1, mean=0):
+    def __init__(self, std=0.01, mean=0):
         self.std = std
         self.mean = mean
 

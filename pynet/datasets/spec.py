@@ -7,7 +7,6 @@ from pynet.datasets.dataset import Dataset, DataBlocks, SingleBlock
 import glob
 import gc
 
-from pynet.utils.check_memory import print_mem_usage
 
 class P276(SingleBlock):
 
@@ -87,6 +86,7 @@ class Laura_Blocks(Laura_Root):
                    'Laura_data_007.npy',  'Laura_data_017.npy',
                    'Laura_data_008.npy',  'Laura_data_018.npy',
                    'Laura_data_009.npy',  'Laura_data_019.npy']
+        self.data_dir = data_dir
         data_paths = ["%s/%s"%(data_dir, part) for part in parts]
         super(Laura_Blocks, self).__init__(data_paths=data_paths, **kwargs)
 
@@ -103,6 +103,7 @@ class Laura_Warp_Blocks(Laura_Root):
                    'Laura_warp_data_007.npy',  'Laura_warp_data_017.npy',
                    'Laura_warp_data_008.npy',  'Laura_warp_data_018.npy',
                    'Laura_warp_data_009.npy',  'Laura_warp_data_019.npy']
+        self.data_dir = data_dir
         data_paths = ["%s/%s"%(data_dir, part) for part in parts]
         super(Laura_Warp_Blocks, self).__init__(data_paths=data_paths, **kwargs)
 
@@ -119,6 +120,7 @@ class Laura_Warp_Standardize_Blocks(Laura_Root):
                        'Laura_warp_standardize_data_007.npy',  'Laura_warp_standardize_data_017.npy',
                        'Laura_warp_standardize_data_008.npy',  'Laura_warp_standardize_data_018.npy',
                        'Laura_warp_standardize_data_009.npy',  'Laura_warp_standardize_data_019.npy']
+        self.data_dir = data_dir
         data_paths = ["%s/%s"%(data_dir, part) for part in parts]
         super(Laura_Warp_Standardize_Blocks, self).__init__(data_paths=data_paths, **kwargs)
 
@@ -134,21 +136,23 @@ class Laura_Standardize_Blocks(Laura_Root):
                        'Laura_standardize_data_007.npy',  'Laura_standardize_data_017.npy',
                        'Laura_standardize_data_008.npy',  'Laura_standardize_data_018.npy',
                        'Laura_standardize_data_009.npy',  'Laura_standardize_data_019.npy']
+        self.data_dir = data_dir
         super(Laura_Standardize_Blocks, self).__init__(data_paths=data_paths, **kwargs)
 
 class Laura_Warp_Blocks_500_RELU(Laura_Warp_Blocks):
     def __init__(self, **kwargs):
-        data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura_AE0713_Warp_500_20140714_1317_43818059'
-        super(Laura_Warp_Blocks_500_RELU, self).__init__(data_dir=data_dir, **kwargs)
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura_AE0713_Warp_500_20140714_1317_43818059'
+        super(Laura_Warp_Blocks_500_RELU, self).__init__(data_dir=self.data_dir, **kwargs)
 
 class Laura_Warp_Blocks_500_Tanh(Laura_Warp_Blocks):
     def __init__(self, **kwargs):
-        data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura_AE0830_Warp_Blocks_2049_500_tanh_gpu_20140902_0012_36590657'
-        super(Laura_Warp_Blocks_500_Tanh, self).__init__(data_dir=data_dir, **kwargs)
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura_AE0830_Warp_Blocks_2049_500_tanh_gpu_20140902_0012_36590657'
+        super(Laura_Warp_Blocks_500_Tanh, self).__init__(data_dir=self.data_dir, **kwargs)
 
 class Laura_Warp_Blocks_500_Tanh_Noisy_Clean(Laura_Warp_Blocks):
     def __init__(self, **kwargs):
-        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura/noisy/AE1110_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_sgd_clean_continue_20141110_1235_21624029'
+        # self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura/noisy/AE1110_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_sgd_clean_continue_20141110_1235_21624029'
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura/noisy/AE1122_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_sgd_maskout_20141128_1421_47179280'
         super(Laura_Warp_Blocks_500_Tanh_Noisy_Clean, self).__init__(data_dir=self.data_dir, **kwargs)
 
 class Laura_Warp_Blocks_500_Tanh_Noisy_BatchOut(Laura_Warp_Blocks):
@@ -164,25 +168,57 @@ class Laura_Warp_Blocks_500_Tanh_Noisy_BlackOut(Laura_Warp_Blocks):
 
 class Laura_Warp_Blocks_500_Tanh_Noisy_Gaussian(Laura_Warp_Blocks):
     def __init__(self, **kwargs):
-        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura/noisy/AE1110_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_sgd_gaussian_continue_20141110_1250_49502872'
+        # self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura/noisy/AE1110_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_sgd_gaussian_continue_20141110_1250_49502872'
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura/noisy/AE1121_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_sgd_gaussian_continue_20141126_1543_50554671'
         super(Laura_Warp_Blocks_500_Tanh_Noisy_Gaussian, self).__init__(data_dir=self.data_dir, **kwargs)
 
 class Laura_Warp_Blocks_500_Tanh_Noisy_MaskOut(Laura_Warp_Blocks):
     def __init__(self, **kwargs):
-        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura/noisy/AE1110_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_sgd_maskout_continue_20141110_1251_56190462'
+        # self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura/noisy/AE1110_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_sgd_maskout_continue_20141110_1251_56190462'
+        # self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura/noisy/AE1110_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_sgd_maskout_20141113_1315_16220308'
+        # self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura/noisy/AE1122_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_sgd_maskout_20141127_1409_23347733'
+        # self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura/noisy/AE1201_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_sgd_maskout_20141202_0223_37209854'
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura/noisy/AE1210_Scale_Warp_Blocks_2049_500_tanh_tanh_gpu_sgd_maskout_20141210_1728_15311837'
         super(Laura_Warp_Blocks_500_Tanh_Noisy_MaskOut, self).__init__(data_dir=self.data_dir, **kwargs)
+
+
+class Laura_Warp_Blocks_180_Tanh_Noisy_Clean(Laura_Warp_Blocks):
+    def __init__(self, **kwargs):
+        # self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura/noisy/AE1110_Scale_Warp_Blocks_500_180_tanh_tanh_gpu_sgd_clean_20141111_2157_47387660'
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura/noisy/AE1201_Scale_Warp_Blocks_500_180_tanh_tanh_gpu_sgd_clean_20141202_2352_57643114'
+        super(Laura_Warp_Blocks_180_Tanh_Noisy_Clean, self).__init__(data_dir=self.data_dir, **kwargs)
+
+class Laura_Warp_Blocks_180_Tanh_Noisy_BatchOut(Laura_Warp_Blocks):
+    def __init__(self, **kwargs):
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura/noisy/AE1111_Scale_Warp_Blocks_500_180_tanh_tanh_gpu_sgd_batchout_continue_20141112_0844_45882544'
+        super(Laura_Warp_Blocks_180_Tanh_Noisy_BatchOut, self).__init__(data_dir=self.data_dir, **kwargs)
+
+class Laura_Warp_Blocks_180_Tanh_Noisy_BlackOut(Laura_Warp_Blocks):
+    def __init__(self, **kwargs):
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura/noisy/AE1111_Scale_Warp_Blocks_500_180_tanh_tanh_gpu_sgd_blackout_continue_20141112_0842_01925797'
+        super(Laura_Warp_Blocks_180_Tanh_Noisy_BlackOut, self).__init__(data_dir=self.data_dir, **kwargs)
+
+class Laura_Warp_Blocks_180_Tanh_Noisy_Gaussian(Laura_Warp_Blocks):
+    def __init__(self, **kwargs):
+        # self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura/noisy/AE1110_Scale_Warp_Blocks_500_180_tanh_tanh_gpu_sgd_gaussian_20141111_2155_45180040'
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura/noisy/AE1127_Scale_Warp_Blocks_500_180_tanh_tanh_gpu_sgd_gaussian_20141127_1313_31905279'
+        super(Laura_Warp_Blocks_180_Tanh_Noisy_Gaussian, self).__init__(data_dir=self.data_dir, **kwargs)
+
+class Laura_Warp_Blocks_180_Tanh_Noisy_MaskOut(Laura_Warp_Blocks):
+    def __init__(self, **kwargs):
+        # self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura/noisy/AE1121_Scale_Warp_Blocks_500_180_tanh_tanh_gpu_sgd_maskout_20141122_1425_29675501'
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura/noisy/AE1210_Scale_Warp_Blocks_500_180_tanh_tanh_gpu_sgd_maskout_20141212_2056_15976132'
+        super(Laura_Warp_Blocks_180_Tanh_Noisy_MaskOut, self).__init__(data_dir=self.data_dir, **kwargs)
 
 class Laura_Warp_Blocks_500_Tanh_Dropout(Laura_Warp_Blocks):
     def __init__(self, **kwargs):
         self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura_AE0916_Warp_Blocks_2049_500_tanh_tanh_gpu_dropout_20140916_1705_29139505'
         super(Laura_Warp_Blocks_500_Tanh_Dropout, self).__init__(data_dir=self.data_dir, **kwargs)
 
-
 class Laura_Warp_Blocks_500_Tanh_Blackout(Laura_Warp_Blocks):
     def __init__(self, **kwargs):
         self.data_dir = os.environ['PYNET_DATA_PATH'] + '/AE1018_Warp_Blocks_2049_500_tanh_tanh_gpu_blackout_continue_20141018_1408_44747438'
         super(Laura_Warp_Blocks_500_Tanh_Blackout, self).__init__(data_dir=self.data_dir, **kwargs)
-
 
 class Laura_Warp_Blocks_180_Tanh_Blackout(Laura_Warp_Blocks):
     def __init__(self, **kwargs):
@@ -305,12 +341,12 @@ class Laura_Blocks_500_Tanh_Sigmoid(Laura_Blocks):
 class Laura_Blocks_500(Laura_Blocks):
 
     def __init__(self, **kwargs):
-        data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura_AE0712_500_20140713_0345_22901754'
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura_AE0712_500_20140713_0345_22901754'
         super(Laura_Blocks_500, self).__init__(data_dir=self.data_dir, **kwargs)
 
 
 class Laura_Blocks_1000(Laura_Blocks):
 
     def __init__(self, **kwargs):
-        data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura_AE0712_Warp_1000_20140712_1230_54443469'
+        self.data_dir = os.environ['PYNET_DATA_PATH'] + '/Laura_AE0712_Warp_1000_20140712_1230_54443469'
         super(Laura_Blocks_1000, self).__init__(data_dir=self.data_dir, **kwargs)

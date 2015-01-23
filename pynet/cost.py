@@ -67,6 +67,12 @@ class Cost(object):
         rval = T.mean(L)
         return rval.astype(floatX)
 
+    def _f1(self, y, y_pred):
+        pass
+
+    def _recall(self, y, y_pred):
+        pass
+
     def _cost_abs(self, y, y_pred):
         L = T.sum(T.abs_(y - y_pred, axis=1))
         rval = T.mean(L)

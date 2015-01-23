@@ -48,6 +48,8 @@ class MLP(Model):
                                 size = (prev_layer_dim, layer.dim)),
                                 dtype = floatX)
 
+            # W_values = np.zeros(shape=(prev_layer_dim, layer.dim), dtype=floatX)
+
             layer.W = theano.shared(value=W_values, name='W_'+layer.name, borrow=True)
 
         if layer.b is None:

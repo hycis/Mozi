@@ -4,10 +4,10 @@ Functionality : Define the noise that is to be added to each layer
 
 import theano
 import theano.tensor as T
-from theano.tensor.shared_randomstreams import RandomStreams
+from theano.sandbox.rng_mrg import MRG_RandomStreams
 
 floatX = theano.config.floatX
-theano_rand = RandomStreams(seed=1012)
+theano_rand = MRG_RandomStreams()
 
 class Noise(object):
     """
@@ -89,4 +89,5 @@ class BatchOut(Noise):
         self.ratio = ratio
 
     def apply(self, X):
-        return X * theano_rand.binomial(n=1, p=(1-self.ratio), dtype=floatX)
+        rd = theano_rand.binomial(size=(1,1), n=1, p=(1-self.ratio), dtype=floatX)
+        return X * T.patternbroadcast(rd, broadcastable=(True, True))

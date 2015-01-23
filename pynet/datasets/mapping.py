@@ -5,9 +5,6 @@ import numpy as np
 import theano
 from pynet.datasets.dataset import Dataset, DataBlocks
 import glob
-import gc
-
-from pynet.utils.check_memory import print_mem_usage
 
 class Laura_Blocks_GCN_Mapping(DataBlocks):
 

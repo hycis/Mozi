@@ -50,7 +50,7 @@ def stacksize(since=0.0):
     return _VmB('VmStk:') - since
 
 
-def print_mem_usage():
+def get_mem_usage():
     rstr = 'virtual memory: ' + str(memory()/1024/1024) + ' MB\n'
     rstr += 'peak virtual memory: ' + str(peak_Vm()/1024/1024) + ' MB\n'
     rstr += 'resident memory: ' + str(resident()/1024/1024) + ' MB\n'

@@ -1,10 +1,10 @@
 import numpy as np
 import theano
 import theano.tensor as T
-from theano.tensor.shared_randomstreams import RandomStreams
+from theano.sandbox.rng_mrg import MRG_RandomStreams
 
 floatX = theano.config.floatX
-theano_rand = RandomStreams(seed=1012)
+theano_rand = MRG_RandomStreams()
 
 class Layer(object):
     """
@@ -21,6 +21,7 @@ class Layer(object):
             W(tensor variable): Weight of 2D tensor matrix
             b(tensor variable): bias of 2D tensor matrix
             dropout_below(float): probability of the inputs from the layer below been masked out
+            params(list): a list of params in layer that can be updated
         """
         self.dim = dim
         self.name = name
@@ -30,6 +31,10 @@ class Layer(object):
         self.dropout_below = dropout_below
         self.noise = noise
         self.blackout_below = blackout_below
+
+        # any params from the layer that needs to be updated by backpropagation can be put inside
+        # self.params list
+        self.params = []
 
         if self.W is not None and self.W.name is None:
             self.W.name = 'W_' + self.name
@@ -95,13 +100,13 @@ class Layer(object):
             A list of tuples of [('name_a', var_a), ('name_b', var_b)] whereby var is scalar
         """
 
-        # w_len = T.sqrt((self.W ** 2).sum(axis=0)).astype(floatX)
-        # max_length = T.max(w_len).astype(floatX)
-        # mean_length = T.mean(w_len).astype(floatX)
-        # min_length = T.min(w_len).astype(floatX)
-        # max_output = T.max(layer_output).astype(floatX)
-        # mean_output = T.mean(T.abs_(layer_output)).astype(floatX)
-        # min_output = T.min(layer_output).astype(floatX)
+        w_len = T.sqrt((self.W ** 2).sum(axis=0)).astype(floatX)
+        max_length = T.max(w_len).astype(floatX)
+        mean_length = T.mean(w_len).astype(floatX)
+        min_length = T.min(w_len).astype(floatX)
+        max_output = T.max(layer_output).astype(floatX)
+        mean_output = T.mean(T.abs_(layer_output)).astype(floatX)
+        min_output = T.min(layer_output).astype(floatX)
         # state_below = self._mask_state_below(state_below)
         #
         # pos = T.mean(T.gt(T.abs_(state_below),0).astype(floatX))
@@ -125,13 +130,27 @@ class Layer(object):
         # ('output_min', min_output)]
         # ('pos', pos),
         # ('test', out)]
-        # ('max_W', T.max(self.W)),
-        # ('mean_W', T.mean(self.W)),
-        # ('min_W', T.min(self.W)),
-        # ('max_b', T.max(self.b)),
-        # ('mean_b', T.mean(self.b)),
-        # ('min_b', T.min(self.b))]
-        return []
+        w100 = self.W.sum(axis=1)[100].astype(floatX)
+        w200 = self.W.sum(axis=1)[200].astype(floatX)
+        w300 = self.W.sum(axis=1)[300].astype(floatX)
+        w_len100 = T.sqrt((self.W ** 2).sum(axis=1)[100]).astype(floatX)
+        w_len200 = T.sqrt((self.W ** 2).sum(axis=1)[200]).astype(floatX)
+        w_len300 = T.sqrt((self.W ** 2).sum(axis=1)[300]).astype(floatX)
+        return [('w_sum_axis_1', self.W.sum(axis=1).shape[0].astype(floatX)),
+        ('W_row100', w100),('W_row200', w200),('W_row300', w300),
+        ('len100', w_len100), ('len200', w_len200), ('len300', w_len300),
+        ('max_W', T.max(self.W)),
+        ('mean_W', T.mean(self.W)),
+        ('min_W', T.min(self.W)),
+        ('max_b', T.max(self.b)),
+        ('mean_b', T.mean(self.b)),
+        ('min_b', T.min(self.b)),
+        ('output_max', max_output),
+                ('output_mean', mean_output),
+                ('output_min', min_output),
+                ('max_col_length', max_length),
+                ('mean_col_length', mean_length),
+                ('min_col_length', min_length)]
 
 class Linear(Layer):
     def _test_fprop(self, state_below):
@@ -167,6 +186,61 @@ class RELU(Linear):
         return output * (output > 0.)
 
 
+    def _layer_stats(self, state_below, layer_output):
+        rlist = []
+
+        # sparsity = T.gt(layer_output,0).sum().astype(floatX) / (layer_output.shape[0] * layer_output.shape[1])
+
+        activity = T.mean(T.gt(layer_output, 0) * 1.0)
+        # return [('activity', activity.astype(floatX)),
+
+        # rlist.append(('threshold_mean', T.mean(self.threshold).astype(floatX)))
+        rlist.append(('activity', activity.astype(floatX)))
+        # rlist.append(('threshold_max', T.max(self.threshold).astype(floatX)))
+        # rlist.append(('threshold_min', T.min(self.threshold).astype(floatX)))
+        rlist.append(('std_prod', T.prod(layer_output.std(axis=0)).astype(floatX)))
+        # rlist.append(('sparsity', sparsity))
+        rlist.extend(super(RELU, self)._layer_stats(state_below, layer_output))
+        return rlist
+
+class SoftRELU(Linear):
+    def __init__(self, threshold=0., **kwargs):
+        '''
+        threshold: the threshold of z = max(wx+b, threshold) which will be updated
+        by backpropagation.
+        '''
+        super(Linear, self).__init__(**kwargs)
+        threshold = threshold * np.ones(shape=self.dim, dtype=floatX)
+        self.threshold = theano.shared(value=threshold, name='SoftRELU_Threshold', borrow=True)
+        # T.patternbroadcast(self.threshold, broadcastable=(True, False))
+        self.params = [self.threshold]
+
+    def _test_fprop(self, state_below):
+        output = super(SoftRELU, self)._test_fprop(state_below)
+        return output * (output > self.threshold) + self.threshold * (output <= self.threshold)
+
+    def _train_fprop(self, state_below):
+        output = super(SoftRELU, self)._train_fprop(state_below)
+        return output * (output > self.threshold) + self.threshold * (output <= self.threshold)
+
+    def _layer_stats(self, state_below, layer_output):
+        rlist = []
+
+        # sparsity = T.gt(layer_output,0).sum().astype(floatX) / (layer_output.shape[0] * layer_output.shape[1])
+
+        activity = T.mean(T.gt(layer_output, self.threshold) * 1.0)
+        # return [('activity', activity.astype(floatX)),
+
+        rlist.append(('threshold_mean', T.mean(self.threshold).astype(floatX)))
+        rlist.append(('activity', activity.astype(floatX)))
+        rlist.append(('threshold_max', T.max(self.threshold).astype(floatX)))
+        rlist.append(('threshold_min', T.min(self.threshold).astype(floatX)))
+        rlist.append(('std_prod', T.prod(layer_output.std(axis=0)).astype(floatX)))
+        # rlist.append(('sparsity', sparsity))
+        return rlist
+
+
+
 class Noisy_RELU(Linear):
     def __init__(self, sparsity_factor, threshold_lr, std, alpha_range=[0.5, 1000, 0.05], **kwargs):
         '''
@@ -180,7 +254,7 @@ class Noisy_RELU(Linear):
                       that mean_sparsity will be more stable.
         std: the standard deviation of the noise
         '''
-        super(Linear, self).__init__(**kwargs)
+        super(Noisy_RELU, self).__init__(**kwargs)
         self.sparsity_factor = sparsity_factor
         self.threshold_lr = threshold_lr
         self.alpha_range = alpha_range
@@ -195,6 +269,16 @@ class Softmax(Linear):
         output = super(Softmax, self)._train_fprop(state_below)
         return T.nnet.softmax(output)
 
+class Sigmoid10X(Linear):
+
+    def _test_fprop(self, state_below):
+        output = super(Sigmoid10X, self)._test_fprop(state_below)
+        return 10 * T.nnet.sigmoid(output)
+
+    def _train_fprop(self, state_below):
+        output = super(Sigmoid10X, self)._train_fprop(state_below)
+        return 10 * T.nnet.sigmoid(output)
+
 
 class Tanh(Linear):
     def _test_fprop(self, state_below):
@@ -204,6 +288,35 @@ class Tanh(Linear):
     def _train_fprop(self, state_below):
         output = super(Tanh, self)._train_fprop(state_below)
         return T.tanh(output)
+
+class Tanh5X(Linear):
+    def _test_fprop(self, state_below):
+        output = super(Tanh5X, self)._test_fprop(state_below)
+        return 5.0 * T.tanh(output / 5.0)
+
+    def _train_fprop(self, state_below):
+        output = super(Tanh5X, self)._train_fprop(state_below)
+        return 5.0 * T.tanh(output / 5.0)
+
+class Tanhkx(Linear):
+    def __init__(self, k=10., **kwargs):
+        '''
+
+        '''
+        super(Tanhkx, self).__init__(**kwargs)
+        self.k = theano.shared(value=np.asarray(k, dtype=floatX), name='Tanhkx_k')
+        self.params = [self.k]
+
+    def _test_fprop(self, state_below):
+        output = super(Tanhkx, self)._test_fprop(state_below)
+        return self.k * T.tanh(output / self.k)
+
+    def _train_fprop(self, state_below):
+        output = super(Tanhkx, self)._train_fprop(state_below)
+        return self.k * T.tanh(output / self.k)
+
+    def _layer_stats(self, state_below, layer_output):
+        return [('k', self.k)]
 
 
 class Softplus(Linear):

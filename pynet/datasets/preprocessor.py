@@ -283,7 +283,7 @@ class Scale(Preprocessor):
     """
 
 
-    def __init__(self, global_max=89.0, global_min=-23.0, scale_range=[-1,1], buffer=0.5):
+    def __init__(self, global_max=89, global_min=-23, scale_range=[-1,1], buffer=0.5):
 
         self.scale_range = scale_range
         self.buffer = buffer

@@ -87,7 +87,6 @@ class Log:
         if self.save_outputs:
             self.logger.info('[ outputs saved to: %s ]\n' %self.exp_id)
 
-        print('\n')
 
     def _save_model(self, model):
         with open(self.exp_dir+'/model.pkl', 'wb') as pkl_file:
