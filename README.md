@@ -15,53 +15,50 @@ Pynet consists of the following modules
 
 _Example_
 
-Let's start with a simple example for building a neural network
-```python
-data = Mnist(preprocessor=None, train_valid_test_ratio=[5,1,1])
-# data = Cifar10(train_valid_test_ratio=[5,1,1])
+To start with a simple MLP example click [here](doc/mlp_example.md)
 
-learning_method = SGD(learning_rate=0.001, momentum=0.9)
+Let's start with a simple example for building a neural network from [mlp_example.py](example/model_config.py)
+```python
 
 mlp = MLP(input_dim = data.feature_size())
 
-# import pdb
-# pdb.set_trace()
+data = Mnist(preprocessor=None, train_valid_test_ratio=[5,1,1])
+learning_method = SGD(learning_rate=0.001, momentum=0.9)
 
-mlp.add_layer(Sigmoid(dim=400, name='h1_layer', W=None, b=None, dropout_below=0.5))
-# mlp.add_layer(Sigmoid(dim=1000, name='h1_layer', W=None, b=None, dropout_below=None))
+mlp.add_layer(Sigmoid(dim=400, name='h1_layer', W=None, b=None, dropout_below=None))
 mlp.add_layer(Softmax(dim=data.target_size(), name='output_layer', W=None, b=None, dropout_below=None))
 
 learning_rule = LearningRule(max_col_norm = 10,
-L1_lambda = None,
-L2_lambda = None,
-training_cost = Cost(type='mse'),
-learning_rate_decay_factor = None,
-stopping_criteria = {'max_epoch' : 30,
-'epoch_look_back' : 10,
-'cost' : Cost(type='error'),
-'percent_decrease' : 0.01}
-)
+                            L1_lambda = None,
+                            L2_lambda = None,
+                            training_cost = Cost(type='mse'),
+                            learning_rate_decay_factor = None,
+                            stopping_criteria = {'max_epoch' : 30,
+                                                'epoch_look_back' : 10,
+                                                'cost' : Cost(type='error'),
+                                                'percent_decrease' : 0.01}
+                            )
 
 log = Log(experiment_name = 'mnist_example',
-description = 'This is tutorial example',
-save_outputs = False,
-save_learning_rule = False,
-save_model = False,
-save_epoch_error = False,
-save_to_database = {'name': 'Example.db',
-'records' : {'Dataset' : data.__class__.__name__,
-'max_col_norm'     : learning_rule.max_col_norm,
-'Weight_Init_Seed' : mlp.rand_seed,
-'Dropout_Below'    : str([layer.dropout_below for layer in mlp.layers]),
-'Batch_Size'       : data.batch_size,
-'Layer_Dim'        : str([layer.dim for layer in mlp.layers]),
-'Layer_Types'      : str([layer.__class__.__name__ for layer in mlp.layers]),
-'Preprocessor'     : data.preprocessor.__class__.__name__,
-'Learning_Rate'    : learning_method.learning_rate,
-'Momentum'         : learning_method.momentum,
-'Training_Cost'    : learning_rule.cost.type,
-'Stopping_Cost'    : learning_rule.stopping_criteria['cost'].type}}
-) # end log
+            description = 'This is tutorial example',
+            save_outputs = False,
+            save_learning_rule = False,
+            save_model = False,
+            save_epoch_error = False,
+            save_to_database = {'name': 'Example.db',
+            'records' : {'Dataset' : data.__class__.__name__,
+            'max_col_norm'     : learning_rule.max_col_norm,
+            'Weight_Init_Seed' : mlp.rand_seed,
+            'Dropout_Below'    : str([layer.dropout_below for layer in mlp.layers]),
+            'Batch_Size'       : data.batch_size,
+            'Layer_Dim'        : str([layer.dim for layer in mlp.layers]),
+            'Layer_Types'      : str([layer.__class__.__name__ for layer in mlp.layers]),
+            'Preprocessor'     : data.preprocessor.__class__.__name__,
+            'Learning_Rate'    : learning_method.learning_rate,
+            'Momentum'         : learning_method.momentum,
+            'Training_Cost'    : learning_rule.cost.type,
+            'Stopping_Cost'    : learning_rule.stopping_criteria['cost'].type}}
+            ) # end log
 
 train_object = TrainObject(model = mlp,
 dataset = data,
@@ -89,5 +86,3 @@ Learning Method Template
 
 
 Cost Functions
-
-
