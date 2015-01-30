@@ -23,7 +23,7 @@ mlp.add_layer(Sigmoid(dim=1000, name='h1_layer', W=None, b=None, dropout_below=N
 mlp.add_layer(Softmax(dim=data.target_size(), name='output_layer', W=None, b=None, dropout_below=None))
 
 # build learning method
-learning_method = SGD(learning_rate=0.001, momentum=0.9)
+learning_method = SGD(learning_rate=0.1, momentum=0.9)
 
 # set the learning rules
 learning_rule = LearningRule(max_col_norm = 10,
@@ -31,7 +31,7 @@ learning_rule = LearningRule(max_col_norm = 10,
                             L2_lambda = None,
                             training_cost = Cost(type='mse'),
                             learning_rate_decay_factor = None,
-                            stopping_criteria = {'max_epoch' : 30,
+                            stopping_criteria = {'max_epoch' : 300,
                                                   'epoch_look_back' : 10,
                                                   'cost' : Cost(type='error'),
                                                   'percent_decrease' : 0.01}
