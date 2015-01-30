@@ -16,7 +16,7 @@ Pynet consists of the following modules
 _Example_
 
 Let's start with a simple example for building a neural network
-```
+```python
 data = Mnist(preprocessor=None, train_valid_test_ratio=[5,1,1])
 # data = Cifar10(train_valid_test_ratio=[5,1,1])
 
