@@ -1,5 +1,15 @@
 Pynet
 =====
+
+<dl class="method">
+<dt id="pylearn2.models.rbm.GaussianBinaryRBM.free_energy">
+<tt class="descname">free_energy</tt><big>(</big><em>V</em><big>)</big><a class="headerlink" href="#pylearn2.models.rbm.GaussianBinaryRBM.free_energy" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-todo admonition" id="index-17">
+<p class="first admonition-title">Todo</p>
+<p class="last">WRITEME</p>
+</div>
+</dd></dl>
+
 <dl class="method">
 <dt id="pylearn2.models.model.Model.get_default_cost">
 <tt class="descname">get_default_cost</tt><big>(</big><big>)</big><a class="headerlink" href="#pylearn2.models.model.Model.get_default_cost" title="Permalink to this definition">¶</a></dt>
