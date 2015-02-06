@@ -1,8 +1,22 @@
 Pynet
 =====
-
-<h1> Testing </h1>
-
+<dl class="method">
+<dt id="pylearn2.models.model.Model.get_default_cost">
+<tt class="descname">get_default_cost</tt><big>(</big><big>)</big><a class="headerlink" href="#pylearn2.models.model.Model.get_default_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the default cost to use with this model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>default_cost</strong> : Cost</p>
+<blockquote class="last">
+<div><p>The default cost to use with this model.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 Pynet is meant to be a simple and straight forward framework base on Theano, it aims to be a much cleaner and focused framework than pylearn2, and only aims to do the best for neural network computation. It is for anyone who wants to run large dataset on GPU with 10X speedup, and who has a tough time learning the much more bulky pylearn2.
 
 Pynet has been used to reproduce many state-of-the-art results, such as dropout and maxout on mnist And it's a stable and fast.
