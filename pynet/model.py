@@ -123,7 +123,7 @@ class AutoEncoder(MLP):
         layer = self.decode_layers.pop(index)
         self.layers.remove(layer)
         return layer
-
+    
     def _fprop(self, layers, input_state):
         for layer in layers:
             input_state = layer._test_fprop(input_state)
