@@ -85,6 +85,7 @@ possible.</p>
 </td>
 </tr>
 </tbody>
+</dd></dl>
 
 
 <dl class="instance method">
@@ -100,7 +101,7 @@ possible.</p>
 </td>
 </tr>
 </tbody>
-
+</dd></dl>
 
 <dl class="instance method">
 <dt id="model.MLP.fprop">
@@ -115,11 +116,9 @@ possible.</p>
 </td>
 </tr>
 </tbody>
-
-
-
 </dd></dl>
 
+</dd></dl>
 
 <p>Other constructors, all class methods:</p>
 <dl class="classmethod">
