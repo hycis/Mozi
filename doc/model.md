@@ -95,8 +95,9 @@ possible.</p>
 
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>layer</strong> : index</p>
+  <blockquote>
   <div><p>The index of the layer to be popped</p>
-  </div>
+  </div></blockquote>
 </td>
 </tr>
 </tbody>
@@ -117,6 +118,21 @@ possible.</p>
 </tbody>
 </dd></dl>
 
+
+<dl class="instance method">
+<dt id="model.MLP.get_layers">
+<tt class="descclassname">model.MLP.get_layers</tt><big>(</big><big>)</big></dt>
+<dd><p>Return the layers in the mlp</p>
+
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return:</th><td class="field-body">
+  <blockquote>
+  <div><p>Return a list of all the layers</p>
+  </div></blockquote>
+</td>
+</tr>
+</tbody>
+</dd></dl>
 
 
 <p>Other constructors, all class methods:</p>
