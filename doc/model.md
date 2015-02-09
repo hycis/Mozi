@@ -7,7 +7,6 @@
 <em class="property">class </em><tt class="descclassname">model.</tt><tt class="descname">Model</tt><big>(</big><em>input_dim</em>, <em>rand_seed=None</em><big>)</big></dt>
 <dd><p>An interface for the MLP and the autoencoder class</p>
 <p>If an argument outside those ranges is given, <a class="reference internal" href="exceptions.html#exceptions.ValueError" title="exceptions.ValueError"><tt class="xref py py-exc docutils literal"><span class="pre">ValueError</span></tt></a> is raised.</p>
-</dd></dl>
 
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>a</strong> : array_like</p>
@@ -29,6 +28,9 @@ possible.</p>
 </td>
 </tr>
 </tbody>
+
+</dd></dl>
+
 
 <p>Other constructors, all class methods:</p>
 <dl class="classmethod">
