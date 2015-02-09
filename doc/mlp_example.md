@@ -3,7 +3,7 @@ MLP Example
 
 To build an mlp, we need to put together the following modules
 
-1. TrainObject
+1. [TrainObject](train_object.md)
 2. [MLP](model.md)
 3. [Dataset](dataset.md)
 4. [Learning Method](learning_method.md): Can be SGD, AdaDelta or AdaGrad
