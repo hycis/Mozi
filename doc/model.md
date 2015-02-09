@@ -105,7 +105,7 @@ possible.</p>
 
 <dl class="instance method">
 <dt id="model.MLP.fprop">
-<tt class="descclassname">model.</tt><tt class="descname">MLP.fprop</tt><big>(</big><em>input_values</em><big>)</big></dt>
+<tt class="descclassname">model.MLP.fprop</tt><big>(</big><em>input_values</em><big>)</big></dt>
 <dd><p>This is used to forward propagate the input values through the mlp</p>
 
 <tbody valign="top">
@@ -118,7 +118,7 @@ possible.</p>
 </tbody>
 </dd></dl>
 
-</dd></dl>
+
 
 <p>Other constructors, all class methods:</p>
 <dl class="classmethod">
