@@ -12,10 +12,6 @@ from jobman import DD, flatten
 from datetime import datetime
 
 
-sys.path.insert(0, os.getcwd())
-# from model_config import model_config
-# from model_configs import *
-
 def worker(num, cmd):
     """worker function"""
     print 'Worker %s' %num
@@ -57,8 +53,6 @@ def get_cmd(model, mem, use_gpu, queue, host, duree, ppn, nb_proc, pmem, gpus, p
     dt = datetime.now()
     dt = dt.strftime('%Y%m%d_%H%M_%S%f')
     cmd = 'jobdispatch --file=commands.txt --exp_dir=%s_%s'%(model, dt)
-
-
 
     if nb_proc:
         cmd += ' --nb_proc=%s '%nb_proc
@@ -125,6 +119,28 @@ def get_cmd(model, mem, use_gpu, queue, host, duree, ppn, nb_proc, pmem, gpus, p
     return cmd
 
 
+def generate_jobs_list(n_jobs, recorded, use_gpu, host, model_config):
+
+    exps_list = []
+    for i in range(n_jobs):
+        # TODO: do not hardcode the common options!
+        if recorded:
+            print('..outputs of job (' + str(i) + ') will be recorded')
+            exp_cmd = 'jobman -r cmdline experiment.job '
+        else:
+            exp_cmd = 'jobman cmdline experiment.job '
+
+        if use_gpu and host is 'local':
+            exp_cmd = 'THEANO_FLAGS=device=gpu,floatX=float32 ' + exp_cmd
+
+        exp_cmd = cmd_line_embed(exp_cmd, flatten(model_config))
+        # print exp_cmd
+
+        exps_list.append(exp_cmd)
+
+    return exps_list
+
+
 if __name__=='__main__':
 
     parser = argparse.ArgumentParser(description='''Train mlps by launching
@@ -136,7 +152,7 @@ if __name__=='__main__':
     parser.add_argument('-q', '--queue',
                         help='''The queue to insert the jobs''')
 
-    parser.add_argument('-n', '--total_number_jobs', type=int, dest='n_jobs', default=1,
+    parser.add_argument('-n', '--total_number_jobs', type=int, dest='n_jobs',
                         help='''The total number of jobs that will be launched on machines.''')
 
     parser.add_argument('-m', '--mem', default='8000m',
@@ -166,75 +182,63 @@ if __name__=='__main__':
 
     parser.add_argument('--project', help='''project to which the job is assigned''')
 
+    parser.add_argument('--wait_between_jobs', type=int, default=100, help='''time to wait before launching another new job''')
+
     # TODO: ajouter assert pour s'assurer que lorsqu'on lance des jobs avec gpu, seulement
     # 1 job puisse etre lance localement.
     args = parser.parse_args()
     print args
-    cmds = []
-    exps_by_model = {}
 
     model_config = importlib.import_module("hps.model_configs.%s"%args.model).config
 
     ######### MODEL #########
     print('..Model: ' + args.model)
     model = args.model
-    jobs_folder = 'jobs'
-    #########################
 
+    #### Local Host Name ####
     host = socket.gethostname()
-    print 'Host = ', host
+    print '..Host: ', host
+
+    ### Jobs Folder ###
+    jobs_folder = os.getcwd() + '/jobs'
+    print '..jobs folder:', jobs_folder
+    if not os.path.exists(jobs_folder):
+        os.mkdir(jobs_folder)
+    os.chdir(jobs_folder)
+    f = open('commands.txt','w')
+
+    assert args.n_concur_jobs or args.n_jobs, "need to specify whether jobs are gonna run locally or on the cluster"
 
     if args.n_concur_jobs:
         host = 'local'
-    cmd = get_cmd(model, args.mem, args.use_gpu, args.queue, host,
-                args.duree, args.ppn, args.nb_proc, args.pmem, args.gpus, args.project)
-    if not os.path.exists(jobs_folder):
-        os.mkdir(jobs_folder)
-    f = open('jobs/commands.txt','w')
 
-    print '..commands: ', cmd
+    if args.n_jobs:
+        print '..Jobs will be dispatched to cluster'
 
-    for i in range(args.n_jobs):
-        # TODO: do not hardcode the common options!
-        if args.record:
-            print('..outputs of job (' + str(i) + ') will be recorded')
-            exp_cmd = 'jobman -r cmdline experiment.job '
-        else:
-            exp_cmd = 'jobman cmdline experiment.job '
+        ## Jobdispatch Command ##
+        cmd = get_cmd(model, args.mem, args.use_gpu, args.queue, host,
+                    args.duree, args.ppn, args.nb_proc, args.pmem, args.gpus, args.project)
+        print '..jobdispatch command: ', cmd
 
-        print exp_cmd
+        exps_list = generate_jobs_list(args.n_jobs, args.record, args.use_gpu, host, model_config)
 
-        if 'ip05' in host:
-            exp_cmd = 'THEANO_FLAGS=floatX=float32 ' + exp_cmd
-        if args.use_gpu and host is 'local':
-            exp_cmd = 'THEANO_FLAGS=device=gpu,floatX=float32 ' + exp_cmd
-
-        exp_cmd = cmd_line_embed(exp_cmd, flatten(model_config))
-        f.write(exp_cmd+'\n')
-        exps_by_model.setdefault(model, [])
-        exps_by_model[model].append(exp_cmd)
-
-    f.close()
-
-    os.chdir(jobs_folder)
-
-    print '..commands: ', cmd
-
-    if not args.n_concur_jobs:
+        for exp_cmd in exps_list:
+            f.write(exp_cmd + '\n')
         os.system(cmd)
-    else:
-        print 'Jobs will be run locally.'
-        print '%s jobs will be run simultaneously.'%args.n_concur_jobs
+        f.close()
+
+    elif args.n_concur_jobs:
+        print '..Jobs will be run locally.'
+        print '..%s jobs will be run simultaneously.'%args.n_concur_jobs
         n_jobs = 0
         n_job_simult = 0
         jobs = []
-        commands = exps_by_model[model]
-
-        for command in commands:
+        exps_list = generate_jobs_list(args.n_concur_jobs, args.record, args.use_gpu, host, model_config)
+        for exp_cmd in exps_list:
             if n_job_simult < args.n_concur_jobs:
                 assert len(jobs) <= args.n_concur_jobs
-                print command
-                p = multiprocessing.Process(target=worker, args=(n_jobs, command))
+                print exp_cmd
+                p = multiprocessing.Process(target=worker, args=(n_jobs, exp_cmd))
                 jobs.append((n_jobs, p))
                 p.start()
                 n_jobs += 1
@@ -250,6 +254,8 @@ if __name__=='__main__':
                             n_job_simult -= 1
                             ready_for_more = True
                             break
+            print '..waiting for %s seconds between jobs'%args.wait_between_jobs
+            time.sleep(args.wait_between_jobs)
 
         more_jobs = True
         while more_jobs:

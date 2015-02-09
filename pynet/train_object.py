@@ -140,8 +140,7 @@ class TrainObject():
 
         train_updates = []
         gparams = T.grad(train_cost, params)
-        # import pdb
-        # pdb.set_trace()
+
         for delta, param, gparam in zip(deltas, params, gparams):
 
             train_updates += self.learning_method.update(delta, gparam)
@@ -162,6 +161,7 @@ class TrainObject():
         #----[ append updates of stats from each layer to train updates ]-----#
 
         self.train_stats_names, train_stats_vars = split_list(train_layers_stats)
+        train_stats_vars = [var.astype(floatX) for var in train_stats_vars]
         self.train_stats_shared = generate_shared_list(train_stats_vars)
         train_stats_updates = merge_lists(self.train_stats_shared, train_stats_vars)
         train_updates += train_stats_updates
@@ -189,6 +189,7 @@ class TrainObject():
         #-----[ append updates of stats from each layer to test updates ]-----#
 
         self.test_stats_names, test_stats_vars = split_list(test_layers_stats)
+        test_stats_vars = [var.astype(floatX) for var in test_stats_vars]
         self.test_stats_shared = generate_shared_list(test_stats_vars)
         test_stats_updates = merge_lists(self.test_stats_shared, test_stats_vars)
 

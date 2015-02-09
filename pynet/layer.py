@@ -32,8 +32,8 @@ class Layer(object):
         self.noise = noise
         self.blackout_below = blackout_below
 
-        # any params from the layer that needs to be updated by backpropagation can be put inside
-        # self.params list
+        # any params from the layer that needs to be updated
+        # by backpropagation can be put inside self.params list
         self.params = []
 
         if self.W is not None and self.W.name is None:
@@ -100,15 +100,18 @@ class Layer(object):
             A list of tuples of [('name_a', var_a), ('name_b', var_b)] whereby var is scalar
         """
 
-        w_len = T.sqrt((self.W ** 2).sum(axis=0)).astype(floatX)
-        max_length = T.max(w_len).astype(floatX)
-        mean_length = T.mean(w_len).astype(floatX)
-        min_length = T.min(w_len).astype(floatX)
-        max_output = T.max(layer_output).astype(floatX)
-        mean_output = T.mean(T.abs_(layer_output)).astype(floatX)
-        min_output = T.min(layer_output).astype(floatX)
+        # w_len = T.sqrt((self.W ** 2).sum(axis=0))
+        # max_length = T.max(w_len)
+        # mean_length = T.mean(w_len)
+        # min_length = T.min(w_len)
+        # max_output = T.max(layer_output)
+        # mean_output = T.mean(T.abs_(layer_output))
+        # min_output = T.min(layer_output)
+        # max_state = T.max(state_below)
+        # mean_state = T.mean(T.abs_(state_below))
+        # min_state = T.min(state_below)
+
         # state_below = self._mask_state_below(state_below)
-        #
         # pos = T.mean(T.gt(T.abs_(state_below),0).astype(floatX))
         # if T.gt(pos, 0.4) == 1.0 and T.lt(pos, 0.6) == 1.0:
         #     out = 100
@@ -117,7 +120,7 @@ class Layer(object):
 
         # out = T.switch(T.gt(pos, 0.4) , T.switch(T.lt(pos,0.6), 100, 0), 0).astype(floatX)
 
-        # mean_state = T.mean(T.abs_(state_below))
+
         # test_state = T.gt(mean_state, 0).astype(floatX) and 1.0 or 0.0
         # true_state = T.mean(T.gt(T.abs_(state_below), 0)).astype(floatX)
         # activity = T.mean(T.gt(layer_output, 0) * 1.0)
@@ -130,27 +133,32 @@ class Layer(object):
         # ('output_min', min_output)]
         # ('pos', pos),
         # ('test', out)]
-        w100 = self.W.sum(axis=1)[100].astype(floatX)
-        w200 = self.W.sum(axis=1)[200].astype(floatX)
-        w300 = self.W.sum(axis=1)[300].astype(floatX)
-        w_len100 = T.sqrt((self.W ** 2).sum(axis=1)[100]).astype(floatX)
-        w_len200 = T.sqrt((self.W ** 2).sum(axis=1)[200]).astype(floatX)
-        w_len300 = T.sqrt((self.W ** 2).sum(axis=1)[300]).astype(floatX)
-        return [('w_sum_axis_1', self.W.sum(axis=1).shape[0].astype(floatX)),
-        ('W_row100', w100),('W_row200', w200),('W_row300', w300),
-        ('len100', w_len100), ('len200', w_len200), ('len300', w_len300),
-        ('max_W', T.max(self.W)),
-        ('mean_W', T.mean(self.W)),
-        ('min_W', T.min(self.W)),
-        ('max_b', T.max(self.b)),
-        ('mean_b', T.mean(self.b)),
-        ('min_b', T.min(self.b)),
-        ('output_max', max_output),
-                ('output_mean', mean_output),
-                ('output_min', min_output),
-                ('max_col_length', max_length),
-                ('mean_col_length', mean_length),
-                ('min_col_length', min_length)]
+
+        # w100 = self.W.sum(axis=1)[100].astype(floatX)
+        # w200 = self.W.sum(axis=1)[200].astype(floatX)
+        # w300 = self.W.sum(axis=1)[300].astype(floatX)
+        # w_len100 = T.sqrt((self.W ** 2).sum(axis=1)[100]).astype(floatX)
+        # w_len200 = T.sqrt((self.W ** 2).sum(axis=1)[200]).astype(floatX)
+        # w_len300 = T.sqrt((self.W ** 2).sum(axis=1)[300]).astype(floatX)
+        # return [('w_sum_axis_1', self.W.sum(axis=1).shape[0].astype(floatX)),
+        # ('W_row100', w100),('W_row200', w200),('W_row300', w300),
+        # ('len100', w_len100), ('len200', w_len200), ('len300', w_len300),
+        # return [('max_W', T.max(self.W)),
+        #         ('mean_W', T.mean(self.W)),
+        #         ('min_W', T.min(self.W)),
+        #         ('max_b', T.max(self.b)),
+        #         ('mean_b', T.mean(self.b)),
+        #         ('min_b', T.min(self.b)),
+        #         ('output_max', max_output),
+        #         ('output_mean', mean_output),
+        #         ('output_min', min_output),
+        #         ('max_col_length', max_length),
+        #         ('mean_col_length', mean_length),
+        #         ('min_col_length', min_length),
+        #         ('max_state', max_state),
+        #         ('mean_state', mean_state),
+        #         ('min_state', min_state)]
+        return []
 
 class Linear(Layer):
     def _test_fprop(self, state_below):
@@ -198,7 +206,7 @@ class RELU(Linear):
         rlist.append(('activity', activity.astype(floatX)))
         # rlist.append(('threshold_max', T.max(self.threshold).astype(floatX)))
         # rlist.append(('threshold_min', T.min(self.threshold).astype(floatX)))
-        rlist.append(('std_prod', T.prod(layer_output.std(axis=0)).astype(floatX)))
+        # rlist.append(('std_prod', T.prod(layer_output.std(axis=0)).astype(floatX)))
         # rlist.append(('sparsity', sparsity))
         rlist.extend(super(RELU, self)._layer_stats(state_below, layer_output))
         return rlist
@@ -242,7 +250,7 @@ class SoftRELU(Linear):
 
 
 class Noisy_RELU(Linear):
-    def __init__(self, sparsity_factor, threshold_lr, std, alpha_range=[0.5, 1000, 0.05], **kwargs):
+    def __init__(self, sparsity_factor=0.1, threshold_lr=0.01, alpha=0.01, std=0.1, num_batch=10000, **kwargs):
         '''
          sparsityFactor: the micro sparsity of signals through each neuron
          threshold_lr: the learning rate of learning the optimum threshold for each neuron
@@ -257,8 +265,51 @@ class Noisy_RELU(Linear):
         super(Noisy_RELU, self).__init__(**kwargs)
         self.sparsity_factor = sparsity_factor
         self.threshold_lr = threshold_lr
-        self.alpha_range = alpha_range
+        self.alpha = alpha
         self.std = std
+        self.num_batch = num_batch
+        self.threshold = 0.
+        self.activity = 0.
+        self.batch_count = 0
+
+
+    def _test_fprop(self, state_below):
+        output = super(Noisy_RELU, self)._test_fprop(state_below)
+        return output * (output > self.threshold)
+
+    def _train_fprop(self, state_below):
+        output = super(Noisy_RELU, self)._train_fprop(state_below)
+
+        if self.batch_count > self.num_batch:
+            return output * (output > self.threshold)
+
+        else:
+            self.batch_count += 1
+            output = output + theano_rand.normal(size=output.shape, std=self.std, dtype=floatX)
+            output = output * (output > self.threshold)
+            activity = theano.mean(output > 0, axis=0)
+            self.activity = self.alpha * activity + (1-self.alpha) * self.activity
+            self.threshold += self.threshold_lr * (self.activity - self.sparsity_factor)
+            return output * (output > self.threshold)
+
+    def _layer_stats(self, state_below, layer_output):
+        max_act = theano.max(self.activity)
+        min_act = theano.min(self.activity)
+        mean_act = theano.mean(self.activity)
+        max_thresh = theano.max(self.threshold)
+        min_thresh = theano.min(self.threshold)
+        mean_thresh = theano.mean(self.threshold)
+
+        ls1 = super(Noisy_RELU, self)._layer_stats(self, state_below, layer_output)
+        ls2 = [('max_act', max_act),
+                ('min_act', min_act),
+                ('mean_act', mean_act),
+                ('max_thresh', max_thresh),
+                ('min_thresh', min_thresh),
+                ('mean_thresh', mean_thresh)]
+                
+        return ls1 + ls2
+
 
 class Softmax(Linear):
     def _test_fprop(self, state_below):

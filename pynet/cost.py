@@ -47,6 +47,7 @@ class Cost(object):
         return rval.astype(floatX)
 
     def confusion_matrix(self, y, y_pred):
+        #TODO
         pass
 
     def get_cost(self, y, y_pred):
@@ -68,9 +69,11 @@ class Cost(object):
         return rval.astype(floatX)
 
     def _f1(self, y, y_pred):
+        #TODO
         pass
 
     def _recall(self, y, y_pred):
+        #TODO
         pass
 
     def _cost_abs(self, y, y_pred):

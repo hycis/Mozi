@@ -33,7 +33,7 @@ class Log:
         self.exp_id = experiment_name + '_' + dt
 
         if save_outputs or save_learning_rule or save_model:
-            save_dir = os.environ['PYNET_SAVE_PATH'] + '/log'
+            save_dir = os.environ['PYNET_SAVE_PATH']
             if not os.path.exists(save_dir):
                 os.mkdir(save_dir)
 

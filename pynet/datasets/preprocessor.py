@@ -241,7 +241,7 @@ class LogGCN(GCN):
         postive_values: bool
             indicates whether the output of the processor should be scaled to be positive
         '''
-        self.positive_values = positive_values;
+        self.positive_values = positive_values
         super(LogGCN, self).__init__(**kwarg)
 
     def apply(self, X):
@@ -252,6 +252,26 @@ class LogGCN(GCN):
 
     def invert(self, X):
         X = super(LogGCN, self).invert(X)
+        if self.positive_values:
+            return np.exp(X) - 1
+        else:
+            return np.exp(X)
+
+class Log(Preprocessor):
+
+    def __init__(self, positive_values=False, **kwarg):
+        '''
+        postive_values: bool
+            indicates whether the output of the processor should be scaled to be positive
+        '''
+        self.positive_values = positive_values
+
+    def apply(self, X):
+        if self.positive_values:
+            X = X + 1
+        return np.log(X)
+
+    def invert(self, X):
         if self.positive_values:
             return np.exp(X) - 1
         else:
