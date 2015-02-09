@@ -1,36 +1,34 @@
 
-<div class="section" id="date-objects">
-<span id="datetime-date"></span><h2>8.1.3. <a class="reference internal" href="#datetime.date" title="datetime.date"><tt class="xref py py-class docutils literal"><span class="pre">date</span></tt></a> Objects<a class="headerlink" href="#date-objects" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="model-object">
+<!-- <span id="datetime-date"></span><h2>8.1.3. <a class="reference internal" href="#datetime.date" title="datetime.date"><tt class="xref py py-class docutils literal"><span class="pre">date</span></tt></a> Objects<a class="headerlink" href="#date-objects" title="Permalink to this headline">¶</a></h2> -->
 <p>A model object is used to put together the layers, a model provides an abstract class for building an autoencoder or an mlp.</p>
 <dl class="class">
 <dt id="model.Model">
 <em class="property">class </em><tt class="descclassname">model.</tt><tt class="descname">Model</tt><big>(</big><em>input_dim</em>, <em>rand_seed=None</em><big>)</big></dt>
 <dd><p>An interface for the MLP and the autoencoder class</p>
-<p>If an argument outside those ranges is given, <a class="reference internal" href="exceptions.html#exceptions.ValueError" title="exceptions.ValueError"><tt class="xref py py-exc docutils literal"><span class="pre">ValueError</span></tt></a> is raised.</p>
 
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>a</strong> : array_like</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_dim</strong> : int</p>
 <blockquote>
-<div><p>Input array.</p>
+<div><p>Input dimension to the model</p>
 </div></blockquote>
-<p><strong>axes</strong> : list of ints, optional</p>
+<p><strong>rand_seed</strong> : int</p>
 <blockquote>
-<div><p>By default, reverse the dimensions, otherwise permute the axes
-according to the values given.</p>
+<div><p>This is used to set the initializatin of all the weights in the network</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>p</strong> : ndarray</p>
+<!-- <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>p</strong> : ndarray</p>
 <blockquote class="last">
 <div><p><em class="xref py py-obj">a</em> with its axes permuted.  A view is returned whenever
 possible.</p>
 </div></blockquote>
 </td>
-</tr>
+</tr> -->
 </tbody>
 
 
-<p>Example of counting days to an event:</p>
+<!-- <p>Example of creating a model</p>
 <div class="highlight-python" style="position: relative;"><div class="highlight"><span class="copybutton" title="Hide the prompts and output" style="cursor: pointer; position: absolute; top: 0px; right: 0px; border: 1px solid rgb(170, 204, 153); color: rgb(170, 204, 153); font-family: monospace; padding-left: 0.2em; padding-right: 0.2em;"></span><pre>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import time</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
@@ -39,7 +37,85 @@ possible.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
 </pre></div>
-</div>
+</div> -->
+
+</dd></dl>
+
+
+
+<div class="section" id="mlp-object">
+<!-- <span id="datetime-date"></span><h2>8.1.3. <a class="reference internal" href="#datetime.date" title="datetime.date"><tt class="xref py py-class docutils literal"><span class="pre">date</span></tt></a> Objects<a class="headerlink" href="#date-objects" title="Permalink to this headline">¶</a></h2>
+<p>A model object is used to put together the layers, a model provides an abstract class for building an autoencoder or an mlp.</p> -->
+<dl class="class">
+<dt id="model.MLP">
+<em class="property">class </em><tt class="descclassname">model.</tt><tt class="descname">MLP</tt><big>(</big><em>input_dim</em>, <em>rand_seed=None</em><big>)</big></dt>
+<dd><p>This is used to build a feedforward neural network</p>
+
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_dim</strong> : int</p>
+<blockquote>
+<div><p>Input dimension to the model</p>
+</div></blockquote>
+<p><strong>rand_seed</strong> : int</p>
+<blockquote>
+<div><p>This is used to set the initializatin of all the weights in the network</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+
+<!-- <p>Example of creating a model</p>
+<div class="highlight-python" style="position: relative;"><div class="highlight"><span class="copybutton" title="Hide the prompts and output" style="cursor: pointer; position: absolute; top: 0px; right: 0px; border: 1px solid rgb(170, 204, 153); color: rgb(170, 204, 153); font-family: monospace; padding-left: 0.2em; padding-right: 0.2em;"></span><pre>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import time</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
+</pre></div>
+</div> -->
+
+<dl class="instance method">
+<dt id="model.MLP.add_layer">
+<tt class="descclassname">model.</tt><tt class="descname">MLP.add_layer</tt><big>(</big><em>layer</em><big>)</big></dt>
+<dd><p>This is used to add layer to the model</p>
+
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>layer</strong> : layer instance</p>
+</td>
+</tr>
+</tbody>
+
+
+<dl class="instance method">
+<dt id="model.MLP.pop_layer">
+<tt class="descclassname">model.</tt><tt class="descname">MLP.pop_layer</tt><big>(</big><em>index</em><big>)</big></dt>
+<dd><p>This is used to pop a layer from the model</p>
+
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>layer</strong> : index</p>
+  <blockquote>
+  <div><p>The index of the layer to be popped</p>
+  </div></blockquote>
+</td>
+</tr>
+</tbody>
+
+
+<dl class="instance method">
+<dt id="model.MLP.fprop">
+<tt class="descclassname">model.</tt><tt class="descname">MLP.fprop</tt><big>(</big><em>input_values</em><big>)</big></dt>
+<dd><p>This is used to forward propagate the input values through the mlp</p>
+
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_values</strong> : 2d numpy array</p>
+  <blockquote>
+  <div><p>the input value is X which is a two dimensional numpy of dimension (num_examples, num_features)</p>
+  </div></blockquote>
+</td>
+</tr>
+</tbody>
+
 
 
 </dd></dl>
