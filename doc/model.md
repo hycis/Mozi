@@ -31,8 +31,7 @@ possible.</p>
 
 
 <p>Example of counting days to an event:</p>
-<div class="highlight-python" style="position: relative;"><div class="highlight"><span class="copybutton" title="Hide the prompts and output" style="cursor: pointer; position: absolute; top: 0px; right: 0px; border: 1px solid rgb(170, 204, 153); color: rgb(170, 204, 153); font-family: monospace; padding-left: 0.2em; padding-right: 0.2em;">&gt;&gt;&gt;</span><pre>
-
+<div class="highlight-python" style="position: relative;"><div class="highlight"><span class="copybutton" title="Hide the prompts and output" style="cursor: pointer; position: absolute; top: 0px; right: 0px; border: 1px solid rgb(170, 204, 153); color: rgb(170, 204, 153); font-family: monospace; padding-left: 0.2em; padding-right: 0.2em;"></span><pre>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import time</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
