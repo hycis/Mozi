@@ -4,7 +4,7 @@
 <p>A model object is used to put together the layers, a model provides an abstract class for building an autoencoder or an mlp.</p>
 <dl class="class">
 <dt id="model.Model">
-<em class="property">class </em><tt class="descclassname">model.</tt><tt class="descname">Model</tt><big>(</big><em>input_dim</em>, <em>rand_seed=None</em><big>)</big></dt>
+<em class="property">class </em><tt class="descclassname">model.Model</tt><big>(</big><em>input_dim</em>, <em>rand_seed=None</em><big>)</big></dt>
 <dd><p>An interface for the MLP and the autoencoder class</p>
 
 <tbody valign="top">
@@ -48,7 +48,7 @@ possible.</p>
 <p>A model object is used to put together the layers, a model provides an abstract class for building an autoencoder or an mlp.</p> -->
 <dl class="class">
 <dt id="model.MLP">
-<em class="property">class </em><tt class="descclassname">model.</tt><tt class="descname">MLP</tt><big>(</big><em>input_dim</em>, <em>rand_seed=None</em><big>)</big></dt>
+<em class="property">class </em><tt class="descclassname">model.MLP</tt><big>(</big><em>input_dim</em>, <em>rand_seed=None</em><big>)</big></dt>
 <dd><p>This is used to build a feedforward neural network</p>
 
 <tbody valign="top">
@@ -77,7 +77,7 @@ possible.</p>
 
 <dl class="instance method">
 <dt id="model.MLP.add_layer">
-<tt class="descclassname">model.</tt><tt class="descname">MLP.add_layer</tt><big>(</big><em>layer</em><big>)</big></dt>
+<tt class="descclassname">model.MLP.add_layer</tt><big>(</big><em>layer</em><big>)</big></dt>
 <dd><p>This is used to add layer to the model</p>
 
 <tbody valign="top">
@@ -90,14 +90,13 @@ possible.</p>
 
 <dl class="instance method">
 <dt id="model.MLP.pop_layer">
-<tt class="descclassname">model.</tt><tt class="descname">MLP.pop_layer</tt><big>(</big><em>index</em><big>)</big></dt>
+<tt class="descclassname">model.MLP.pop_layer</tt><big>(</big><em>index</em><big>)</big></dt>
 <dd><p>This is used to pop a layer from the model</p>
 
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>layer</strong> : index</p>
-  <blockquote>
   <div><p>The index of the layer to be popped</p>
-  </div></blockquote>
+  </div>
 </td>
 </tr>
 </tbody>
