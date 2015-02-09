@@ -29,6 +29,20 @@ possible.</p>
 </tr>
 </tbody>
 
+
+<p>Example of counting days to an event:</p>
+<div class="highlight-python" style="position: relative;"><div class="highlight"><span class="copybutton" title="Hide the prompts and output" style="cursor: pointer; position: absolute; top: 0px; right: 0px; border: 1px solid rgb(170, 204, 153); color: rgb(170, 204, 153); font-family: monospace; padding-left: 0.2em; padding-right: 0.2em;">&gt;&gt;&gt;</span><pre>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import time</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
+</pre></div>
+</div>
+
+
 </dd></dl>
 
 
@@ -255,28 +269,19 @@ See section <a class="reference internal" href="#strftime-strptime-behavior"><em
 </dd></dl>
 
 <p>Example of counting days to an event:</p>
-<div class="highlight-python" style="position: relative;"><div class="highlight"><span class="copybutton" title="Hide the prompts and output" style="cursor: pointer; position: absolute; top: 0px; right: 0px; border: 1px solid rgb(170, 204, 153); color: rgb(170, 204, 153); font-family: monospace; padding-left: 0.2em; padding-right: 0.2em;">&gt;&gt;&gt;</span><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import time</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
+<div class="highlight-python" style="position: relative;"><div class="highlight"><span class="copybutton" title="Hide the prompts and output" style="cursor: pointer; position: absolute; top: 0px; right: 0px; border: 1px solid rgb(170, 204, 153); color: rgb(170, 204, 153); font-family: monospace; padding-left: 0.2em; padding-right: 0.2em;">&gt;&gt;&gt;</span><pre>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">today = date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">today</span>
-<span class="go">datetime.date(2007, 12, 5)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">today</span> <span class="o">==</span> <span class="n">date</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
-<span class="go">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">my_birthday</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="n">today</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">my_birthday</span> <span class="o">&lt;</span> <span class="n">today</span><span class="p">:</span>
-<span class="gp">... </span>    <span class="n">my_birthday</span> <span class="o">=</span> <span class="n">my_birthday</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="n">today</span><span class="o">.</span><span class="n">year</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">my_birthday</span>
-<span class="go">datetime.date(2008, 6, 24)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">time_to_birthday</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">my_birthday</span> <span class="o">-</span> <span class="n">today</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">time_to_birthday</span><span class="o">.</span><span class="n">days</span>
-<span class="go">202</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import time</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from datetime import date</span>
 </pre></div>
 </div>
+
+
+
 <p>Example of working with <a class="reference internal" href="#datetime.date" title="datetime.date"><tt class="xref py py-class docutils literal"><span class="pre">date</span></tt></a>:</p>
 <div class="highlight-python" style="position: relative;"><div class="highlight"><span class="copybutton" title="Hide the prompts and output" style="cursor: pointer; position: absolute; top: 0px; right: 0px; border: 1px solid rgb(170, 204, 153); color: rgb(170, 204, 153); font-family: monospace; padding-left: 0.2em; padding-right: 0.2em;">&gt;&gt;&gt;</span><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">fromordinal</span><span class="p">(</span><span class="mi">730920</span><span class="p">)</span> <span class="c"># 730920th day after 1. 1. 0001</span>
