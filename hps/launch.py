@@ -108,7 +108,7 @@ def get_cmd(model, mem, use_gpu, queue, host, duree, ppn, nb_proc, pmem, gpus, p
             cmd += ' --env=THEANO_FLAGS=floatX=float32 '
         if not proj:
             cmd += ' --project=jvb-000-ae '
-    elif host[:5] == 'helios':
+    elif host[:6] == 'helios':
         if gpus:
             cmd += ' --extra_param=:gpus=%s '%gpus
         if not proj:
@@ -199,13 +199,16 @@ if __name__=='__main__':
     host = socket.gethostname()
     print '..Host: ', host
 
+    # cwd = os.path.dirname(os.path.realpath(__file__))
+    cwd = os.getcwd()
     ### Jobs Folder ###
-    jobs_folder = os.getcwd() + '/jobs'
+    jobs_folder = cwd + '/jobs'
     print '..jobs folder:', jobs_folder
     if not os.path.exists(jobs_folder):
         os.mkdir(jobs_folder)
+    f = open('{}/commands.txt'.format(jobs_folder),'wb')
+
     os.chdir(jobs_folder)
-    f = open('commands.txt','w')
 
     assert args.n_concur_jobs or args.n_jobs, "need to specify whether jobs are gonna run locally or on the cluster"
 
@@ -221,11 +224,11 @@ if __name__=='__main__':
         print '..jobdispatch command: ', cmd
 
         exps_list = generate_jobs_list(args.n_jobs, args.record, args.use_gpu, host, model_config)
-
         for exp_cmd in exps_list:
             f.write(exp_cmd + '\n')
-        os.system(cmd)
         f.close()
+        os.system(cmd)
+
 
     elif args.n_concur_jobs:
         print '..Jobs will be run locally.'

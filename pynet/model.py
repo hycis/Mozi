@@ -1,3 +1,11 @@
+__author__ = "Zhenzhou Wu"
+__copyright__ = "Copyright 2012, Zhenzhou Wu"
+__credits__ = ["Zhenzhou Wu"]
+__license__ = "3-clause BSD"
+__email__ = "hyciswu@gmail.com"
+__maintainer__ = "Zhenzhou Wu"
+
+
 import numpy as np
 import theano
 import theano.tensor as T
@@ -123,7 +131,7 @@ class AutoEncoder(MLP):
         layer = self.decode_layers.pop(index)
         self.layers.remove(layer)
         return layer
-    
+
     def _fprop(self, layers, input_state):
         for layer in layers:
             input_state = layer._test_fprop(input_state)

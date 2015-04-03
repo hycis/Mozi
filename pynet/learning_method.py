@@ -1,3 +1,11 @@
+__author__ = "Zhenzhou Wu"
+__copyright__ = "Copyright 2012, Zhenzhou Wu"
+__credits__ = ["Zhenzhou Wu"]
+__license__ = "3-clause BSD"
+__email__ = "hyciswu@gmail.com"
+__maintainer__ = "Zhenzhou Wu"
+
+
 import theano
 import theano.tensor as T
 floatX = theano.config.floatX
@@ -39,11 +47,12 @@ class AdaGrad(LearningMethod):
         """
         self.lr = theano.shared(np.asarray(learning_rate, dtype=floatX))
         self.mom = theano.shared(np.asarray(momentum, dtype=floatX))
-        self.k = theano.shared(np.asarray(k, dtype=floatX))
+        # self.k = theano.shared(np.asarray(k, dtype=floatX))
+        self.k = k
 
     def update(self, delta, gparam):
-        eps = theano.shared(self.k * np.ones_like(delta.get_value(borrow=True, return_internal_type=True)))
         rlist = []
+        eps = theano.shared(self.k * np.ones_like(delta.get_value(borrow=True, return_internal_type=True)))
         rlist.append((eps, eps + gparam ** 2))
         rlist.append((delta, self.mom * delta - self.lr * gparam / T.sqrt(eps)))
         return rlist

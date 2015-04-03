@@ -1,3 +1,10 @@
+__author__ = "Zhenzhou Wu"
+__copyright__ = "Copyright 2012, Zhenzhou Wu"
+__credits__ = ["Zhenzhou Wu"]
+__license__ = "3-clause BSD"
+__email__ = "hyciswu@gmail.com"
+__maintainer__ = "Zhenzhou Wu"
+
 
 """
 Functionality for preprocessing Datasets. With Preprocessor, GCN, Standardize adapted from pylearn2

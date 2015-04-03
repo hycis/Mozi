@@ -1,3 +1,11 @@
+__author__ = "Zhenzhou Wu"
+__copyright__ = "Copyright 2012, Zhenzhou Wu"
+__credits__ = ["Zhenzhou Wu"]
+__license__ = "3-clause BSD"
+__email__ = "hyciswu@gmail.com"
+__maintainer__ = "Zhenzhou Wu"
+
+
 import numpy as np
 import theano
 import theano.tensor as T
@@ -100,25 +108,16 @@ class Layer(object):
             A list of tuples of [('name_a', var_a), ('name_b', var_b)] whereby var is scalar
         """
 
-        # w_len = T.sqrt((self.W ** 2).sum(axis=0))
-        # max_length = T.max(w_len)
-        # mean_length = T.mean(w_len)
-        # min_length = T.min(w_len)
-        # max_output = T.max(layer_output)
-        # mean_output = T.mean(T.abs_(layer_output))
-        # min_output = T.min(layer_output)
-        # max_state = T.max(state_below)
-        # mean_state = T.mean(T.abs_(state_below))
-        # min_state = T.min(state_below)
-
-        # state_below = self._mask_state_below(state_below)
-        # pos = T.mean(T.gt(T.abs_(state_below),0).astype(floatX))
-        # if T.gt(pos, 0.4) == 1.0 and T.lt(pos, 0.6) == 1.0:
-        #     out = 100
-        # else:
-        #     out = 0
-
-        # out = T.switch(T.gt(pos, 0.4) , T.switch(T.lt(pos,0.6), 100, 0), 0).astype(floatX)
+        w_len = T.sqrt((self.W ** 2).sum(axis=0))
+        max_length = T.max(w_len)
+        mean_length = T.mean(w_len)
+        min_length = T.min(w_len)
+        max_output = T.max(layer_output)
+        mean_output = T.mean(T.abs_(layer_output))
+        min_output = T.min(layer_output)
+        max_state = T.max(state_below)
+        mean_state = T.mean(T.abs_(state_below))
+        min_state = T.min(state_below)
 
 
         # test_state = T.gt(mean_state, 0).astype(floatX) and 1.0 or 0.0
@@ -143,22 +142,22 @@ class Layer(object):
         # return [('w_sum_axis_1', self.W.sum(axis=1).shape[0].astype(floatX)),
         # ('W_row100', w100),('W_row200', w200),('W_row300', w300),
         # ('len100', w_len100), ('len200', w_len200), ('len300', w_len300),
-        # return [('max_W', T.max(self.W)),
-        #         ('mean_W', T.mean(self.W)),
-        #         ('min_W', T.min(self.W)),
-        #         ('max_b', T.max(self.b)),
-        #         ('mean_b', T.mean(self.b)),
-        #         ('min_b', T.min(self.b)),
-        #         ('output_max', max_output),
-        #         ('output_mean', mean_output),
-        #         ('output_min', min_output),
-        #         ('max_col_length', max_length),
-        #         ('mean_col_length', mean_length),
-        #         ('min_col_length', min_length),
-        #         ('max_state', max_state),
-        #         ('mean_state', mean_state),
-        #         ('min_state', min_state)]
-        return []
+        return [('max_W', T.max(self.W)),
+                ('mean_W', T.mean(self.W)),
+                ('min_W', T.min(self.W)),
+                ('max_b', T.max(self.b)),
+                ('mean_b', T.mean(self.b)),
+                ('min_b', T.min(self.b)),
+                ('output_max', max_output),
+                ('output_mean', mean_output),
+                ('output_min', min_output),
+                ('max_col_length', max_length),
+                ('mean_col_length', mean_length),
+                ('min_col_length', min_length),
+                ('max_state', max_state),
+                ('mean_state', mean_state),
+                ('min_state', min_state)]
+        # return []
 
 class Linear(Layer):
     def _test_fprop(self, state_below):
@@ -307,7 +306,7 @@ class Noisy_RELU(Linear):
                 ('max_thresh', max_thresh),
                 ('min_thresh', min_thresh),
                 ('mean_thresh', mean_thresh)]
-                
+
         return ls1 + ls2
 
 

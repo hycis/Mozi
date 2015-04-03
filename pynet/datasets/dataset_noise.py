@@ -1,3 +1,9 @@
+__author__ = "Zhenzhou Wu"
+__copyright__ = "Copyright 2012, Zhenzhou Wu"
+__credits__ = ["Zhenzhou Wu"]
+__license__ = "3-clause BSD"
+__email__ = "hyciswu@gmail.com"
+__maintainer__ = "Zhenzhou Wu"
 
 
 """
@@ -20,6 +26,16 @@ class Noise(object):
         """
         raise NotImplementedError(str(type(self))+" does not implement an apply method.")
 
+    def invert(self, X):
+        """
+        DESCRIPTION:
+            Remove the noise from X
+        PARAM:
+            X : 2d numpy array of dimension number of examples by number of dimensions
+        """
+        raise NotImplementedError(str(type(self))+" does not implement an invert method.")
+
+
 
 
 class MaskOut(Noise):
@@ -37,7 +53,11 @@ class MaskOut(Noise):
         self.ratio = ratio
 
     def apply(self, X):
-        return X * np.random.binomial(size=X.shape, n=1, p=(1-self.ratio))
+        self.noise = np.random.binomial(size=X.shape, n=1, p=(1-self.ratio))
+        return X * self.noise
+
+    def invert(self, X):
+        return X / self.noise
 
 
 class Gaussian(Noise):
@@ -51,6 +71,7 @@ class Gaussian(Noise):
 
     def apply(self, X):
         return X + np.random.normal(loc=self.mean, scale=self.std, size=X.shape)
+
 
 
 class BlackOut(Noise):
