@@ -95,11 +95,14 @@ class Dataset(object):
 class SingleBlock(Dataset):
 
     def __init__(self, X=None, y=None, **kwargs):
+        '''
+        All the data is loaded into memory for one go training
+        '''
         super(SingleBlock, self).__init__(**kwargs)
 
-        self.train = None
-        self.valid = None
-        self.test = None
+        self.train = IterMatrix(X=None, y=None)
+        self.valid = IterMatrix(X=None, y=None)
+        self.test = IterMatrix(X=None, y=None)
 
         assert len(self.ratio) == 3, 'the size of list is not 3'
 
@@ -196,7 +199,8 @@ class DataBlocks(Dataset):
 
         """
         DESCRIPTION:
-            This is class for processing blocks of data.
+            This is class for processing blocks of data, whereby dataset is loaded
+            and unloaded into memory one block at a time.
         PARAM:
             data_paths(list): contains the paths to the numpy data files. It's a
                             list of tuples whereby the first element of the tuple
@@ -216,7 +220,7 @@ class DataBlocks(Dataset):
     def next(self):
         file = next(self.files)
 
-        assert isinstance(file, tuple), str(type(file)) + "is not a tuple"
+        assert isinstance(file, tuple) or isintance(file, list), str(type(file)) + "is not a tuple or list"
         with open(file[0], 'rb') as X_fin, open(file[1], 'rb') as y_fin:
             data = np.load(X_fin)
             X = data

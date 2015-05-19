@@ -47,12 +47,11 @@ class AdaGrad(LearningMethod):
         """
         self.lr = theano.shared(np.asarray(learning_rate, dtype=floatX))
         self.mom = theano.shared(np.asarray(momentum, dtype=floatX))
-        # self.k = theano.shared(np.asarray(k, dtype=floatX))
-        self.k = k
+        self.k = theano.shared(np.asarray(k, dtype=floatX))
 
     def update(self, delta, gparam):
         rlist = []
-        eps = theano.shared(self.k * np.ones_like(delta.get_value(borrow=True, return_internal_type=True)))
+        eps = theano.shared(self.k.get_value() * np.ones_like(delta.get_value(borrow=True, return_internal_type=True)))
         rlist.append((eps, eps + gparam ** 2))
         rlist.append((delta, self.mom * delta - self.lr * gparam / T.sqrt(eps)))
         return rlist

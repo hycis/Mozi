@@ -4,14 +4,15 @@ import theano
 import theano.tensor as T
 import numpy as np
 
+from pynet.datasets.mnist import Mnist
+from pynet.datasets.preprocessor import *
 from pynet.model import MLP
 from pynet.layer import *
 from pynet.learning_rule import LearningRule
 from pynet.log import Log
 from pynet.train_object import TrainObject
 from pynet.cost import Cost
-from pynet.datasets.preprocessor import *
-from pynet.learning_method import SGD
+from pynet.learning_method import *
 
 def setenv():
     NNdir = os.path.dirname(os.path.realpath(__file__))
@@ -38,11 +39,11 @@ def mlp():
 
     # build mlp
     mlp = MLP(input_dim = data.feature_size())
-    mlp.add_layer(Sigmoid(dim=1000, name='h1_layer', W=None, b=None, dropout_below=None))
+    mlp.add_layer(PRELU(dim=1000, name='h1_layer', W=None, b=None, dropout_below=None))
     mlp.add_layer(Softmax(dim=data.target_size(), name='output_layer', W=None, b=None, dropout_below=None))
 
     # build learning method
-    learning_method = SGD(learning_rate=0.1, momentum=0.9)
+    learning_method = AdaGrad(learning_rate=0.1, momentum=0.9)
 
     # set the learning rules
     learning_rule = LearningRule(max_col_norm = 10,
@@ -56,8 +57,9 @@ def mlp():
                                                       'percent_decrease' : 0.01}
                                 )
 
+
     # (optional) build the logging object
-    log = Log(experiment_name = 'mnist_example',
+    log = Log(experiment_name = 'mnist',
               description = 'This is tutorial example',
               save_outputs = False,
               save_learning_rule = False,
@@ -82,7 +84,7 @@ def mlp():
     train_object = TrainObject(model = mlp,
                                dataset = data,
                                learning_rule = learning_rule,
-                               learning_method = learning_method
+                               learning_method = learning_method,
                                log = log)
     # finally run the code
     train_object.run()

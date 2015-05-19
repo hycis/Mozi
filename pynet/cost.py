@@ -7,6 +7,7 @@ __maintainer__ = "Zhenzhou Wu"
 
 import theano.tensor as T
 import theano
+from pynet.utils.utils import theano_unique
 
 floatX = theano.config.floatX
 
@@ -35,13 +36,13 @@ class Cost(object):
         rval = T.eq(y_pred.argmax(axis=1), y.argmax(axis=1)).sum() / y.shape[0]
         return rval.astype(floatX)
 
-
     def positives(self, y, y_pred):
         """
         return the number of correctly predicted examples in a batch
         """
         rval = T.eq(y_pred.argmax(axis=1), y.argmax(axis=1)).sum()
         return rval.astype(floatX)
+
 
     def get_batch_cost(self, y, y_pred):
         return getattr(self, '_batch_cost_' + self.type)(y, y_pred)
@@ -75,11 +76,30 @@ class Cost(object):
         rval = T.mean(L)
         return rval.astype(floatX)
 
-    def _f1(self, y, y_pred):
+    def _cost_f1(self, y, y_pred):
         #TODO
         pass
 
-    def _recall(self, y, y_pred):
+    def _cost_binary_misprecision(self, y, y_pred):
+        '''
+        This cost function is only for binary classifications
+        '''
+        # assert(theano_unique(y).size == 2)
+
+        y_pred = y_pred.argmax(axis=1)
+        y = y.argmax(axis=1)
+
+        TP = (y_pred and y).astype(floatX)
+        y0 = T.eq(y, 0)
+        FP = (y0 and y_pred).astype(floatX)
+
+        TP = T.sum(TP)
+        FP = T.sum(FP)
+
+        rval = FP / (TP + FP)
+        return rval.astype(floatX)
+
+    def _cost_recall(self, y, y_pred):
         #TODO
         pass
 

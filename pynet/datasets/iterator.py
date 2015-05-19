@@ -24,7 +24,7 @@ Presets:
                   samples with replacement, but still reports that
                   container is empty after num_examples / batch_size calls
 """
-from __future__ import division
+# from __future__ import division
 import warnings
 import numpy
 np = numpy

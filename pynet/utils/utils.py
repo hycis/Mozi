@@ -1,6 +1,9 @@
+import matplotlib
+matplotlib.use('Agg')
 import theano
 import numpy as np
 import matplotlib.pyplot as plt
+from theano.compile.ops import as_op
 
 def split_list(tuple_list):
     """
@@ -138,3 +141,11 @@ def make_one_hot(X, onehot_size):
         rX[i, X[i]] = 1
 
     return rX
+
+
+
+
+@as_op(itypes=[theano.tensor.fmatrix],
+       otypes=[theano.tensor.fmatrix])
+def theano_unique(a):
+    return numpy.unique(a)

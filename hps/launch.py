@@ -10,6 +10,7 @@ import time
 import importlib
 from jobman import DD, flatten
 from datetime import datetime
+import subprocess
 
 
 def worker(num, cmd):
@@ -63,8 +64,8 @@ def get_cmd(model, mem, use_gpu, queue, host, duree, ppn, nb_proc, pmem, gpus, p
     if mem:
         cmd += ' --mem=%s '%mem
 
-    if use_gpu:
-        cmd += ' --gpu --env=THEANO_FLAGS=device=gpu,floatX=float32 '
+    if type(use_gpu) is int:
+        cmd += ' --gpu --env=THEANO_FLAGS=device=gpu%d,floatX=float32 '%use_gpu
 
 
     if queue:
@@ -72,16 +73,16 @@ def get_cmd(model, mem, use_gpu, queue, host, duree, ppn, nb_proc, pmem, gpus, p
 
         # k20 node is in guillimin
         if queue in 'k20':
-            if use_gpu:
+            if type(use_gpu) is int:
                 # pmem is memory per core, mem is total memory for a job
                 cmd += ' --extra_param=:gpus=%s,pmem=%s '%(gpus,pmem)
         # phi is gpu node in guillimin
         elif queue in 'phi':
-            if use_gpu:
+            if type(use_gpu) is int:
                 cmd += ' --extra_param=:mics=%s,pmem=%s '%(gpus,pmem)
 
         if queue in 'aw':
-            if use_gpu:
+            if type(use_gpu) is int:
                 cmd += ' --extra_param=:gpus=%s,pmem=%s '%(gpus,pmem)
 
         # if queue in 'gpu_4':
@@ -104,7 +105,7 @@ def get_cmd(model, mem, use_gpu, queue, host, duree, ppn, nb_proc, pmem, gpus, p
         cmd += ' --bqtools '
     elif host[:7]  == 'briaree':
         # Briaree cluster.
-        if not use_gpu:
+        if not type(use_gpu) is int:
             cmd += ' --env=THEANO_FLAGS=floatX=float32 '
         if not proj:
             cmd += ' --project=jvb-000-ae '
@@ -130,8 +131,8 @@ def generate_jobs_list(n_jobs, recorded, use_gpu, host, model_config):
         else:
             exp_cmd = 'jobman cmdline experiment.job '
 
-        if use_gpu and host is 'local':
-            exp_cmd = 'THEANO_FLAGS=device=gpu,floatX=float32 ' + exp_cmd
+        if type(use_gpu) is int and host is 'local':
+            exp_cmd = 'THEANO_FLAGS=device=gpu%d,floatX=float32 '%use_gpu + exp_cmd
 
         exp_cmd = cmd_line_embed(exp_cmd, flatten(model_config))
         # print exp_cmd
@@ -146,8 +147,8 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser(description='''Train mlps by launching
         jobs on clusters or locally.''')
 
-    parser.add_argument('-g', '--use_gpu', action='store_true',
-                        help='''Models will be trained with gpus''')
+    parser.add_argument('-g', '--use_gpu', type=int, default=None,
+                        help='''Models will be trained with gpus device specified''')
 
     parser.add_argument('-q', '--queue',
                         help='''The queue to insert the jobs''')
@@ -163,6 +164,10 @@ if __name__=='__main__':
                                 launched locally and it specifies the
                                 number of concurrent jobs that can
                                 running at the same time at most.''')
+
+    parser.add_argument('-p', '--parallel', action='store_true',
+                        help='''Run local jobs in parallel'''
+                       )
 
     parser.add_argument('-r', '--record', action='store_true',
                        help='''If this option is used, then the outputs from
@@ -182,7 +187,7 @@ if __name__=='__main__':
 
     parser.add_argument('--project', help='''project to which the job is assigned''')
 
-    parser.add_argument('--wait_between_jobs', type=int, default=100, help='''time to wait before launching another new job''')
+    parser.add_argument('--wait_between_jobs', type=int, default=1, help='''time to wait before launching another new job''')
 
     # TODO: ajouter assert pour s'assurer que lorsqu'on lance des jobs avec gpu, seulement
     # 1 job puisse etre lance localement.
@@ -232,41 +237,51 @@ if __name__=='__main__':
 
     elif args.n_concur_jobs:
         print '..Jobs will be run locally.'
-        print '..%s jobs will be run simultaneously.'%args.n_concur_jobs
-        n_jobs = 0
-        n_job_simult = 0
-        jobs = []
         exps_list = generate_jobs_list(args.n_concur_jobs, args.record, args.use_gpu, host, model_config)
-        for exp_cmd in exps_list:
-            if n_job_simult < args.n_concur_jobs:
-                assert len(jobs) <= args.n_concur_jobs
-                print exp_cmd
-                p = multiprocessing.Process(target=worker, args=(n_jobs, exp_cmd))
-                jobs.append((n_jobs, p))
-                p.start()
-                n_jobs += 1
-                n_job_simult += 1
+        if args.parallel:
+            print '..%s jobs will be run simultaneously.'%args.n_concur_jobs
+            n_jobs = 0
+            n_job_simult = 0
+            jobs = []
+            for exp_cmd in exps_list:
+                if n_job_simult < args.n_concur_jobs:
+                    assert len(jobs) <= args.n_concur_jobs
+                    print exp_cmd
+                    p = multiprocessing.Process(target=worker, args=(n_jobs, exp_cmd))
+                    jobs.append((n_jobs, p))
+                    p.start()
+                    n_jobs += 1
+                    n_job_simult += 1
 
-            else:
-                ready_for_more = False
-                while not ready_for_more:
-                    for j_i, j in enumerate(jobs):
-                        if 'stopped' in str(j[1]):
-                            print 'Job %s finished' %j[0]
-                            jobs.pop(j_i)
-                            n_job_simult -= 1
-                            ready_for_more = True
-                            break
-            print '..waiting for %s seconds between jobs'%args.wait_between_jobs
-            time.sleep(args.wait_between_jobs)
+                else:
+                    ready_for_more = False
+                    while not ready_for_more:
+                        for j_i, j in enumerate(jobs):
+                            if 'stopped' in str(j[1]):
+                                print 'Job %s finished' %j[0]
+                                jobs.pop(j_i)
+                                n_job_simult -= 1
+                                ready_for_more = True
+                                break
+                print '..waiting for %s seconds between jobs'%args.wait_between_jobs
+                time.sleep(args.wait_between_jobs)
 
-        more_jobs = True
-        while more_jobs:
-            for j_i, j in enumerate(jobs):
-                if 'stopped' in str(j[1]):
-                    print 'Job %s finished' %j[0]
-                    jobs.pop(j_i)
-                if len(jobs) == 0:
-                    more_jobs = False
-                    break
-        print 'All jobs finished running.'
+            more_jobs = True
+            while more_jobs:
+                for j_i, j in enumerate(jobs):
+                    if 'stopped' in str(j[1]):
+                        print 'Job %s finished' %j[0]
+                        jobs.pop(j_i)
+                    if len(jobs) == 0:
+                        more_jobs = False
+                        break
+            print 'All jobs finished running.'
+
+        else:
+            print '..%s jobs will be run in serial.'%args.n_concur_jobs
+            for i, exp_cmd in enumerate(exps_list):
+                print '..starting job:', i
+                # args_ls = shlex.split(exp_cmd)
+                p = subprocess.Popen(exp_cmd, shell=True)
+                p.wait()
+                print '..job %d finished'%i

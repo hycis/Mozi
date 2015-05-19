@@ -4,6 +4,9 @@
 !.gitignore
 .DS_Store
 
+#ignores jobman experiments
+hps/jobs/jobman*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -57,4 +60,3 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
-

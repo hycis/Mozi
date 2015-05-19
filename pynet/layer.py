@@ -108,16 +108,16 @@ class Layer(object):
             A list of tuples of [('name_a', var_a), ('name_b', var_b)] whereby var is scalar
         """
 
-        w_len = T.sqrt((self.W ** 2).sum(axis=0))
-        max_length = T.max(w_len)
-        mean_length = T.mean(w_len)
-        min_length = T.min(w_len)
-        max_output = T.max(layer_output)
-        mean_output = T.mean(T.abs_(layer_output))
-        min_output = T.min(layer_output)
-        max_state = T.max(state_below)
-        mean_state = T.mean(T.abs_(state_below))
-        min_state = T.min(state_below)
+        # w_len = T.sqrt((self.W ** 2).sum(axis=0))
+        # max_length = T.max(w_len)
+        # mean_length = T.mean(w_len)
+        # min_length = T.min(w_len)
+        # max_output = T.max(layer_output)
+        # mean_output = T.mean(T.abs_(layer_output))
+        # min_output = T.min(layer_output)
+        # max_state = T.max(state_below)
+        # mean_state = T.mean(T.abs_(state_below))
+        # min_state = T.min(state_below)
 
 
         # test_state = T.gt(mean_state, 0).astype(floatX) and 1.0 or 0.0
@@ -142,22 +142,22 @@ class Layer(object):
         # return [('w_sum_axis_1', self.W.sum(axis=1).shape[0].astype(floatX)),
         # ('W_row100', w100),('W_row200', w200),('W_row300', w300),
         # ('len100', w_len100), ('len200', w_len200), ('len300', w_len300),
-        return [('max_W', T.max(self.W)),
-                ('mean_W', T.mean(self.W)),
-                ('min_W', T.min(self.W)),
-                ('max_b', T.max(self.b)),
-                ('mean_b', T.mean(self.b)),
-                ('min_b', T.min(self.b)),
-                ('output_max', max_output),
-                ('output_mean', mean_output),
-                ('output_min', min_output),
-                ('max_col_length', max_length),
-                ('mean_col_length', mean_length),
-                ('min_col_length', min_length),
-                ('max_state', max_state),
-                ('mean_state', mean_state),
-                ('min_state', min_state)]
-        # return []
+        # return [('max_W', T.max(self.W)),
+        #         ('mean_W', T.mean(self.W)),
+        #         ('min_W', T.min(self.W)),
+        #         ('max_b', T.max(self.b)),
+        #         ('mean_b', T.mean(self.b)),
+        #         ('min_b', T.min(self.b)),
+        #         ('output_max', max_output),
+        #         ('output_mean', mean_output),
+        #         ('output_min', min_output),
+        #         ('max_col_length', max_length),
+        #         ('mean_col_length', mean_length),
+        #         ('min_col_length', min_length),
+        #         ('max_state', max_state),
+        #         ('mean_state', mean_state),
+        #         ('min_state', min_state)]
+        return []
 
 class Linear(Layer):
     def _test_fprop(self, state_below):
@@ -210,13 +210,41 @@ class RELU(Linear):
         rlist.extend(super(RELU, self)._layer_stats(state_below, layer_output))
         return rlist
 
+class PRELU(Linear):
+    def __init__(self, alpha=0.2, **kwargs):
+        '''
+        y = wx + b
+        if y > 0 then z = y else z = alpha * y
+        return z
+        alpha: the gradient of the slope which is updated by backpropagation
+        '''
+        super(PRELU, self).__init__(**kwargs)
+        alpha = alpha * np.ones(shape=self.dim, dtype=floatX)
+        self.alpha = theano.shared(value=alpha, name='PRELU_gradient', borrow=True)
+        self.params = [self.alpha]
+
+    def _test_fprop(self, state_below):
+        output = super(PRELU, self)._test_fprop(state_below)
+        return output * (output >= 0) + self.alpha * output * (output < 0)
+
+    def _train_fprop(self, state_below):
+        return self._test_fprop(state_below)
+
+    def _layer_stats(self, state_below, layer_output):
+        rlist = []
+        rlist.append(('alpha_mean', T.mean(self.alpha)))
+        rlist.append(('alpha_max', T.max(self.alpha)))
+        rlist.append(('alpha_min', T.min(self.alpha)))
+        rlist.append(('alpha_std', T.std(self.alpha)))
+        return rlist
+
 class SoftRELU(Linear):
     def __init__(self, threshold=0., **kwargs):
         '''
         threshold: the threshold of z = max(wx+b, threshold) which will be updated
         by backpropagation.
         '''
-        super(Linear, self).__init__(**kwargs)
+        super(SoftRELU, self).__init__(**kwargs)
         threshold = threshold * np.ones(shape=self.dim, dtype=floatX)
         self.threshold = theano.shared(value=threshold, name='SoftRELU_Threshold', borrow=True)
         # T.patternbroadcast(self.threshold, broadcastable=(True, False))
