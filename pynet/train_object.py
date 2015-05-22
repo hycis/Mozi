@@ -218,7 +218,7 @@ class TrainObject():
 
         best_train_error = float(sys.maxint)
         best_valid_error = float(sys.maxint)
-        best_test_error = float(sys.maxint)
+        # best_test_error = float(sys.maxint)
 
         mean_train_error = float(sys.maxint)
         mean_valid_error = float(sys.maxint)
@@ -232,7 +232,7 @@ class TrainObject():
 
         train_stats_values = []
         valid_stats_values = []
-        test_stats_values = []
+        # test_stats_values = []
 
         epoch = 0
         error_dcr = 0
@@ -241,7 +241,7 @@ class TrainObject():
 
         train_stats_names = ['train_' + name for name in self.train_stats_names]
         valid_stats_names = ['valid_' + name for name in self.test_stats_names]
-        test_stats_names = ['test_' + name for name in self.test_stats_names]
+        # test_stats_names = ['test_' + name for name in self.test_stats_names]
 
         job_start = time.time()
 
@@ -270,7 +270,7 @@ class TrainObject():
             num_test_examples = 0
             total_test_cost = 0.
             total_test_stopping_cost = 0.
-            test_stats_values = np.zeros(len(test_stats_names), dtype=floatX)
+            # test_stats_values = np.zeros(len(test_stats_names), dtype=floatX)
 
             blk = 0
 
@@ -296,6 +296,26 @@ class TrainObject():
                         num_train_examples += len(idx)
                         train_stats_values += len(idx) * get_shared_values(self.train_stats_shared)
 
+                    #-------[ Update train best cost and error values ]-------#
+                    mean_train_error = total_train_stopping_cost / num_train_examples
+                    mean_train_cost = total_train_cost / num_train_examples
+                    train_stats_values /= num_train_examples
+
+                    if mean_train_error < best_train_error:
+                        best_train_error = mean_train_error
+
+                    if mean_train_cost < 0.999 * best_train_cost:
+                        best_train_cost = mean_train_cost
+                    else:
+                        self.log.info('training cost is not improving after epoch %d, '%epoch)
+                        #---[ Use learning rate decay if the error does not improve after 1 epoch ]---#
+                        if self.learning_rule.learning_rate_decay_factor and hasattr(self.learning_method, 'learning_rate'):
+                            self.log.info('decay learning_rate by factor %.3f'%self.learning_rule.learning_rate_decay_factor)
+                            new_lr = self.learning_method.learning_rate.get_value(return_internal_type=True) \
+                                    / self.learning_rule.learning_rate_decay_factor
+                            self.log.info('new learning rate %.3f'%new_lr)
+                            self.learning_method.learning_rate.set_value(new_lr)
+
 
                 #===================[ Validating Progress ]===================#
                 if valid_set.dataset_size() > 0:
@@ -310,6 +330,27 @@ class TrainObject():
                         num_valid_examples += len(idx)
                         valid_stats_values += len(idx) * get_shared_values(self.test_stats_shared)
 
+                    #-------[ Update valid best cost and error values ]-------#
+                    mean_valid_error = total_valid_stopping_cost / num_valid_examples
+                    mean_valid_cost = total_valid_cost / num_valid_examples
+                    valid_stats_values /= num_valid_examples
+
+                    if mean_valid_error < best_valid_error:
+                        best_valid_error = mean_valid_error
+                        self.log.info('..best validation error so far')
+                        if self.log.save_model:
+                            self.log._save_model(self.model)
+                            self.log.info('..model saved')
+
+                        if self.log.save_learning_rule:
+                            self.log._save_learning_rule(self.learning_rule)
+                            self.log.info('..learning rule saved')
+
+                    if mean_valid_error < self.best_valid_last_update:
+                        error_dcr = self.best_valid_last_update - mean_valid_error
+                    else:
+                        error_dcr = 0
+
 
                 #====================[ Testing Progress ]=====================#
                 if test_set.dataset_size() > 0:
@@ -322,63 +363,18 @@ class TrainObject():
                         total_test_cost += cost * len(idx)
                         total_test_stopping_cost += stopping_cost * len(idx)
                         num_test_examples += len(idx)
-                        test_stats_values += len(idx) * get_shared_values(self.test_stats_shared)
+
+                    #-------[ Update test best cost and error values ]--------#
+                    mean_test_error = total_test_stopping_cost / num_test_examples
+                    mean_test_cost = total_test_cost / num_test_examples
 
                 self.log.info('block time: %0.2fs'%(time.time()-block_time))
                 self.log.info(get_mem_usage())
 
-            #==============[ Update best cost and error values ]==============#
-            if train_set.dataset_size() > 0:
-                mean_train_error = total_train_stopping_cost / num_train_examples
-                mean_train_cost = total_train_cost / num_train_examples
-                train_stats_values /= num_train_examples
-
-                if mean_train_error < best_train_error:
-                    best_train_error = mean_train_error
-
-                if mean_train_cost < 0.999 * best_train_cost:
-                    best_train_cost = mean_train_cost
-                else:
-                    self.log.info('training cost is not improving after epoch %d, '%epoch)
-                    if self.learning_rule.learning_rate_decay_factor and hasattr(self.learning_method, 'learning_rate'):
-                        self.log.info('decay learning_rate by factor %.3f'%self.learning_rule.learning_rate_decay_factor)
-                        new_lr = self.learning_method.learning_rate.get_value(return_internal_type=True) \
-                                / self.learning_rule.learning_rate_decay_factor
-                        self.log.info('new learning rate %.3f'%new_lr)
-                        self.learning_method.learning_rate.set_value(new_lr)
-
-            if valid_set.dataset_size() > 0:
-                mean_valid_error = total_valid_stopping_cost / num_valid_examples
-                mean_valid_cost = total_valid_cost / num_valid_examples
-                valid_stats_values /= num_valid_examples
-
-                if mean_valid_error < best_valid_error:
-                    best_valid_error = mean_valid_error
-
-                if mean_valid_error < self.best_valid_last_update:
-                    error_dcr = self.best_valid_last_update - mean_valid_error
-                else:
-                    error_dcr = 0
-
-            if test_set.dataset_size() > 0:
-                mean_test_error = total_test_stopping_cost / num_test_examples
-                mean_test_cost = total_test_cost / num_test_examples
-                test_stats_values /= num_test_examples
-
-            #=======[ save model, save learning_rule, save to database ]======#
-            if mean_test_error < best_test_error:
-                best_test_error = mean_test_error
-                if self.log.save_model:
-                    self.log._save_model(self.model)
-                    self.log.info('..model saved')
-
-                if self.log.save_learning_rule:
-                    self.log._save_learning_rule(self.learning_rule)
-                    self.log.info('..learning rule saved')
 
             #==============[ save to database, save epoch error]==============#
             if self.log.save_to_database:
-                self.log._save_to_database(epoch, best_train_error, best_valid_error, best_test_error)
+                self.log._save_to_database(epoch, best_train_error, best_valid_error, mean_test_error)
                 self.log.info('..sent to database: %s:%s' % (self.log.save_to_database['name'],
                                                         self.log.experiment_name))
 
@@ -392,7 +388,7 @@ class TrainObject():
 
             merged_train = merge_lists(train_stats_names, train_stats_values)
             merged_valid = merge_lists(valid_stats_names, valid_stats_values)
-            merged_test = merge_lists(test_stats_names, test_stats_values)
+            # merged_test = merge_lists(test_stats_names, test_stats_values)
 
             stopping_cost_type = self.learning_rule.stopping_criteria['cost'].type
             outputs = [('epoch', epoch),
@@ -404,10 +400,10 @@ class TrainObject():
                         ('mean_valid_error_' + stopping_cost_type, mean_valid_error),
                         ('best_valid_error_' + stopping_cost_type, best_valid_error),
                         ('mean_test_cost_' + self.learning_rule.cost.type, mean_test_cost),
-                        ('mean_test_error_' + stopping_cost_type, mean_test_error),
-                        ('best_test_error_' + stopping_cost_type, best_test_error)]
+                        ('mean_test_error_' + stopping_cost_type, mean_test_error)]
 
-            outputs += merged_train + merged_valid + merged_test
+            # outputs += merged_train + merged_valid + merged_test
+            outputs += merged_train + merged_valid
             self.log._log_outputs(outputs)
 
 

@@ -4,11 +4,11 @@ import theano
 import theano.tensor as T
 import numpy as np
 
-from pynet.model import MLP, AutoEncoder
-from pynet.layer import RELU, Sigmoid, Softmax, Linear
+from pynet.model import AutoEncoder
+from pynet.layer import *
 from pynet.datasets.mnist import Mnist
-from pynet.datasets.spec import P276
 from pynet.learning_rule import LearningRule
+from pynet.learning_method import *
 from pynet.log import Log
 from pynet.train_object import TrainObject
 from pynet.cost import Cost
@@ -34,42 +34,8 @@ if not os.getenv('PYNET_SAVE_PATH'):
 
 def autoencoder():
 
-    # logging is used to save the best trained model and records the training result to a database
-    log = Log(experiment_name = 'AE',
-            description = 'This experiment is about autoencoder',
-            save_outputs = True, # saves to outputs.log
-            save_learning_rule = True,
-            save_model = True,
-            save_epoch_error = False,
-            save_to_database = {'name': 'Example.db',
-                                'records' : {'Dataset' : data.__class__.__name__,
-                                             'Weight_Init_Seed' : mlp.rand_seed,
-                                             'Dropout_Below' : str([layer.dropout_below for layer in mlp.layers]),
-                                             'Batch_Size' : data.batch_size,
-                                             'Layer_Size' : len(mlp.layers),
-                                             'Layer_Dim' : str([layer.dim for layer in mlp.layers]),
-                                             'Preprocessor' : data.preprocessor.__class__.__name__,
-                                             'Learning_Rate' : learning_rule.learning_rate,
-                                             'Momentum' : learning_rule.momentum}}
-            ) # end log
-
-
-    learning_rule = LearningRule(max_col_norm = 1, # max length of the weight vector from lower layer going into upper neuron
-                                learning_rate = 0.01,
-                                momentum = 0.1,
-                                momentum_type = 'normal',
-                                L1_lambda = None, # L1 regularization coefficient
-                                L2_lambda = None, # L2 regularization coefficient
-                                cost = Cost(type='mse'), # cost type use for backprop during training
-                                stopping_criteria = {'max_epoch' : 100, # maximum number of epochs for the training
-                                                    'cost' : Cost(type='mse'), # cost type use for testing the quality of the trained model
-                                                    'epoch_look_back' : 10, # number of epoch to look back for error improvement
-                                                    'percent_decrease' : 0.001} # requires at least 0.001 = 0.1% decrease in error when look back of 10 epochs
-                                )
-
-
     # building dataset, batch_size and preprocessor
-    data = Laura_Blocks(train_valid_test_ratio=[8,1,1], batch_size=100, preprocessor=GCN())
+    data = Mnist(train_valid_test_ratio=[8,1,1], batch_size=100, preprocessor=GCN())
 
     # for AutoEncoder, the inputs and outputs must be the same
     train = data.get_train()
@@ -89,16 +55,32 @@ def autoencoder():
     ae.add_encode_layer(h1_layer)
 
     # mirror layer has W = h1_layer.W.T
-    h1_mirror = Tanh(name='h1_mirror', W=h1_layer.W.T, b=None)
+    h1_mirror = Tanh(dim=ae.input_dim, name='h1_mirror', W=h1_layer.W.T, b=None)
 
     # adding decoding mirror layer
     ae.add_decode_layer(h1_mirror)
+
+    # build learning method
+    learning_method = AdaGrad(learning_rate=0.1, momentum=0.9)
+
+    # set the learning rules
+    learning_rule = LearningRule(max_col_norm = 10,
+                                L1_lambda = None,
+                                L2_lambda = None,
+                                training_cost = Cost(type='mse'),
+                                learning_rate_decay_factor = None,
+                                stopping_criteria = {'max_epoch' : 300,
+                                                      'epoch_look_back' : 10,
+                                                      'cost' : Cost(type='error'),
+                                                      'percent_decrease' : 0.01}
+                                )
+
 
     # put all the components into a TrainObject
     train_object = TrainObject(model = ae,
                                 dataset = data,
                                 learning_rule = learning_rule,
-                                log = log)
+                                learning_method = learning_method)
 
     # finally run the training
     train_object.run()
@@ -112,38 +94,10 @@ def stacked_autoencoder():
     print('Start training First Layer of AutoEncoder')
 
 
-    log = Log(experiment_name = name + '_layer1',
-            description = 'This experiment is to test the model',
-            save_outputs = True,
-            save_learning_rule = True,
-            save_model = True,
-            save_to_database = {'name': 'Database.db',
-                                'records' : {'Dataset' : data.__class__.__name__,
-                                             'Weight_Init_Seed' : ae.rand_seed,
-                                             'Dropout_Below' : str([layer.dropout_below for layer in ae.layers]),
-                                             'Batch_Size' : data.batch_size,
-                                             'Layer_Size' : len(ae.layers),
-                                             'Layer_Dim' : str([layer.dim for layer in ae.layers]),
-                                             'Preprocessor' : data.preprocessor.__class__.__name__,
-                                             'Learning_Rate' : learning_rule.learning_rate,
-                                             'Momentum' : learning_rule.momentum}}
-            ) # end log
+    # building dataset, batch_size and preprocessor
+    data = Mnist(train_valid_test_ratio=[8,1,1], batch_size=100)
 
-    learning_rule = LearningRule(max_col_norm = None,
-                                learning_rate = 0.01,
-                                momentum = 0.1,
-                                momentum_type = 'normal',
-                                L1_lambda = None,
-                                L2_lambda = None,
-                                cost = Cost(type='mse'),
-                                stopping_criteria = {'max_epoch' : 3,
-                                                    'epoch_look_back' : 1,
-                                                    'cost' : Cost(type='mse'),
-                                                    'percent_decrease' : 0.001}
-                                )
-
-    data = Mnist()
-
+    # for AutoEncoder, the inputs and outputs must be the same
     train = data.get_train()
     data.set_train(train.X, train.X)
 
@@ -153,44 +107,48 @@ def stacked_autoencoder():
     test = data.get_test()
     data.set_test(test.X, test.X)
 
+    # building autoencoder
     ae = AutoEncoder(input_dim = data.feature_size(), rand_seed=123)
-
     h1_layer = RELU(dim=500, name='h1_layer', W=None, b=None)
+
+    # adding encoding layer
     ae.add_encode_layer(h1_layer)
-    h1_mirror = RELU(dim = data.target_size(), name='h1_mirror', W=h1_layer.W.T, b=None)
+
+    # mirror layer has W = h1_layer.W.T
+    h1_mirror = RELU(dim=ae.input_dim, name='h1_mirror', W=h1_layer.W.T, b=None)
+
+    # adding decoding mirror layer
     ae.add_decode_layer(h1_mirror)
 
+    # build learning method
+    learning_method = SGD(learning_rate=0.001, momentum=0.9)
 
+    # set the learning rules
+    learning_rule = LearningRule(max_col_norm = 10,
+                                L1_lambda = None,
+                                L2_lambda = None,
+                                training_cost = Cost(type='mse'),
+                                learning_rate_decay_factor = None,
+                                stopping_criteria = {'max_epoch' : 3,
+                                                      'epoch_look_back' : 1,
+                                                      'cost' : Cost(type='error'),
+                                                      'percent_decrease' : 0.01}
+                                )
+
+
+    # put all the components into a TrainObject
     train_object = TrainObject(model = ae,
                                 dataset = data,
                                 learning_rule = learning_rule,
-                                log = log)
+                                learning_method = learning_method)
 
+    # finally run the training
     train_object.run()
 
     #=====[ Train Second Layer of autoencoder ]=====#
 
     print('Start training Second Layer of AutoEncoder')
 
-    log2 = Log(experiment_name = name + '_layer2',
-            description = 'This experiment is to test the model',
-            save_outputs = True,
-            save_learning_rule = True,
-            save_model = True,
-            send_to_database = 'Database_Name.db')
-
-    learning_rule = LearningRule(max_col_norm = None,
-                            learning_rate = 0.01,
-                            momentum = 0.1,
-                            momentum_type = 'normal',
-                            L1_lambda = None,
-                            L2_lambda = None,
-                            cost = Cost(type='mse'),
-                            stopping_criteria = {'max_epoch' : 3,
-                                                'epoch_look_back' : 1,
-                                                'cost' : Cost(type='mse'),
-                                                'percent_decrease' : 0.001}
-                            )
 
     # fprop == forward propagation
     reduced_train_X = ae.encode(train.X)
@@ -213,31 +171,14 @@ def stacked_autoencoder():
 
 
     train_object = TrainObject(model = ae2,
-                            dataset = data,
-                            learning_rule = learning_rule,
-                            log = log2)
+                                dataset = data,
+                                learning_rule = learning_rule,
+                                learning_method = learning_method)
 
     train_object.run()
 
     #=====[ Fine Tuning ]=====#
     print('Fine Tuning')
-
-    log3 = Log(experiment_name = name + '_full',
-            description = 'This experiment is to test the model',
-            save_outputs = True,
-            save_learning_rule = True,
-            save_model = True,
-            save_to_database = {'name': 'Database.db',
-                                'records' : {'Dataset' : data.__class__.__name__,
-                                             'Weight_Init_Seed' : ae.rand_seed,
-                                             'Dropout_Below' : str([layer.dropout_below for layer in ae.layers]),
-                                             'Batch_Size' : data.batch_size,
-                                             'Layer_Size' : len(ae.layers),
-                                             'Layer_Dim' : str([layer.dim for layer in ae.layers]),
-                                             'Preprocessor' : data.preprocessor.__class__.__name__,
-                                             'Learning_Rate' : learning_rule.learning_rate,
-                                             'Momentum' : learning_rule.momentum}}
-            ) # end log
 
     data = Mnist()
 
@@ -257,13 +198,13 @@ def stacked_autoencoder():
     ae3.add_decode_layer(h1_mirror)
 
     train_object = TrainObject(model = ae3,
-                            dataset = data,
-                            learning_rule = learning_rule,
-                            log = log3)
+                                dataset = data,
+                                learning_rule = learning_rule,
+                                learning_method = learning_method)
 
     train_object.run()
     print('Training Done')
 
 if __name__ == '__main__':
-    autoencoder()
-#     stacked_autoencoder()
+    # autoencoder()
+    stacked_autoencoder()

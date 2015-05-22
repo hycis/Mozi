@@ -19,7 +19,7 @@ class Layer(object):
     Abstract Class
     """
 
-    def __init__(self, dim, name, W=None, b=None, dropout_below=None, noise=None, blackout_below=None):
+    def __init__(self, dim, name, W=None, b=None, dropout_below=None, noise=None):
         """
         DESCRIPTION:
             This is an abstract layer class
@@ -35,10 +35,8 @@ class Layer(object):
         self.name = name
         self.W = W
         self.b = b
-        assert not (dropout_below and blackout_below), 'cannot set both dropout and blackout'
         self.dropout_below = dropout_below
         self.noise = noise
-        self.blackout_below = blackout_below
 
         # any params from the layer that needs to be updated
         # by backpropagation can be put inside self.params list
@@ -108,56 +106,33 @@ class Layer(object):
             A list of tuples of [('name_a', var_a), ('name_b', var_b)] whereby var is scalar
         """
 
-        # w_len = T.sqrt((self.W ** 2).sum(axis=0))
-        # max_length = T.max(w_len)
-        # mean_length = T.mean(w_len)
-        # min_length = T.min(w_len)
-        # max_output = T.max(layer_output)
-        # mean_output = T.mean(T.abs_(layer_output))
-        # min_output = T.min(layer_output)
-        # max_state = T.max(state_below)
-        # mean_state = T.mean(T.abs_(state_below))
-        # min_state = T.min(state_below)
+        w_len = T.sqrt((self.W ** 2).sum(axis=0))
+        max_length = T.max(w_len)
+        mean_length = T.mean(w_len)
+        min_length = T.min(w_len)
+        max_output = T.max(layer_output)
+        mean_output = T.mean(T.abs_(layer_output))
+        min_output = T.min(layer_output)
+        max_state = T.max(state_below)
+        mean_state = T.mean(T.abs_(state_below))
+        min_state = T.min(state_below)
 
+        return [('max_W', T.max(self.W)),
+                ('mean_W', T.mean(self.W)),
+                ('min_W', T.min(self.W)),
+                ('max_b', T.max(self.b)),
+                ('mean_b', T.mean(self.b)),
+                ('min_b', T.min(self.b)),
+                ('max_layer_output', max_output),
+                ('mean_layer_output', mean_output),
+                ('min_layer_output', min_output),
+                ('max_col_length', max_length),
+                ('mean_col_length', mean_length),
+                ('min_col_length', min_length),
+                ('max_state_below', max_state),
+                ('mean_state_below', mean_state),
+                ('min_state_below', min_state)]
 
-        # test_state = T.gt(mean_state, 0).astype(floatX) and 1.0 or 0.0
-        # true_state = T.mean(T.gt(T.abs_(state_below), 0)).astype(floatX)
-        # activity = T.mean(T.gt(layer_output, 0) * 1.0)
-        # return [('activity', activity.astype(floatX)),
-        # ('max_col_length', max_length),
-        # ('mean_col_length', mean_length),
-        # ('min_col_length', min_length),
-        # ('output_max', max_output),
-        # ('output_mean', mean_output),
-        # ('output_min', min_output)]
-        # ('pos', pos),
-        # ('test', out)]
-
-        # w100 = self.W.sum(axis=1)[100].astype(floatX)
-        # w200 = self.W.sum(axis=1)[200].astype(floatX)
-        # w300 = self.W.sum(axis=1)[300].astype(floatX)
-        # w_len100 = T.sqrt((self.W ** 2).sum(axis=1)[100]).astype(floatX)
-        # w_len200 = T.sqrt((self.W ** 2).sum(axis=1)[200]).astype(floatX)
-        # w_len300 = T.sqrt((self.W ** 2).sum(axis=1)[300]).astype(floatX)
-        # return [('w_sum_axis_1', self.W.sum(axis=1).shape[0].astype(floatX)),
-        # ('W_row100', w100),('W_row200', w200),('W_row300', w300),
-        # ('len100', w_len100), ('len200', w_len200), ('len300', w_len300),
-        # return [('max_W', T.max(self.W)),
-        #         ('mean_W', T.mean(self.W)),
-        #         ('min_W', T.min(self.W)),
-        #         ('max_b', T.max(self.b)),
-        #         ('mean_b', T.mean(self.b)),
-        #         ('min_b', T.min(self.b)),
-        #         ('output_max', max_output),
-        #         ('output_mean', mean_output),
-        #         ('output_min', min_output),
-        #         ('max_col_length', max_length),
-        #         ('mean_col_length', mean_length),
-        #         ('min_col_length', min_length),
-        #         ('max_state', max_state),
-        #         ('mean_state', mean_state),
-        #         ('min_state', min_state)]
-        return []
 
 class Linear(Layer):
     def _test_fprop(self, state_below):
@@ -194,11 +169,12 @@ class RELU(Linear):
 
 
     def _layer_stats(self, state_below, layer_output):
+        ls = super(RELU, self)._layer_stats(state_below, layer_output)
         rlist = []
 
         # sparsity = T.gt(layer_output,0).sum().astype(floatX) / (layer_output.shape[0] * layer_output.shape[1])
 
-        activity = T.mean(T.gt(layer_output, 0) * 1.0)
+        activity = T.mean(T.gt(layer_output, 0).astype(floatX))
         # return [('activity', activity.astype(floatX)),
 
         # rlist.append(('threshold_mean', T.mean(self.threshold).astype(floatX)))
@@ -208,7 +184,7 @@ class RELU(Linear):
         # rlist.append(('std_prod', T.prod(layer_output.std(axis=0)).astype(floatX)))
         # rlist.append(('sparsity', sparsity))
         rlist.extend(super(RELU, self)._layer_stats(state_below, layer_output))
-        return rlist
+        return ls + rlist
 
 class PRELU(Linear):
     def __init__(self, alpha=0.2, **kwargs):
@@ -231,12 +207,13 @@ class PRELU(Linear):
         return self._test_fprop(state_below)
 
     def _layer_stats(self, state_below, layer_output):
+        ls = super(PRELU, self)._layer_stats(state_below, layer_output)
         rlist = []
         rlist.append(('alpha_mean', T.mean(self.alpha)))
         rlist.append(('alpha_max', T.max(self.alpha)))
         rlist.append(('alpha_min', T.min(self.alpha)))
         rlist.append(('alpha_std', T.std(self.alpha)))
-        return rlist
+        return ls + rlist
 
 class SoftRELU(Linear):
     def __init__(self, threshold=0., **kwargs):
@@ -327,13 +304,13 @@ class Noisy_RELU(Linear):
         min_thresh = theano.min(self.threshold)
         mean_thresh = theano.mean(self.threshold)
 
-        ls1 = super(Noisy_RELU, self)._layer_stats(self, state_below, layer_output)
-        ls2 = [('max_act', max_act),
-                ('min_act', min_act),
-                ('mean_act', mean_act),
-                ('max_thresh', max_thresh),
-                ('min_thresh', min_thresh),
-                ('mean_thresh', mean_thresh)]
+        ls1 = super(Noisy_RELU, self)._layer_stats(state_below, layer_output)
+        ls2 = [('max_activity', max_act),
+                ('min_activity', min_act),
+                ('mean_activity', mean_act),
+                ('max_threshold', max_thresh),
+                ('min_threshold', min_thresh),
+                ('mean_threshold', mean_thresh)]
 
         return ls1 + ls2
 

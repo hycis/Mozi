@@ -157,14 +157,14 @@ class SingleBlock(Dataset):
                                     num_batches=self.num_batches, rng=self.rng)
 
         if self.ratio[1] == 0:
-            self.log.warning('Valid set is empty! It is needed for stopping of training')
+            self.log.warning('Valid set is empty! It is needed for early stopping and saving best model')
 
         self.valid = IterMatrix(valid_X, valid_y, iter_class=self.iter_class,
                                     batch_size=self.batch_size,
                                     num_batches=self.num_batches, rng=self.rng)
 
         if self.ratio[2] == 0:
-            self.log.warning('Test set is empty! It is needed for saving the best model')
+            self.log.warning('Test set is empty! It is needed for testing the best model')
 
         self.test = IterMatrix(test_X, test_y, iter_class=self.iter_class,
                                     batch_size=self.batch_size,

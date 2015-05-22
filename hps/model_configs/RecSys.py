@@ -12,7 +12,7 @@ config = DD({
             }), # end mlp
 
     'log' : DD({
-            'experiment_name'       : 'recsys',
+            'experiment_name'       : 'recsys0522',
             'description'           : '',
             'save_outputs'          : True,
             'save_learning_rule'    : True,
@@ -48,14 +48,14 @@ config = DD({
             'stopping_criteria'     : DD({
                                         'max_epoch'         : 100,
                                         'epoch_look_back'   : 5,
-                                        'cost'              : 'binary_misprecision',
-                                        'percent_decrease'  : 0.05
+                                        'cost'              : 'FP_minus_TP',
+                                        'percent_decrease'  : 0.01
                                         }) # end stopping_criteria
             }), # end learning_rule
 
     'dataset' : DD({
 
-            'type'                  : 'RecSysJitter',
+            'type'                  : 'RecSys2ClickSession',
             # 'type'                  : 'I2R_Posterior_Blocks_ClnDNN_CleanFeat',
             # 'type'                  : 'I2R_Posterior_NoisyFeat_Sample',
             # 'type'                  : 'I2R_Posterior_Gaussian_Noisy_Sample',
@@ -85,8 +85,8 @@ config = DD({
                                         'scale_range': [0.5, 1.],
                                         }),
 
-            # 'batch_size'            : (50, 100, 150, 200),
-            'batch_size'            : 100,
+            'batch_size'            : (50, 100, 150, 200),
+            # 'batch_size'            : 100,
             'num_batches'           : None,
             'iter_class'            : 'SequentialSubsetIterator',
             'rng'                   : None
@@ -95,7 +95,7 @@ config = DD({
     #============================[ Layers ]===========================#
     'hidden1' : DD({
             'name'                  : 'hidden1',
-            'type'                  : 'RELU',
+            'type'                  : 'PRELU',
             'dim'                   : 500,
 
             'dropout_below'         : (0.1, 0.2, 0.3, 0.4, 0.5),
@@ -120,7 +120,7 @@ config = DD({
 
     'hidden2' : DD({
             'name'                  : 'hidden2',
-            'type'                  : 'RELU',
+            'type'                  : 'PRELU',
             'dim'                   : 500,
 
             'dropout_below'         : (0.1, 0.2, 0.3, 0.4, 0.5),

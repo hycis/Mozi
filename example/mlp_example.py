@@ -13,6 +13,7 @@ from pynet.log import Log
 from pynet.train_object import TrainObject
 from pynet.cost import Cost
 from pynet.learning_method import *
+from pynet.weight_initialization import *
 
 def setenv():
     NNdir = os.path.dirname(os.path.realpath(__file__))
@@ -39,8 +40,18 @@ def mlp():
 
     # build mlp
     mlp = MLP(input_dim = data.feature_size())
-    mlp.add_layer(PRELU(dim=1000, name='h1_layer', W=None, b=None, dropout_below=None))
-    mlp.add_layer(Softmax(dim=data.target_size(), name='output_layer', W=None, b=None, dropout_below=None))
+
+    W1 = GaussianWeight(prev_dim=mlp.input_dim, this_dim=1000)
+    hidden1 = PRELU(dim=1000, name='h1_layer', W=W1(mean=0, std=0.1),
+                    b=None, dropout_below=None)
+
+    mlp.add_layer(hidden1)
+
+    W2 = XavierWeight(prev_dim=hidden1.dim, this_dim=data.target_size())
+    output = Softmax(dim=data.target_size(), name='output_layer', W=W2(),
+                     b=None, dropout_below=None)
+
+    mlp.add_layer(output)
 
     # build learning method
     learning_method = AdaGrad(learning_rate=0.1, momentum=0.9)
@@ -61,10 +72,10 @@ def mlp():
     # (optional) build the logging object
     log = Log(experiment_name = 'mnist',
               description = 'This is tutorial example',
-              save_outputs = False,
-              save_learning_rule = False,
-              save_model = False,
-              save_epoch_error = False,
+              save_outputs = True,
+              save_learning_rule = True,
+              save_model = True,
+              save_epoch_error = True,
               save_to_database = {'name': 'Example.db',
                                   'records' : {'Dataset' : data.__class__.__name__,
                                   'max_col_norm'     : learning_rule.max_col_norm,

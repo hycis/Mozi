@@ -97,7 +97,26 @@ class Cost(object):
         FP = T.sum(FP)
 
         rval = FP / (TP + FP)
-        return rval.astype(floatX)
+        return rval
+
+    def _cost_FP_minus_TP(self, y, y_pred):
+        '''
+        This cost function is only for binary classifications
+        '''
+        # assert(theano_unique(y).size == 2)
+
+        y_pred = y_pred.argmax(axis=1)
+        y = y.argmax(axis=1)
+
+        TP = (y_pred and y).astype(floatX)
+        y0 = T.eq(y, 0)
+        FP = (y0 and y_pred).astype(floatX)
+
+        TP = T.mean(TP)
+        FP = T.mean(FP)
+
+        return FP - TP
+
 
     def _cost_recall(self, y, y_pred):
         #TODO
