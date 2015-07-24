@@ -111,7 +111,7 @@ Each layer provides two tracks: training track and testing track. During trainin
 
 ---
 ### Data Interface
-Mozi provides two data interface, one is for dataset small enough to fit all into the memory [(SingleBlock)](mozi/datasets/dataset.py#82), another is for large datasets which cannot be fit into memory in one go and has to be broken up into blocks and load into training one block at a time [(DataBlocks)](mozi/dataset.py#171).  
+Mozi provides two data interface, one is for dataset small enough to fit all into the memory [(SingleBlock)](mozi/datasets/dataset.py#L82), another is for large datasets which cannot be fit into memory in one go and has to be broken up into blocks and load into training one block at a time [(DataBlocks)](mozi/dataset.py#L171).  
 Check out the [Mnist](mozi/datasets/mnist.py) or [Cifar10](mozi/datasets/cifar10.py) examples on how to build a dataset.
 
 ---
