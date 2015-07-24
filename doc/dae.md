@@ -1,7 +1,7 @@
 
 Denoising Autoencoder
 =====
-You can try the Denoising Autoencoder Example [Example](../example/mnist_dae.py) running on Mnist. Here we build two hidden layer encoding and decoding layers
+You can try the Denoising Autoencoder [Example](../example/mnist_dae.py) running on Mnist. Here we build two hidden layer encoding and decoding layers
 ```python
 from mozi.model import Sequential
 from mozi.layers.linear import Linear
