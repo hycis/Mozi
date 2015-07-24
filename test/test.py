@@ -2,10 +2,10 @@
 
 
 import os
-os.environ['PYNET_DATA_PATH'] = '/Volumes/Storage/Dropbox/CodingProjects/pynet/data/'
+os.environ['MOZI_DATA_PATH'] = '/Volumes/Storage/Dropbox/CodingProjects/mozi/data/'
 
-from pynet.datasets.mnist import Mnist
-from pynet.datasets.preprocessor import GCN
+from mozi.datasets.mnist import Mnist
+from mozi.datasets.preprocessor import GCN
 
 data = Mnist()
 train = data.get_train()
