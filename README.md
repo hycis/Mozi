@@ -64,13 +64,14 @@ train_object = TrainObject(model = model,
 train_object.setup()
 train_object.run()
 ```
-#### Stopping Criteria
+##### Stopping Criteria
 ```python
 stop_criteria = {'max_epoch' : 10,
                  'epoch_look_back' : 5,
                  'percent_decrease' : 0.01}
 ```
-The stopping criteria here means the training will stop if has reach 'max_epoch' of 10 or the validation error does not decrease by at least 1% in the past 5 epoch.  
+The stopping criteria here means the training will stop if has reach 'max_epoch' of 10 or the validation error does not decrease by at least 1% in the past 5 epoch.
+##### Test Model
 And that's it! Once the training is done, to test the model, it's as simple as calling the forward propagation `fprop(X)` in model
 ```python
 import numpy as np
