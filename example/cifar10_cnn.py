@@ -38,7 +38,7 @@ def setenv():
 
 def train():
 
-    data = Cifar10(batch_size=64, train_valid_test_ratio=[5,1,1])
+    data = Cifar10(batch_size=32, train_valid_test_ratio=[5,1,1])
 
     model = Sequential()
     model.add(Convolution2D(input_channels=3, filters=32, kernel_size=(3,3), stride=(1,1), border_mode='full'))
