@@ -58,6 +58,18 @@ def train():
     learning_method = AdaGrad(learning_rate=0.1, momentum=0.9,
                               lr_decay_factor=0.9, decay_batch=10000)
 
+    # Build Logger
+    log = Log(experiment_name = 'MLP',
+              description = 'This is a tutorial',
+              save_outputs = True, # log all the outputs from the screen
+              save_model = True, # save the best model
+              save_epoch_error = True, # log error at every epoch
+              save_to_database = {'name': 'Example.db',
+                                  'records': {'Batch_Size': data.batch_size,
+                                              'Learning_Rate': float(learning_method.lr.get_value()),
+                                              'Momentum': float(learning_method.mom.get_value())}}
+             ) # end log
+
     # put everything into the train object
     train_object = TrainObject(model = model,
                                log = None,

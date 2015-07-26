@@ -70,6 +70,8 @@ class Log:
 
         if save_to_database:
             self.first_time_record = True
+            if not os.path.exists(os.environ['MOZI_DATABASE_PATH']):
+                os.mkdir(os.environ['MOZI_DATABASE_PATH'])
 
     def info(self, msg):
         self.logger.info(msg)
@@ -112,8 +114,11 @@ class Log:
                     query += k + ' TEXT,'
                 elif type(v) is int:
                     query += k + ' INT,'
-                else:
+                elif type(v) is float:
                     query += k + ' REAL,'
+                else:
+                    raise Exception("Error: The input types for records '{}' of {}".format(k, type(v))
+                                    + " is not primitive types (str, int, float).")
 
             query += 'epoch INT, train_cost REAL, valid_cost REAL, best_valid_error REAL);'
 
@@ -140,13 +145,11 @@ class Log:
         else:
             cur.execute('UPDATE ' + self.experiment_name + ' SET ' +
                         'epoch = ?, ' +
-                        'train_error = ?,' +
-                        'valid_error = ?,' +
-                        'test_error = ?' +
+                        'train_cost = ?,' +
+                        'valid_cost = ?' +
                         "WHERE exp_id='%s'"%self.exp_id,
                         [epoch,
-                        train_error,
-                        valid_error,
-                        test_error])
+                        train_cost,
+                        valid_cost])
         conn.commit()
         conn.close()

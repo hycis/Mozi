@@ -64,14 +64,14 @@ train_object = TrainObject(model = model,
 train_object.setup()
 train_object.run()
 ```
-##### Stopping Criteria
+#### Stopping Criteria
 ```python
 stop_criteria = {'max_epoch' : 10,
                  'epoch_look_back' : 5,
                  'percent_decrease' : 0.01}
 ```
 The stopping criteria here means the training will stop if has reach 'max_epoch' of 10 or the validation error does not decrease by at least 1% in the past 5 epoch.
-##### Test Model
+#### Test Model
 And that's it! Once the training is done, to test the model, it's as simple as calling the forward propagation `fprop(X)` in model
 ```python
 import numpy as np
@@ -137,11 +137,11 @@ log = Log(experiment_name = 'MLP',
           save_epoch_error = True, # log error at every epoch
           save_to_database = {'name': 'Example.db',
                               'records': {'Batch_Size': data.batch_size,
-                                          'Learning_Rate': learning_method.lr,
-                                          'Momentum': learning_method.mom}}
+                                          'Learning_Rate': float(learning_method.lr.get_value()),
+                                          'Momentum': float(learning_method.mom.get_value())}}
          ) # end log
 ```
-The log module allows logging of outputs from screen, saving best model and epoch-errors. It also allows recording of hyperparameters to the database using the `save_to_database` argument, the `save_to_database` argument takes in a dictionary that contains two fields `'name'` and `'records'`. `'name'` indicates the name of the database to save the recording table. The name of the recording table will follow the experiment name under argument `experiment_name`. The `'records'` field takes in a dictionary of unrestricted number of hyperparameters that we want to record.  
+The log module allows logging of outputs from screen, saving best model and epoch-errors. It also allows recording of hyperparameters to the database using the `save_to_database` argument, the `save_to_database` argument takes in a dictionary that contains two fields `'name'` and `'records'`. `'name'` indicates the name of the database to save the recording table. The name of the recording table will follow the experiment name under argument `experiment_name`. The `'records'` field takes in a dictionary of unrestricted number of hyperparameters that we want to record. The `'records'` only accepts primitive data types (str, int, float).
 Once log object is built, it can be passed into `TrainObject` as
 ```python
 TrainObject(log = log)
