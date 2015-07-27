@@ -5,17 +5,13 @@ class Template(object):
     DESCRIPTION:
         The interface to be implemented by any layer.
     """
-    def __init__(self, input_var=None):
+    def __init__(self):
         '''
         FIELDS:
             self.params: any params from the layer that needs to be updated
                          by backpropagation can be put inside self.params
-            self.input_var: T.vector | T.matrix | T.tensor3 | T.tensor4
-                         needed for first layer to guide the model on the
-                         right TensorVariable for inputting data into model
         '''
         self.params = []
-        self.input_var = input_var
 
     def _test_fprop(self, state_below):
         '''

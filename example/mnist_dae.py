@@ -47,9 +47,9 @@ def train():
     data.set_valid(X=data.get_valid().X, y=data.get_valid().X)
 
     # build model
-    model = Sequential()
+    model = Sequential(input_var=T.matrix())
     # build encoder
-    model.add(Gaussian(input_var=T.matrix()))
+    model.add(Gaussian())
     encode_layer1 = Linear(prev_dim=28*28, this_dim=200)
     model.add(encode_layer1)
     model.add(RELU())

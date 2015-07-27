@@ -63,7 +63,7 @@ class TrainObject():
         #=====================[ training params updates ]=====================#
 
         self.log.info("..update params: " + str(params))
-        train_x = self.model.layers[0].input_var
+        train_x = self.model.input_var
         train_y_pred, train_layers_stats = self.model.train_fprop(train_x)
         train_y = T.zeros_like(train_y_pred)
         train_cost = self.train_cost(train_y, train_y_pred).astype(floatX)
@@ -95,7 +95,7 @@ class TrainObject():
 
         #======================[ testing params updates ]=====================#
 
-        test_x = self.model.layers[0].input_var
+        test_x = self.model.input_var
         test_y_pred, test_layers_stats = self.model.test_fprop(test_x)
         test_y = T.zeros_like(test_y_pred)
 

@@ -20,8 +20,7 @@ class Flatten(Template):
 
 class Reshape(Template):
 
-    def __init__(self, dims, input_var=None):
-        self.input_var = input_var
+    def __init__(self, dims):
         self.params = []
         self.dims = dims
 
@@ -35,14 +34,13 @@ class Reshape(Template):
 
 class Transform(Template):
 
-    def __init__(self, dims, input_var=None):
+    def __init__(self, dims):
         '''
         Reshaping the data such that the first dim alters when the rest of the
         dim is altered. If X of shape (a, b, c, d) and input dims of shape (d, e),
         then return shape will be (a*b*c*d/(d*e), d, e). Useful for tranforming
         data in RNN/LSTM with mlp layers before recurrent layers.
         '''
-        self.input_var = input_var
         self.params = []
         self.dims = dims
 

@@ -9,9 +9,9 @@ from mozi.layers.activation import *
 from mozi.layers.noise import Gaussian
 
 # build model
-model = Sequential()
+model = Sequential(input_var=T.matrix())
 # build encoder
-model.add(Gaussian(input_var=T.matrix()))
+model.add(Gaussian())
 encode_layer1 = Linear(prev_dim=28*28, this_dim=200)
 model.add(encode_layer1)
 model.add(RELU())

@@ -25,7 +25,6 @@ class Convolution2D(Template):
                 full: zero-pads image to multiple of filter shape to generate output
                 of shape: image_shape + filter_shape - 1
         '''
-        self.input_var = T.tensor4()
         self.input_channels = input_channels
         self.filters = filters
         self.kernel_size = kernel_size
@@ -70,7 +69,6 @@ class Pooling2D(Template):
             mode: max | sum | average_inc_pad | average_exc_pad
         '''
 
-        self.input_var = T.tensor4()
         self.poolsize = poolsize
         self.stride = stride
         self.padding = padding

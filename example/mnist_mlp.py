@@ -44,7 +44,7 @@ def train():
     data = Mnist(batch_size=64, train_valid_test_ratio=[5,1,1])
 
     # build model
-    model = Sequential()
+    model = Sequential(input_var=T.matrix())
     model.add(Linear(prev_dim=28*28, this_dim=200))
     model.add(RELU())
     model.add(Linear(prev_dim=200, this_dim=100))

@@ -17,7 +17,6 @@ class BatchNormalization(Template):
         momentum: momentum term in the computation of a running estimate of the mean and std of the data
     '''
     def __init__(self, input_shape, epsilon=1e-6, mode=0, momentum=0.9):
-        super(BatchNormalization,self).__init__()
         self.init = UniformWeight()
         self.input_shape = input_shape
         self.epsilon = epsilon

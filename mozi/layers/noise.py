@@ -22,14 +22,13 @@ class Noise(Template):
 
 class Dropout(Noise):
 
-    def __init__(self, dropout_below=0.5, input_var=None):
+    def __init__(self, dropout_below=0.5):
         '''
         PARAMS:
             dropout_below(float): probability of the inputs from the layer below been masked out
         '''
         self.dropout_below = dropout_below
         self.params = []
-        self.input_var = input_var
 
 
     def _test_fprop(self, state_below):
@@ -57,7 +56,7 @@ class MaskOut(Noise):
     This noise masked out a portion of the dimension from each example
     """
 
-    def __init__(self, ratio=0.5, input_var=None):
+    def __init__(self, ratio=0.5):
         """
         PARAM:
             ratio : float
@@ -65,7 +64,6 @@ class MaskOut(Noise):
         """
         self.ratio = ratio
         self.params = []
-        self.input_var = input_var
 
     def _train_fprop(self, state_below):
         return state_below * theano_rand.binomial(size=state_below.shape, n=1, p=(1-self.ratio), dtype=floatX)
@@ -76,11 +74,10 @@ class Gaussian(Noise):
     Applies gaussian noise to each value of X
     """
 
-    def __init__(self, std=0.1, mean=0, input_var=None):
+    def __init__(self, std=0.1, mean=0):
         self.std = std
         self.mean = mean
         self.params = []
-        self.input_var = input_var
 
     def _train_fprop(self, state_below):
         return state_below + theano_rand.normal(avg=self.mean, std=self.std, size=state_below.shape, dtype=floatX)
@@ -92,7 +89,7 @@ class BlackOut(Noise):
     adding noise in the time dimension
     """
 
-    def __init__(self, ratio=0.5, input_var=None):
+    def __init__(self, ratio=0.5):
         """
         PARAM:
             ratio : float
@@ -100,7 +97,6 @@ class BlackOut(Noise):
         """
         self.ratio = ratio
         self.params = []
-        self.input_var = input_var
 
     def _train_fprop(self, state_below):
         rd = theano_rand.binomial(size=(state_below.shape[0],), n=1, p=(1-self.ratio), dtype=floatX)
@@ -113,7 +109,7 @@ class BatchOut(Noise):
     adding noise in the time dimension
     """
 
-    def __init__(self, ratio=0.5, input_var=None):
+    def __init__(self, ratio=0.5):
         """
         PARAM:
             ratio : float
@@ -121,7 +117,6 @@ class BatchOut(Noise):
         """
         self.ratio = ratio
         self.params = []
-        self.input_var = input_var
 
     def _train_fprop(self, state_below):
         rd = theano_rand.binomial(size=(1,1), n=1, p=(1-self.ratio), dtype=floatX)

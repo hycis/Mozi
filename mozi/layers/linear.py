@@ -28,7 +28,6 @@ class Linear(Template):
             params(list): a list of params in layer that can be updated
         """
 
-        self.input_var = T.matrix()
         self.prev_dim = prev_dim
         self.this_dim = this_dim
 

@@ -29,7 +29,7 @@ from mozi.layers.linear import Linear, Softmax
 from mozi.layers.activation import RELU
 from mozi.layers.noise import Dropout
 
-model = Sequential()
+model = Sequential(input_var=T.matrix())
 model.add(Linear(prev_dim=28*28, this_dim=200))
 model.add(RELU())
 model.add(Linear(prev_dim=200, this_dim=100))
@@ -97,9 +97,8 @@ class Template(object):
     DESCRIPTION:
         The interface to be implemented by any layer.
     """
-    def __init__(self, input_var=None):
+    def __init__(self):
         self.params = [] # all params that needs to be updated by training go into the list
-        self.input_var = input_var
 
     def _test_fprop(self, state_below):
         # the testing track whereby no params update is performed after data flows through this track
