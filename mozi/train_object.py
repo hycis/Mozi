@@ -244,10 +244,10 @@ class TrainObject():
 
             outputs = [('epoch', epoch),
                         ('runtime(s)', int(end_time-start_time)),
-                        ('train_cost_' + self.train_cost.func_name, train_cost),
-                        ('valid_cost_' + self.train_cost.func_name, valid_cost),
-                        ('valid_error_' + self.valid_cost.func_name, valid_error),
-                        ('best_valid_error_' + self.valid_cost.func_name, best_valid_error)]
+                        ('train_' + self.train_cost.func_name, train_cost),
+                        ('valid_' + self.train_cost.func_name, valid_cost),
+                        ('valid_' + self.valid_cost.func_name, valid_error),
+                        ('best_valid_' + self.valid_cost.func_name, best_valid_error)]
 
             outputs += merged_train + merged_valid
             self.log._log_outputs(outputs)
