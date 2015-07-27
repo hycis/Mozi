@@ -46,7 +46,7 @@ class Mnist(SingleBlock):
         test_y = test_y_tmp
 
         y = np.concatenate((train_y, test_y), axis=0)
-    
+
         super(Mnist, self).__init__(X=X, y=y, **kwargs)
 
 class Mnist_Blocks(DataBlocks):

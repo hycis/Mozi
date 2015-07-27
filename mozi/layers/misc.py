@@ -1,7 +1,3 @@
-__author__ = "Zhenzhou Wu"
-__credits__ = ["Zhenzhou Wu"]
-__email__ = "hyciswu@gmail.com"
-__maintainer__ = "Zhenzhou Wu"
 
 """
 Functionality : Define the noise that is to be added to each layer
@@ -9,12 +5,7 @@ Functionality : Define the noise that is to be added to each layer
 
 import theano
 import theano.tensor as T
-from theano.sandbox.rng_mrg import MRG_RandomStreams
-
 from mozi.layers.template import Template
-
-floatX = theano.config.floatX
-theano_rand = MRG_RandomStreams()
 
 class Flatten(Template):
 

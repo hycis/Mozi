@@ -1,3 +1,4 @@
+
 from mozi.layers.template import Template
 from mozi.utils.theano_utils import shared_zeros
 from mozi.weight_init import UniformWeight
@@ -5,6 +6,7 @@ import theano.tensor as T
 
 class BatchNormalization(Template):
     '''
+    From keras
     REFERENCE:
         Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift
             http://arxiv.org/pdf/1502.03167v3.pdf

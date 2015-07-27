@@ -1,8 +1,3 @@
-__author__ = "Zhenzhou Wu"
-__credits__ = ["Zhenzhou Wu"]
-__license__ = "3-clause BSD"
-__email__ = "hyciswu@gmail.com"
-__maintainer__ = "Zhenzhou Wu"
 
 """
 Adapted from pylearn2 reference http://deeplearning.net/software/pylearn2/

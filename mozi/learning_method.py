@@ -1,9 +1,3 @@
-__author__ = "Zhenzhou Wu"
-__copyright__ = "Copyright 2012, Zhenzhou Wu"
-__credits__ = ["Zhenzhou Wu"]
-__email__ = "hyciswu@gmail.com"
-__maintainer__ = "Zhenzhou Wu"
-
 
 import theano
 import theano.tensor as T
