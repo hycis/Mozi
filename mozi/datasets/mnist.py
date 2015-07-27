@@ -10,7 +10,7 @@ from mozi.datasets.dataset import SingleBlock, DataBlocks
 
 class Mnist(SingleBlock):
 
-    def __init__(self, train_valid_test_ratio, **kwargs):
+    def __init__(self, **kwargs):
 
         im_dir = os.environ['MOZI_DATA_PATH'] + '/mnist/'
 
@@ -48,15 +48,3 @@ class Mnist(SingleBlock):
         y = np.concatenate((train_y, test_y), axis=0)
 
         super(Mnist, self).__init__(X=X, y=y, **kwargs)
-
-class Mnist_Blocks(DataBlocks):
-
-    def __init__(self, feature_size=784, target_size=10, **kwargs):
-
-        self.parts = ['blk1.npy', 'blk2.npy']
-        # parts = ['fullblk.npy']
-        data_dir = os.environ['MOZI_DATA_PATH'] + '/mnist_npy'
-        data_paths = ["%s/%s"%(data_dir, part) for part in parts]
-        super(Mnist_Blocks, self).__init__(data_paths=data_paths,
-                                           feature_size=feature_size,
-                                           target_size=target_size, **kwargs)

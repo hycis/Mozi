@@ -65,13 +65,13 @@ def train():
               save_epoch_error = True, # log error at every epoch
               save_to_database = {'name': 'Example.db',
                                   'records': {'Batch_Size': data.batch_size,
-                                              'Learning_Rate': float(learning_method.lr.get_value()),
-                                              'Momentum': float(learning_method.mom.get_value())}}
+                                              'Learning_Rate': learning_method.learning_rate,
+                                              'Momentum': learning_method.momentum}}
              ) # end log
 
     # put everything into the train object
     train_object = TrainObject(model = model,
-                               log = None,
+                               log = log,
                                dataset = data,
                                train_cost = mse,
                                valid_cost = error,

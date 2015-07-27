@@ -137,8 +137,8 @@ log = Log(experiment_name = 'MLP',
           save_epoch_error = True, # log error at every epoch
           save_to_database = {'name': 'Example.db',
                               'records': {'Batch_Size': data.batch_size,
-                                          'Learning_Rate': float(learning_method.lr.get_value()),
-                                          'Momentum': float(learning_method.mom.get_value())}}
+                                          'Learning_Rate': learning_method.learning_rate,
+                                          'Momentum': learning_method.momentum}}
          ) # end log
 ```
 The log module allows logging of outputs from screen, saving best model and epoch-errors. It also allows recording of hyperparameters to the database using the `save_to_database` argument, the `save_to_database` argument takes in a dictionary that contains two fields `'name'` and `'records'`. `'name'` indicates the name of the database to save the recording table. The name of the recording table will follow the experiment name under argument `experiment_name`. The `'records'` field takes in a dictionary of unrestricted number of hyperparameters that we want to record. The `'records'` only accepts primitive data types (str, int, float).
