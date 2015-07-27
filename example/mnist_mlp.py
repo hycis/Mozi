@@ -16,7 +16,6 @@ from mozi.cost import mse, error
 from mozi.learning_method import *
 from mozi.weight_init import *
 
-from sklearn.metrics import accuracy_score
 
 def setenv():
     NNdir = os.path.dirname(os.path.realpath(__file__))
@@ -88,7 +87,8 @@ def train():
     ypred = model.fprop(data.get_test().X)
     ypred = np.argmax(ypred, axis=1)
     y = np.argmax(data.get_test().y, axis=1)
-    print 'test accuracy:', accuracy_score(y, ypred)
+    accuracy = np.equal(ypred, y).astype('f4').sum() / len(y)
+    print 'test accuracy:', accuracy
 
 
 if __name__ == '__main__':

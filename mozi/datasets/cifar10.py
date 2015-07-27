@@ -22,7 +22,7 @@ class Cifar10(SingleBlock):
         self.img_shape = (3,32,32)
         self.img_size = np.prod(self.img_shape)
         self.n_classes = 10
-        fnames = ['data_batch_%i' % i for i in range(1,6)]
+        fnames = ['data_batch_%i' % i for i in range(1,6)] + ['test_batch']
 
         X = []
         y = []
@@ -35,6 +35,8 @@ class Cifar10(SingleBlock):
                 else:
                     X.extend(data_batch['data'].reshape((len(data_batch['data']),)+self.img_shape))
                 y.extend(data_batch['labels'])
+                    
+
         X_npy = np.array(X, dtype=floatX)
         X_npy /= 255.0
         y_npy = make_one_hot(y, onehot_size=self.n_classes)

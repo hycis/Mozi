@@ -7,7 +7,7 @@ import theano
 import theano.tensor as T
 from theano.tensor.signal import downsample
 
-from mozi.weight_init import XavierWeightUniform, GaussianWeight
+from mozi.weight_init import XavierUniformWeight, GaussianWeight
 from mozi.layers.template import Template
 from mozi.utils.theano_utils import shared_zeros
 

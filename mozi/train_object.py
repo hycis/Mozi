@@ -30,17 +30,6 @@ from mozi.utils.progbar import Progbar
 
 class TrainObject():
 
-    '''
-    UPDATES:
-        (Normal momentum)
-        delta := momentum * delta - learning_rate * (d cost(param) / d param)
-        param := param + delta
-
-        (Nesterov momentum)
-        delta := momentum * delta - learning_rate * (d cost(param + momentum*delta) / d param)
-        param := param + delta
-    '''
-
     def __init__(self, model, dataset, train_cost, valid_cost, learning_method, stop_criteria, log=None):
         self.model = model
         self.dataset = dataset
@@ -285,7 +274,7 @@ class TrainObject():
             self.stop_criteria['epoch_look_back'] is None:
             return True
 
-        elif np.abs(error_dcr * 1.0 / self.best_valid_last_update) \
+        elif np.abs(float(error_dcr) / self.best_valid_last_update) \
             >= self.stop_criteria['percent_decrease']:
             self.best_valid_last_update = best_valid_error
             self.best_epoch_last_update = epoch

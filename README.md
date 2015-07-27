@@ -3,7 +3,7 @@ Mozi
 
 Mozi is based on Theano with a clean and sharp design, the **design philosophy** of Mozi
 
-1. **Fast and Simple**: The main engine of the package is only 200 lines of code. There is only one full compiled graph for training which ensures all the data manipulation happens in one go through the pipeline and as a result make it super fast package, 3X faster than keras on the same convolution architecture.
+1. **Fast and Simple**: The main engine of the package is only 200 lines of code. There is only one full compiled graph for training which ensures all the data manipulation happens in one go through the pipeline and as a result make it super fast package.
 2. **Highly Modular**: Building a model in Mozi is like building a house with Lego, you can design whatever imaginable layers and stack them together easily.
 3. **Model Abstract from Training**: In order to facilitate deployment of trained model for real use, the model is abstracted away from the training module and keep as minimalist as possible. Objective is to allowed realtime deployment and easy model exchange.
 4. **Logging System**: Mozi provides a full logging feature that allows user to log the training results and the hyperparameters to the database for paranormal overview. Also it allows automatic saving of best model and logging of all training outputs for easy aftermath analysis.
@@ -70,7 +70,7 @@ stop_criteria = {'max_epoch' : 10,
                  'epoch_look_back' : 5,
                  'percent_decrease' : 0.01}
 ```
-The stopping criteria here means the training will stop if has reach 'max_epoch' of 10 or the validation error does not decrease by at least 1% in the past 5 epoch.
+The stopping criteria here means the training will stop if training has reach 'max_epoch' of 10 or the validation error does not decrease by at least 1% in the past 5 epoch.
 #### Test Model
 And that's it! Once the training is done, to test the model, it's as simple as calling the forward propagation `fprop(X)` in model
 ```python
