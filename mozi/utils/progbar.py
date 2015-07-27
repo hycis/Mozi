@@ -3,6 +3,9 @@ import numpy as np
 import time
 import sys
 
+'''
+from keras
+'''
 
 class Progbar(object):
     def __init__(self, target, width=30, verbose=1):

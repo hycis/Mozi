@@ -3,6 +3,10 @@ import numpy as np
 import theano
 import theano.tensor as T
 
+'''
+from keras
+'''
+
 def asfloatX(X):
     return np.asarray(X, dtype=theano.config.floatX)
 
