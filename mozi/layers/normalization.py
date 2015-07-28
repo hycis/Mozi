@@ -17,12 +17,12 @@ class BatchNormalization(Template):
         momentum: momentum term in the computation of a running estimate of the mean and std of the data
     '''
     def __init__(self, input_shape, epsilon=1e-6, mode=0, momentum=0.9):
-        self.init = UniformWeight()
         self.input_shape = input_shape
         self.epsilon = epsilon
         self.mode = mode
         self.momentum = momentum
 
+        self.init = UniformWeight()
         self.gamma = self.init((self.input_shape), name='gamma')
         self.beta = shared_zeros(self.input_shape, name='beta')
 
@@ -54,8 +54,7 @@ class BatchNormalization(Template):
             std = state_below.std(axis=-1, keepdims=True)
             X_normed = (state_below - m) / (std + self.epsilon)
 
-        out = self.gamma * X_normed + self.beta
-        return out
+        return self.gamma * X_normed + self.beta
 
 
     def _test_fprop(self, state_below):
@@ -68,5 +67,4 @@ class BatchNormalization(Template):
             std = state_below.std(axis=-1, keepdims=True)
             X_normed = (state_below - m) / (std + self.epsilon)
 
-        out = self.gamma * X_normed + self.beta
-        return out
+        return self.gamma * X_normed + self.beta

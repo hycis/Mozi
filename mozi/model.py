@@ -49,9 +49,8 @@ class Sequential(object):
         return input_state, train_layers_stats
 
     def fprop(self, input_values):
-        input_state = self.layers[0].input_var
-        output, stats = self.test_fprop(input_state)
-        f = theano.function([input_state], output)
+        output, stats = self.test_fprop(self.input_var)
+        f = theano.function([self.input_var], output)
         return f(input_values)
 
     def get_layers(self):

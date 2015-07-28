@@ -47,5 +47,5 @@ class UniformWeight(WeightInitialization):
         self.scale = scale
 
     def __call__(self, dim, name='W'):
-        W_values = np.ramdom.uniform(low=-self.scale, high=self.scale, size=dim)
+        W_values = np.random.uniform(low=-self.scale, high=self.scale, size=dim)
         return theano.shared(name=name, value=W_values, borrow=True)
