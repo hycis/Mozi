@@ -12,8 +12,6 @@ if not os.getenv('MOZI_SAVE_PATH'):
 if not os.getenv('MOZI_DATABASE_PATH'):
     os.environ['MOZI_DATABASE_PATH'] = NNdir + '/database'
 
-os.environ['PYTHONPATH'] += NNdir + '/mozi'
-
 print(os.environ['MOZI_DATA_PATH'])
 print(os.environ['MOZI_SAVE_PATH'])
 print(os.environ['MOZI_DATABASE_PATH'])
@@ -23,8 +21,8 @@ setup(
     version='0.1',
     packages=find_packages(),
     description='A machine learning library build on top of Theano.',
-    license='BSD',
-    install_requires=['numpy>=1.5', 'theano', 'sqlite3>=2.6.0'],
+    license='MIT',
+    install_requires=['numpy>=1.5', 'theano'],
     package_data={
         '': ['*.txt', '*.rst', '*.cu', '*.cuh', '*.h'],
     },

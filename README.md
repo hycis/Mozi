@@ -24,12 +24,17 @@ In Mozi, we need to set three environment paths
 Building a model in Mozi is as simple as
 
 ```python
+import theano.tensor as T
 from mozi.model import Sequential
+model = Sequential(input_var=T.matrix())
+```
+The `input_var` is the input tensor variable that corresponds to the number of dimensions of the input dataset. T.matrix for 2d data, T.tensor3 for 3d data and T.tensor4 for 4d data. Next add the layers
+
+```python
 from mozi.layers.linear import Linear
 from mozi.layers.activation import RELU, Softmax
 from mozi.layers.noise import Dropout
 
-model = Sequential(input_var=T.matrix())
 model.add(Linear(prev_dim=28*28, this_dim=200))
 model.add(RELU())
 model.add(Linear(prev_dim=200, this_dim=100))
@@ -122,7 +127,7 @@ Mozi provides two data interface, one is for dataset small enough to fit all int
 Check out the [Mnist](mozi/datasets/mnist.py) or [Cifar10](mozi/datasets/cifar10.py) examples on how to build a dataset.
 
 #### Using SingleBlock Directly
-Besides subclassing `SingleBlock` or `DataBlocks` to create dataset like Mnist and Cifar10 example, we can use `SingleBlock` directly to build a dataset in as simple as
+Besides subclassing `SingleBlock` or `DataBlocks` to create dataset like Mnist and Cifar10 example, we can use `SingleBlock` or `DataBlocks` directly to build a dataset in as simple as
 ```python
 from mozi.datasets.dataset import SingleBlock
 import numpy as np
