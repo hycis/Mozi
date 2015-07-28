@@ -121,6 +121,17 @@ Each layer provides two tracks: training track and testing track. During trainin
 Mozi provides two data interface, one is for dataset small enough to fit all into the memory [(SingleBlock)](mozi/datasets/dataset.py#L82), another is for large datasets which cannot be fit into memory in one go and has to be broken up into blocks and load into training one block at a time [(DataBlocks)](mozi/datasets/dataset.py#L171).  
 Check out the [Mnist](mozi/datasets/mnist.py) or [Cifar10](mozi/datasets/cifar10.py) examples on how to build a dataset.
 
+#### Using SingleBlock Directly
+Besides subclassing `SingleBlock` or `DataBlocks` to create dataset like Mnist and Cifar10 example, we can use `SingleBlock` directly to build a dataset in as simple as
+```python
+from mozi.datasets.dataset import SingleBlock
+import numpy as np
+X = np.random.rand(1000, 5)
+y = np.random.rand(1000, 3)
+data = SingleBlock(X=X, y=y, batch_size=100, train_valid_test_ratio=[3,1,1])
+train_object = TrainObject(dataset = data)
+```
+
 ---
 ### Logging
 Mozi provides a logging module for automatic saving of best model and logging the errors for each epoch.
