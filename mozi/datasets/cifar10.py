@@ -35,12 +35,10 @@ class Cifar10(SingleBlock):
                 else:
                     X.extend(data_batch['data'].reshape((len(data_batch['data']),)+self.img_shape))
                 y.extend(data_batch['labels'])
-                    
+
 
         X_npy = np.array(X, dtype=floatX)
         X_npy /= 255.0
         y_npy = make_one_hot(y, onehot_size=self.n_classes)
-        # import pdb; pdb.set_trace()
-
 
         super(Cifar10, self).__init__(X=X_npy, y=y_npy, **kwargs)

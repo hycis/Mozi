@@ -25,8 +25,8 @@ Building a model in Mozi is as simple as
 
 ```python
 from mozi.model import Sequential
-from mozi.layers.linear import Linear, Softmax
-from mozi.layers.activation import RELU
+from mozi.layers.linear import Linear
+from mozi.layers.activation import RELU, Softmax
 from mozi.layers.noise import Dropout
 
 model = Sequential(input_var=T.matrix())
