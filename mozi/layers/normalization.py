@@ -68,22 +68,3 @@ class BatchNormalization(Template):
             X_normed = (state_below - m) / (std + self.epsilon)
 
         return self.gamma * X_normed + self.beta
-
-
-class LRN(Template):
-
-    def __init__(self, alpha=1e-4, beta=0.75, k=2, n=5):
-        '''
-        DESCRIPTION:
-            Local Contrast Normalization
-            Reference: ImageNet Classification with Deep Convolutional Neural Networks
-        '''
-        self.alpha = alpha
-        self.beta = beta
-        self.k = k
-        self.n = n
-
-    def _train_fprop(self, state_below):
-        state_below[:,i,:,:] = T.square(state_below[:,i-self.n/2:i+self.n/2+1,:,:]).sum(axis=1)
-        
-        scan()
