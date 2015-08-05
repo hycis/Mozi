@@ -7,6 +7,7 @@ from mozi.model import Sequential
 from mozi.layers.linear import Linear
 from mozi.layers.activation import *
 from mozi.layers.noise import Gaussian
+import theano.tensor as T
 
 # build model
 model = Sequential(input_var=T.matrix())

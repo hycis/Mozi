@@ -10,9 +10,9 @@ class Sequential(object):
     def __init__(self, input_var):
         """
         PARAM:
-            input_var (T.vector | T.matrix | T.tensor3 | T.tensor4):
+            input_var (T.vector() | T.matrix() | T.tensor3() | T.tensor4()):
                     The tensor variable input to the model that corresponds to
-                    the dimension of of the dataset
+                    the number of dimensions of the dataset
 
         """
         self.input_var = input_var
@@ -36,6 +36,7 @@ class Sequential(object):
 
         return input_state, test_layers_stats
 
+
     def train_fprop(self, input_state):
         train_layers_stats = []
         for i in xrange(len(self.layers)):
@@ -47,6 +48,7 @@ class Sequential(object):
             train_layers_stats += stats
 
         return input_state, train_layers_stats
+
 
     def fprop(self, input_values):
         output, stats = self.test_fprop(self.input_var)

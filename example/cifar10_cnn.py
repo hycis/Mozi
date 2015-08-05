@@ -1,5 +1,7 @@
 import numpy as np
 
+import theano.tensor as T
+
 from mozi.datasets.cifar10 import Cifar10
 from mozi.model import Sequential
 from mozi.layers.linear import *
@@ -12,6 +14,7 @@ from mozi.train_object import TrainObject
 from mozi.cost import error, entropy
 from mozi.learning_method import SGD
 import os
+
 
 
 def setenv():

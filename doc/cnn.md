@@ -9,6 +9,7 @@ from mozi.layers.noise import Dropout
 from mozi.layers.activation import *
 from mozi.layers.convolution import *
 from mozi.layers.misc import Flatten
+import theano.tensor as T
 
 model = Sequential(input_var=T.tensor4())
 model.add(Convolution2D(input_channels=3, filters=32, kernel_size=(3,3), stride=(1,1), border_mode='full'))
