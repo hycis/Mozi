@@ -34,10 +34,6 @@ def _batch_cost_nll(y, y_pred):
     """
     return T.sum(T.log(y_pred)[T.arange(y.shape[0]), y.argmin(axis=1)])
 
-def confusion_matrix(y, y_pred):
-    #TODO
-    pass
-
 def mse(y, y_pred):
     L = T.sum(T.sqr(y - y_pred), axis=1)
     return T.mean(L)
@@ -54,44 +50,15 @@ def f1(y, y_pred):
     #TODO
     pass
 
-def binary_misprecision(y, y_pred):
-    '''
-    This cost function is only for binary classifications
-    '''
-    # assert(theano_unique(y).size == 2)
-
-    y_pred = y_pred.argmax(axis=1)
-    y = y.argmax(axis=1)
-
-    TP = (y_pred and y).astype(floatX)
-    y0 = T.eq(y, 0)
-    FP = (y0 and y_pred).astype(floatX)
-
-    TP = T.sum(TP)
-    FP = T.sum(FP)
-
-    rval = FP / (TP + FP)
-    return rval
-
-def FP_minus_TP(y, y_pred):
-    '''
-    This cost function is only for binary classifications
-    '''
-    # assert(theano_unique(y).size == 2)
-
-    y_pred = y_pred.argmax(axis=1)
-    y = y.argmax(axis=1)
-
-    TP = (y_pred and y).astype(floatX)
-    y0 = T.eq(y, 0)
-    FP = (y0 and y_pred).astype(floatX)
-
-    TP = T.mean(TP)
-    FP = T.mean(FP)
-
-    return FP - TP
-
-
 def abs(y, y_pred):
     L = T.sum(T.abs_(y - y_pred, axis=1))
     return T.mean(L)
+
+def SGVB_bin(y, y_pred):
+    '''
+    This cost function for variational autoencoder for binary inputs
+    '''
+    ypred, miu_e, logsig_e = y_pred
+    logpxz = -T.nnet.binary_crossentropy(ypred, y).sum(axis=1)
+    L = logpxz + 0.5 * (1 + 2*logsig_e - miu_e**2 - T.exp(2*logsig_e)).sum(axis=1)
+    return L.mean()

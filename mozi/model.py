@@ -7,15 +7,19 @@ floatX = theano.config.floatX
 
 class Sequential(object):
 
-    def __init__(self, input_var):
+    def __init__(self, input_var, output_var):
         """
         PARAM:
             input_var (T.vector() | T.matrix() | T.tensor3() | T.tensor4()):
                     The tensor variable input to the model that corresponds to
-                    the number of dimensions of the dataset
+                    the number of dimensions of the input X of dataset
+            input_var (T.vector() | T.matrix() | T.tensor3() | T.tensor4()):
+                    The tensor variable output from the model that corresponds to
+                    the number of dimensions of the output y of dataset
 
         """
         self.input_var = input_var
+        self.output_var = output_var
         self.layers = []
 
     def add(self, layer):

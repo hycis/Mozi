@@ -11,7 +11,7 @@ from mozi.layers.convolution import *
 from mozi.layers.misc import Flatten
 import theano.tensor as T
 
-model = Sequential(input_var=T.tensor4())
+model = Sequential(input_var=T.tensor4(), output_var=T.matrix())
 model.add(Convolution2D(input_channels=3, filters=32, kernel_size=(3,3), stride=(1,1), border_mode='full'))
 model.add(RELU())
 model.add(Convolution2D(input_channels=32, filters=32, kernel_size=(3,3), stride=(1,1)))

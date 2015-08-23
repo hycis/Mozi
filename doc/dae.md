@@ -10,7 +10,7 @@ from mozi.layers.noise import Gaussian
 import theano.tensor as T
 
 # build model
-model = Sequential(input_var=T.matrix())
+model = Sequential(input_var=T.matrix(), output_var=T.matrix())
 # build encoder
 model.add(Gaussian())
 encode_layer1 = Linear(prev_dim=28*28, this_dim=200)

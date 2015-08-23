@@ -1,21 +1,6 @@
 import os
 from setuptools import setup, find_packages
 
-NNdir = os.path.dirname(os.path.realpath(__file__))
-
-if not os.getenv('MOZI_DATA_PATH'):
-    os.environ['MOZI_DATA_PATH'] = NNdir + '/data'
-
-if not os.getenv('MOZI_SAVE_PATH'):
-    os.environ['MOZI_SAVE_PATH'] = NNdir + '/save'
-
-if not os.getenv('MOZI_DATABASE_PATH'):
-    os.environ['MOZI_DATABASE_PATH'] = NNdir + '/database'
-
-print(os.environ['MOZI_DATA_PATH'])
-print(os.environ['MOZI_SAVE_PATH'])
-print(os.environ['MOZI_DATABASE_PATH'])
-
 setup(
     name='mozi',
     version='0.1',

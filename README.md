@@ -26,9 +26,9 @@ Building a model in Mozi is as simple as
 ```python
 import theano.tensor as T
 from mozi.model import Sequential
-model = Sequential(input_var=T.matrix())
+model = Sequential(input_var=T.matrix(), output_var=T.matrix())
 ```
-The `input_var` is the input tensor variable that corresponds to the number of dimensions of the input dataset. T.matrix for 2d data, T.tensor3 for 3d data and T.tensor4 for 4d data. Next add the layers
+The `input_var` is the input tensor variable that corresponds to the number of dimensions of the input dataset. The `output_var` is the tensor variable that corresponds to the target of the dataset. `T.matrix` for `2d data`, `T.tensor3` for `3d data` and `T.tensor4` for `4d data`. Next add the layers
 
 ```python
 from mozi.layers.linear import Linear
@@ -92,6 +92,7 @@ print 'test accuracy:', accuracy
 Mozi can be used to build effectively any kind of architecture. Below is another few examples
 * [**Convolution Neural Network**](doc/cnn.md)
 * [**Denoising Autoencoder**](doc/dae.md)
+* [**Variational Autoencoder**](doc/vae.md)
 
 ---
 ### Layer Template

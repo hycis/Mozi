@@ -42,7 +42,7 @@ def train():
 
     data = Cifar10(batch_size=32, train_valid_test_ratio=[4,1,1])
 
-    model = Sequential(input_var=T.tensor4())
+    model = Sequential(input_var=T.tensor4(), output_var=T.matrix())
     model.add(Convolution2D(input_channels=3, filters=32, kernel_size=(3,3), stride=(1,1), border_mode='full'))
     model.add(RELU())
     model.add(Convolution2D(input_channels=32, filters=32, kernel_size=(3,3), stride=(1,1)))

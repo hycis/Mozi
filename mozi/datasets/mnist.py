@@ -10,7 +10,7 @@ from mozi.datasets.dataset import SingleBlock, DataBlocks
 
 class Mnist(SingleBlock):
 
-    def __init__(self, **kwargs):
+    def __init__(self, binary=True, **kwargs):
 
         im_dir = os.environ['MOZI_DATA_PATH'] + '/mnist/'
 
@@ -45,6 +45,8 @@ class Mnist(SingleBlock):
         train_y = train_y_tmp
         test_y = test_y_tmp
 
+        if binary:
+            X = (X >= 0.5).astype(int)
         y = np.concatenate((train_y, test_y), axis=0)
 
         super(Mnist, self).__init__(X=X, y=y, **kwargs)
