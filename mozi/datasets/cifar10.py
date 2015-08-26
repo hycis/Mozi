@@ -14,10 +14,10 @@ class Cifar10(SingleBlock):
     def __init__(self, flatten=False, **kwargs):
 
         im_dir = os.environ['MOZI_DATA_PATH'] + '/cifar10/'
-        self.label_names = ['airplane', 'automobile', 'bird', 'cat', 'deer',
-                            'dog', 'frog','horse','ship','truck']
         path = 'http://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz'
         im_dir = get_file(fpath="{}/cifar-10-python.tar.gz".format(im_dir), origin=path, untar=True)
+        self.label_names = ['airplane', 'automobile', 'bird', 'cat', 'deer',
+                            'dog', 'frog','horse','ship','truck']
 
         self.img_shape = (3,32,32)
         self.img_size = np.prod(self.img_shape)

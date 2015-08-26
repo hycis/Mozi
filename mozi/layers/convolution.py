@@ -35,11 +35,11 @@ class Convolution2D(Template):
         self.W_shape = (self.filters, self.input_channels) + self.kernel_size
         self.W = W
         if self.W is None:
-            self.W = weight_init(self.W_shape, name='W_'+self.__class__.__name__)
+            self.W = weight_init(self.W_shape, name='W')
 
         self.b = b
         if self.b is None:
-            self.b = shared_zeros(shape=(self.filters,), name='b_'+self.__class__.__name__)
+            self.b = shared_zeros(shape=(self.filters,), name='b')
 
         self.params = [self.W, self.b]
 

@@ -68,3 +68,34 @@ class BatchNormalization(Template):
             X_normed = (state_below - m) / (std + self.epsilon)
 
         return self.gamma * X_normed + self.beta
+
+
+class LRN(Template):
+    """
+    Local Response Normalization
+    """
+
+    def __init__(self, n=5, alpha=0.0001, beta=0.75, k=2):
+        super(LRN, self).__init__()
+        self.n = n
+        self.alpha = alpha
+        self.beta = beta
+        self.k = k
+        assert self.n % 2 == 1, 'only odd n is supported'
+
+    def _train_fprop(self, state_below):
+        half = self.n / 2
+        sq = T.sqr(state_below)
+        b, ch, r, c = state_below.shape
+        extra_channels = T.alloc(0., b, ch + 2*half, r, c)
+        sq = T.set_subtensor(extra_channels[:,half:half+ch,:,:], sq)
+        scale = self.k
+
+        for i in xrange(self.n):
+            scale += self.alpha * sq[:,i:i+ch,:,:]
+
+        scale = scale ** self.beta
+        return state_below / scale
+
+    def _test_fprop(self, state_below):
+        return self._train_fprop(state_below)

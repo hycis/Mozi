@@ -170,7 +170,7 @@ def get_file(fpath, origin, untar=False):
         progbar = None
 
     if untar:
-        tfile = tarfile.open(fpath, 'r:gz')
+        tfile = tarfile.open(fpath, 'r:*')
         names = tfile.getnames()
         dirname = names[0]
         not_exists = [int(not os.path.exists("{}/{}".format(datadir, fname))) for fname in names]
@@ -178,7 +178,7 @@ def get_file(fpath, origin, untar=False):
             print('Untaring file...')
             tfile.extractall(path=datadir)
         else:
-            print('Files already untarred')
+            print('Files already downloaded and untarred')
         tfile.close()
 
     return "{}/{}".format(datadir, dirname)
@@ -208,5 +208,3 @@ def make_tuple(*args):
 def is_shared_var(var):
     return var.__class__.__name__ == 'TensorSharedVariable' or \
             var.__class__.__name__ == 'CudaNdarraySharedVariable'
-
-                

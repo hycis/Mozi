@@ -55,6 +55,7 @@ class TrainObject():
             for param in layer.params:
                 # checked that the param to be updated is shared variable
                 if is_shared_var(param):
+                    param.name += '_' + layer.__class__.__name__
                     params += [param]
                     deltas += [shared_zeros(shape=param.shape.eval())]
 

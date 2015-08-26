@@ -14,8 +14,7 @@ from mozi.layers.vae import VariationalAutoencoder
 from mozi.log import Log
 from mozi.train_object import TrainObject
 from mozi.cost import SGVB_bin
-from mozi.learning_method import *
-from mozi.weight_init import *
+from mozi.learning_method import SGD
 
 # build dataset
 data = Mnist(batch_size=100, binary=False, train_valid_test_ratio=[5,1,1])

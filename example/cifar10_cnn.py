@@ -52,7 +52,7 @@ def train():
 
     model.add(Convolution2D(input_channels=32, filters=64, kernel_size=(3,3), stride=(1,1), border_mode='full'))
     model.add(RELU())
-    model.add(Convolution2D(input_channels=64, filters=64, kernel_size=(3,3), stride=(1,1),))
+    model.add(Convolution2D(input_channels=64, filters=64, kernel_size=(3,3), stride=(1,1)))
     model.add(RELU())
     model.add(Pooling2D(poolsize=(2, 2), mode='max'))
     model.add(Dropout(0.25))

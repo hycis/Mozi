@@ -18,17 +18,17 @@ class VariationalAutoencoder(Template):
         self.bottlenet_dim = bottlenet_dim
 
         # encoder
-        self.W_e = weight_init((input_dim, bottlenet_dim), name='W_e_'+self.__class__.__name__)
-        self.b_e = shared_zeros(shape=bottlenet_dim, name='b_e_'+self.__class__.__name__)
-        self.W_miu = weight_init((bottlenet_dim, z_dim), name='W_miu_'+self.__class__.__name__)
-        self.b_miu = shared_zeros(shape=z_dim, name='b_miu_'+self.__class__.__name__)
-        self.W_sig = weight_init((bottlenet_dim, z_dim), name='W_sig_'+self.__class__.__name__)
-        self.b_sig = shared_zeros(shape=z_dim, name='b_sig_'+self.__class__.__name__)
+        self.W_e = weight_init((input_dim, bottlenet_dim), name='W_e')
+        self.b_e = shared_zeros(shape=bottlenet_dim, name='b_e')
+        self.W_miu = weight_init((bottlenet_dim, z_dim), name='W_miu')
+        self.b_miu = shared_zeros(shape=z_dim, name='b_miu')
+        self.W_sig = weight_init((bottlenet_dim, z_dim), name='W_sig')
+        self.b_sig = shared_zeros(shape=z_dim, name='b_sig')
         # decoder
-        self.W1_d = weight_init((z_dim, bottlenet_dim), name='W1_d_'+self.__class__.__name__)
-        self.b1_d = shared_zeros(shape=bottlenet_dim, name='b1_d_'+self.__class__.__name__)
-        self.W2_d = weight_init((bottlenet_dim, input_dim), name='W2_d_'+self.__class__.__name__)
-        self.b2_d = shared_zeros(shape=input_dim, name='b2_d_'+self.__class__.__name__)
+        self.W1_d = weight_init((z_dim, bottlenet_dim), name='W1_d')
+        self.b1_d = shared_zeros(shape=bottlenet_dim, name='b1_d')
+        self.W2_d = weight_init((bottlenet_dim, input_dim), name='W2_d')
+        self.b2_d = shared_zeros(shape=input_dim, name='b2_d')
 
         self.params = [self.W_e, self.b_e, self.W_miu, self.b_miu, self.W_sig, self.b_sig,
                        self.W1_d, self.b1_d, self.W2_d, self.b2_d]

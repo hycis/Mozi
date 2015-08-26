@@ -93,6 +93,7 @@ Mozi can be used to build effectively any kind of architecture. Below is another
 * [**Convolution Neural Network**](doc/cnn.md)
 * [**Denoising Autoencoder**](doc/dae.md)
 * [**Variational Autoencoder**](doc/vae.md)
+* [**Alexnet**](example/cifar10_alexnet.py)
 
 ---
 ### Layer Template
