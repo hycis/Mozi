@@ -12,9 +12,6 @@ class Alexnet(Template):
 
     def __init__(self, input_shape, output_dim):
         '''
-        DESCRIPTION:
-            The last layer of alexnet is a linear layer, this allows users to append
-            a softmax after appending a softmax layer
         FIELDS:
             self.params: any params from the layer that needs to be updated
                          by backpropagation can be put inside self.params
