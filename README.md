@@ -154,7 +154,7 @@ with open('X1.npy', 'wb') as xin, open('y1.npy', 'wb') as yin:
     np.save(yin, y1)
 
 X2 = np.random.rand(100, 3, 32, 32)
-y2 = np.random.rand(100, 3)
+y2 = np.random.rand(100, 10)
 with open('X2.npy', 'wb') as xin, open('y2.npy', 'wb') as yin:
     np.save(xin, X1)
     np.save(yin, y1)
@@ -162,7 +162,7 @@ with open('X2.npy', 'wb') as xin, open('y2.npy', 'wb') as yin:
 # now we can create the data by putting the paths
 # ('X1.npy', 'y1.npy') and ('X2.npy', 'y2.npy') into DataBlocks
 data = DataBlocks(data_paths=[('X1.npy', 'y1.npy'), ('X2.npy', 'y2.npy')],
-                  batch_size=100, train_valid_test_ratio=[3,1,1])
+                  batch_size=32, train_valid_test_ratio=[3,1,1])
 train_object = TrainObject(dataset = data)
 ```
 
