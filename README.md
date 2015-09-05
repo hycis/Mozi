@@ -139,6 +139,32 @@ data = SingleBlock(X=X, y=y, batch_size=100, train_valid_test_ratio=[3,1,1])
 train_object = TrainObject(dataset = data)
 ```
 
+#### For Large Dataset Trained in Blocks
+For large dataset that cannot fit into memory, you can use `DataBlocks` to train block by block.
+```
+from mozi.datasets.dataset import DataBlocks
+import numpy as np
+
+# we have two blocks of 100 images each saved as ('X1.npy', 'y1.npy') and ('X2.npy', 'y2.npy')
+X1 = np.random.rand(100, 3, 32, 32)
+y1 = np.random.rand(100, 10)
+with open('X1.npy', 'wb') as xin, open('y1.npy', 'wb') as yin:
+    np.save(xin, X1)
+    np.save(yin, y1)
+
+X2 = np.random.rand(100, 3, 32, 32)
+y2 = np.random.rand(100, 3)
+with open('X2.npy', 'wb') as xin, open('y2.npy', 'wb') as yin:
+    np.save(xin, X1)
+    np.save(yin, y1)
+
+# now we can create the data by putting the paths ('X1.npy', 'y1.npy') and ('X2.npy', 'y2.npy')
+# into DataBlocks
+data = DataBlocks(data_paths=[('X1.npy', 'y1.npy'), ('X2.npy', 'y2.npy')],
+                  batch_size=100, train_valid_test_ratio=[3,1,1])
+train_object = TrainObject(dataset = data)
+```
+
 ---
 ### Logging
 Mozi provides a logging module for automatic saving of best model and logging the errors for each epoch.
