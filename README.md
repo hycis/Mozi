@@ -141,7 +141,7 @@ train_object = TrainObject(dataset = data)
 
 #### For Large Dataset Trained in Blocks
 For large dataset that cannot fit into memory, you can use `DataBlocks` to train block by block.
-```
+```python
 from mozi.datasets.dataset import DataBlocks
 import numpy as np
 
