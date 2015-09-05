@@ -165,7 +165,7 @@ class SingleBlock(Dataset):
 
 class DataBlocks(Dataset):
 
-    def __init__(self, feature_size, target_size, data_paths, **kwargs):
+    def __init__(self, data_paths, **kwargs):
 
         """
         DESCRIPTION:
@@ -178,8 +178,6 @@ class DataBlocks(Dataset):
                             example [(X_path1, y_path1),(X_path2, y_path2)]
         """
         super(DataBlocks, self).__init__(**kwargs)
-        self.featureSize = feature_size
-        self.targetSize = target_size
         assert isinstance(data_paths, list), "data_paths is not a list"
         self.data_paths = data_paths
         self.single_block = SingleBlock(X=None, y=None, **kwargs)
