@@ -18,7 +18,6 @@ class VOC(SingleBlock):
         using only voc 2012 for actions classification, total 2154 images
         resized_shape is of (height, width, channel)
         '''
-        os.environ['MOZI_DATA_PATH'] = '/data1/wuzz/data'
         im_dir = os.environ['MOZI_DATA_PATH'] + '/voc'
         path = 'http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar'
         im_dir = get_file(fpath="{}/VOCtrainval_11-May-2012.tar".format(im_dir), origin=path, untar=True)
