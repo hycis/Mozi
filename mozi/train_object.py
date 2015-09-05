@@ -90,7 +90,7 @@ class TrainObject():
 
         self.log.info('..training function compiled')
 
-        #======================[ testing params updates ]=====================#
+        #=============================[ testing ]=============================#
 
         test_y_pred, test_layers_stats = self.model.test_fprop(self.model.input_var)
 
