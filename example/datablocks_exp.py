@@ -102,12 +102,14 @@ def train():
     train_object.setup()
     train_object.run()
 
-    # test the model on test set
-    ypred = model.fprop(data.get_test().X)
-    ypred = np.argmax(ypred, axis=1)
-    y = np.argmax(data.get_test().y, axis=1)
-    accuracy = np.equal(ypred, y).astype('f4').sum() / len(y)
-    print 'test accuracy:', accuracy
+    for X_path, y_path in [('X1.npy', 'y1.npy'), ('X2.npy', 'y2.npy')]:
+        with open(X_path) as Xin, open(y_path) as yin:
+            # test the model on test set
+            ypred = model.fprop(np.load(Xin))
+            ypred = np.argmax(ypred, axis=1)
+            y = np.argmax(np.load(yin), axis=1)
+            accuracy = np.equal(ypred, y).astype('f4').sum() / len(y)
+            print 'combined accuracy for blk %s:'%X_path, accuracy
 
 
 if __name__ == '__main__':
