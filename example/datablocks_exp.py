@@ -1,8 +1,5 @@
-
-
-
 import numpy as np
-
+import os
 import theano.tensor as T
 
 from mozi.datasets.cifar10 import Cifar10
@@ -16,8 +13,6 @@ from mozi.log import Log
 from mozi.train_object import TrainObject
 from mozi.cost import error, entropy
 from mozi.learning_method import SGD
-import os
-
 from mozi.datasets.dataset import DataBlocks
 
 def setenv():
