@@ -173,12 +173,14 @@ class TrainObject():
                                 + ' block %s/%s'%(blk, self.dataset.nblocks))
 
                     progbar = Progbar(target=train_set.dataset_size)
+                    blk_sz = 0
                     for idx in train_set:
                         cost = self.training(train_set.X[idx], train_set.y[idx])
                         total_train_cost += cost * len(idx)
                         num_train_examples += len(idx)
                         train_stats_values += len(idx) * get_shared_values(self.train_stats_shared)
-                        progbar.update(num_train_examples)
+                        blk_sz += len(idx)
+                        progbar.update(blk_sz)
                     print
 
                     #-------[ Update train best cost and error values ]-------#
@@ -192,13 +194,15 @@ class TrainObject():
                                 + ' block %s/%s'%(blk, self.dataset.nblocks))
 
                     progbar = Progbar(target=valid_set.dataset_size)
+                    blk_sz = 0
                     for idx in valid_set:
                         stopping_cost, cost = self.testing(valid_set.X[idx], valid_set.y[idx])
                         total_valid_cost += cost * len(idx)
                         total_valid_stopping_cost += stopping_cost * len(idx)
                         num_valid_examples += len(idx)
                         valid_stats_values += len(idx) * get_shared_values(self.test_stats_shared)
-                        progbar.update(num_valid_examples)
+                        blk_sz += len(idx)
+                        progbar.update(blk_sz)
                     print
 
                     #-------[ Update valid best cost and error values ]-------#
