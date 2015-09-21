@@ -141,10 +141,12 @@ class Log:
             cur.execute('UPDATE ' + self.experiment_name + ' SET ' +
                         'epoch = ?, ' +
                         'train_cost = ?,' +
-                        'valid_cost = ?' +
+                        'valid_cost = ?,' +
+                        'best_valid_error = ?' +
                         "WHERE exp_id='%s'"%self.exp_id,
                         [epoch,
                         train_cost,
-                        valid_cost])
+                        valid_cost,
+                        best_valid_error])
         conn.commit()
         conn.close()
