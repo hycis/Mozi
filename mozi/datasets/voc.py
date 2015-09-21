@@ -59,7 +59,7 @@ class VOC(SingleBlock):
             with open(X_path, 'rb') as Xin, open(y_path, 'rb') as yin:
                 X = np.load(Xin)
                 y = np.load(yin)
-
+                
         super(VOC, self).__init__(X=np.rollaxis(X,3,1), y=make_one_hot(y,len(actls)), **kwargs)
 
 # x = VOC()
