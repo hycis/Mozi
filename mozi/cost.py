@@ -59,6 +59,7 @@ def SGVB_bin(y, y_pred):
     This cost function for variational autoencoder for binary inputs
     '''
     ypred, miu_e, logsig_e = y_pred
+    ypred = T.clip(ypred, epsilon, 1.0 - epsilon)
     logpxz = -T.nnet.binary_crossentropy(ypred, y).sum(axis=1)
     L = logpxz + 0.5 * (1 + 2*logsig_e - miu_e**2 - T.exp(2*logsig_e)).sum(axis=1)
     return L.mean()
