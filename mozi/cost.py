@@ -5,6 +5,11 @@ from mozi.utils.utils import theano_unique
 
 floatX = theano.config.floatX
 
+if floatX == 'float64':
+    epsilon = 1.0e-9
+else:
+    epsilon = 1.0e-7
+
 def get_accuracy(y, y_pred):
     """Return a float representing the number of errors in the minibatch
     over the total number of examples of the minibatch ; zero one
@@ -28,17 +33,12 @@ def positives(y, y_pred):
     """
     return T.eq(y_pred.argmax(axis=1), y.argmax(axis=1)).sum()
 
-def _batch_cost_nll(y, y_pred):
-    """
-    return the total cost of all the examples in a batch
-    """
-    return T.sum(T.log(y_pred)[T.arange(y.shape[0]), y.argmin(axis=1)])
-
 def mse(y, y_pred):
     L = T.sum(T.sqr(y - y_pred), axis=1)
     return T.mean(L)
 
 def entropy(y, y_pred):
+    y_pred = T.clip(y_pred, epsilon, 1.0 - epsilon)
     L = - T.sum(y * T.log(y_pred) + (1-y) * T.log(1-y_pred), axis=1)
     return T.mean(L)
 

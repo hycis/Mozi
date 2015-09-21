@@ -76,7 +76,7 @@ def train():
                                train_cost = entropy,
                                valid_cost = error,
                                learning_method = learning_method,
-                               stop_criteria = {'max_epoch' : 10,
+                               stop_criteria = {'max_epoch' : 30,
                                                 'epoch_look_back' : 5,
                                                 'percent_decrease' : 0.01}
                                )
