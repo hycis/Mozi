@@ -63,7 +63,7 @@ def train():
               save_outputs = True, # log all the outputs from the screen
               save_model = True, # save the best model
               save_epoch_error = True, # log error at every epoch
-              save_to_database = {'name': 'Example.db',
+              save_to_database = {'name': 'Example.sqlite3',
                                   'records': {'Batch_Size': data.batch_size,
                                               'Learning_Rate': learning_method.learning_rate,
                                               'Momentum': learning_method.momentum}}
