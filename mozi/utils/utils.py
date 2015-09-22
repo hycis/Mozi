@@ -4,6 +4,7 @@ from __future__ import print_function
 import matplotlib
 matplotlib.use('Agg')
 import theano
+import theano.tensor as T
 import numpy as np
 import matplotlib.pyplot as plt
 from theano.compile.ops import as_op
@@ -11,6 +12,8 @@ from mozi.utils.progbar import Progbar
 
 import tarfile, inspect, os
 from six.moves.urllib.request import urlretrieve
+
+floatX = theano.config.floatX
 
 def split_list(tuple_list):
     """
@@ -201,6 +204,7 @@ def get_from_module(identifier, module_params, module_name, instantiate=False):
             return res
     return identifier
 
+
 def make_tuple(*args):
     return args
 
@@ -208,3 +212,16 @@ def make_tuple(*args):
 def is_shared_var(var):
     return var.__class__.__name__ == 'TensorSharedVariable' or \
             var.__class__.__name__ == 'CudaNdarraySharedVariable'
+
+
+def gpu_to_cpu_model(model):
+    for layer in model.layers:
+        for member, value in layer.__dict__.items():
+            if is_shared_var(value):
+                layer.__dict__[member] = T._shared(np.array(value.get_value(), floatX),
+                                          name=value.name, borrow=False)
+        for i in xrange(len(layer.params)):
+            if is_shared_var(layer.params[i]):
+                layer.params[i] = T._shared(np.array(layer.params[i].get_value(), floatX),
+                                          name=layer.params[i].name, borrow=False)
+    return model
