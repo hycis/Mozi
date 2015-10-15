@@ -24,20 +24,18 @@ class GaussianWeight(WeightInitialization):
         self.std = std
 
     def __call__(self, dim, name='W'):
-        W_values = np.asarray(np.random.normal(loc = self.mean, scale = self.std,
-                              size = dim),
-                              dtype = floatX)
+        W_values = np.random.normal(loc=self.mean, scale=self.std, size=dim).astype(floatX)
+
         return theano.shared(name=name, value=W_values, borrow=True)
 
 
 class XavierUniformWeight(WeightInitialization):
     def __call__(self, dim, name='W'):
         fan_in, fan_out = get_fans(dim)
-        W_values = np.asarray(np.random.uniform(
-                            low = -4 * np.sqrt(6. / (fan_in + fan_out)),
-                            high = 4 * np.sqrt(6. / (fan_in + fan_out)),
-                            size = dim),
-                            dtype = floatX)
+        W_values = np.random.uniform(low = -4 * np.sqrt(6. / (fan_in + fan_out)),
+                                     high = 4 * np.sqrt(6. / (fan_in + fan_out)),
+                                     size = dim).astype(floatX)
+
 
         return theano.shared(name=name, value=W_values, borrow=True)
 
@@ -47,5 +45,5 @@ class UniformWeight(WeightInitialization):
         self.scale = scale
 
     def __call__(self, dim, name='W'):
-        W_values = np.random.uniform(low=-self.scale, high=self.scale, size=dim)
+        W_values = np.random.uniform(low=-self.scale, high=self.scale, size=dim).astype(floatX)
         return theano.shared(name=name, value=W_values, borrow=True)
