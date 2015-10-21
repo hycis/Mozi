@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 import theano
 import theano.tensor as T
 import numpy as np
