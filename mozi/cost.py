@@ -48,7 +48,7 @@ def error(y, y_pred):
     return T.mean(L)
 
 def error_threshold(y, y_pred, threshold=0.5):
-    y_pred = T.ge(y_pred, threshold).astype('intp')
+    y_pred = T.ge(y_pred, threshold)
     return error(y, y_pred)
 
 def recall(y, y_pred):
