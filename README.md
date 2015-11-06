@@ -10,6 +10,12 @@ Mozi is based on Theano with a clean and sharp design, the **design philosophy**
 
 ---
 ### Set Environment
+
+To use Mozi, first add Mozi to python path
+```bash
+export PYTHONPATH=/path/to/Mozi:$PYTHONPATH
+```
+
 In Mozi, we need to set three environment paths
 * *MOZI_DATA_PATH*
 * *MOZI_SAVE_PATH*
