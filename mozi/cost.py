@@ -2,6 +2,7 @@
 import theano.tensor as T
 import theano
 from mozi.utils.utils import theano_unique
+from mozi.utils.theano_utils import asfloatX
 
 floatX = theano.config.floatX
 
@@ -46,9 +47,22 @@ def error(y, y_pred):
     L = T.neq(y_pred.argmax(axis=1), y.argmax(axis=1))
     return T.mean(L)
 
+def error_threshold(y, y_pred, threshold=0.5):
+    y_pred = T.ge(y_pred, threshold).astype('intp')
+    return error(y, y_pred)
+
+def recall(y, y_pred):
+    L = T.eq(y_pred.argmax(axis=1), y.argmax(axis=1))
+    return T.sum(L) / y.shape[0].astype(floatX)
+
+def precision(y, y_pred):
+    L = T.eq(y_pred.argmax(axis=1), y.argmax(axis=1))
+    return T.sum(L) / y_pred.shape[0].astype(floatX)
+
 def f1(y, y_pred):
-    #TODO
-    pass
+    r = recall(y, y_pred)
+    p = precision(y, y_pred)
+    return 2 * p * r / (p + r)
 
 def abs(y, y_pred):
     L = T.sum(T.abs_(y - y_pred, axis=1))
