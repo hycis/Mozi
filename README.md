@@ -202,6 +202,16 @@ TrainObject(log = log)
 <!--##### Customized Learning Method-->
 <!--##### Customized Weight Initialization-->
 ---
+### Load Saved Model
+When we set `save_model` in `Log` to be true, the best model is automatically saved to `MOZI_SAVE_PATH`. The model is serialized in pickle format, so to load the saved model. We can use cPickle.
+```python
+import cPickle
+with open('model.pkl', 'rb') as fout:
+    model = cPickle.load(fout)
+    y = model.fprop(X)
+```
+---
+
 ### Why Mozi?
 [Mozi](https://en.wikiquote.org/wiki/Mozi) (墨子) (470 B.C - 391 B.C) is a Chinese philosopher during warring states period (春秋戰國), his philosophy advocates peace, simplicity, universal love and pragmatism.
 
