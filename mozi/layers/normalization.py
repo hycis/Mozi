@@ -8,22 +8,22 @@ floatX = theano.config.floatX
 
 class BatchNormalization(Template):
 
-    def __init__(self, input_shape, epsilon=1e-6, mode=0, gamma_init=UniformWeight(), memory=0.9):
+    def __init__(self, input_shape, epsilon=1e-6, mode=0, gamma_init=UniformWeight(), short_memory=0.9):
         '''
         REFERENCE:
             Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift
                                  http://arxiv.org/pdf/1502.03167v3.pdf
         PARAMS:
-            memory:
+            short_memory: short term memory
                 y_t is the latest value, the moving average x_tp1 is calculated as
-                x_tp1 = memory * y_t + (1-memory) * x_t, the larger the memory, the
-                more weight is put on contempory.
+                x_tp1 = memory * y_t + (1-memory) * x_t, the larger the short term
+                memory, the more weight is put on contempory.
             epsilon:
                 denominator min value for preventing division by zero in computing std
         '''
         self.input_shape = input_shape
         self.epsilon = epsilon
-        self.mem = memory
+        self.mem = short_memory
 
         self.gamma = gamma_init(self.input_shape, name='gamma')
         self.beta = shared_zeros(self.input_shape, name='beta')
