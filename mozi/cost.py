@@ -47,10 +47,6 @@ def error(y, y_pred):
     L = T.neq(y_pred.argmax(axis=1), y.argmax(axis=1))
     return T.mean(L)
 
-def error_threshold(y, y_pred, threshold=0.5):
-    y_pred = T.ge(y_pred, threshold)
-    return error(y, y_pred)
-
 def recall(y, y_pred):
     L = T.eq(y_pred.argmax(axis=1), y.argmax(axis=1))
     return T.sum(L) / y.shape[0].astype(floatX)
