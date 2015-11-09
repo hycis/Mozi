@@ -11,28 +11,9 @@ if floatX == 'float64':
 else:
     epsilon = 1.0e-7
 
-def get_accuracy(y, y_pred):
-    """Return a float representing the number of errors in the minibatch
-    over the total number of examples of the minibatch ; zero one
-    loss over the size of the minibatch
-
-    :type y: theano.tensor.TensorType
-    :param y: corresponds to a vector that gives for each example the
-              correct label
-    """
-
-    # check if y has same dimension of y_pred
-    if y.ndim != y_pred.ndim:
-        raise TypeError('y should have the same shape as self.y_pred',
-            ('y', y.type, 'y_pred', y_pred.type))
-
-    return T.eq(y_pred.argmax(axis=1), y.argmax(axis=1)).sum() / y.shape[0]
-
-def positives(y, y_pred):
-    """
-    return the number of correctly predicted examples in a batch
-    """
-    return T.eq(y_pred.argmax(axis=1), y.argmax(axis=1)).sum()
+def accuracy(y, y_pred):
+    L = T.eq(y_pred.argmax(axis=1), y.argmax(axis=1))
+    return T.sum(L) / y.shape[0].astype(floatX)
 
 def mse(y, y_pred):
     L = T.sum(T.sqr(y - y_pred), axis=1)
