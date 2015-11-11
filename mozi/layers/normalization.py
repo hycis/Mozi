@@ -37,11 +37,9 @@ class BatchNormalization(Template):
     def _train_fprop(self, state_below):
         miu = state_below.mean(axis=0)
         std = T.std(state_below, axis=0)
-        Z = (state_below - miu) / (std + self.epsilon)
-
         self.moving_mean += self.mem * miu + (1-self.mem) * self.moving_mean
         self.moving_std += self.mem * std + (1-self.mem) * self.moving_std
-
+        Z = (state_below - self.moving_mean) / (self.moving_std + self.epsilon)
         return self.gamma * Z + self.beta
 
 
