@@ -50,7 +50,9 @@ class BatchNormalization(Template):
 
     def _layer_stats(self, state_below, layer_output):
         return [('moving_mean', T.mean(self.moving_mean)),
-                ('moving_std', T.mean(self.moving_std))]
+                ('moving_std', T.mean(self.moving_std)),
+                ('gamma_mean', T.mean(self.gamma)),
+                ('beta_mean', T.mean(self.beta))]
 
 
 class LRN(Template):
