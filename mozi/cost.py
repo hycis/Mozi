@@ -7,9 +7,9 @@ from mozi.utils.theano_utils import asfloatX
 floatX = theano.config.floatX
 
 if floatX == 'float64':
-    epsilon = 1.0e-9
+    epsilon = 1.0e-8
 else:
-    epsilon = 1.0e-7
+    epsilon = 1.0e-6
 
 def accuracy(y, y_pred):
     L = T.eq(y_pred.argmax(axis=1), y.argmax(axis=1))
