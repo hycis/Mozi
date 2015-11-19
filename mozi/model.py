@@ -59,16 +59,14 @@ class Sequential(object):
 
 
     def fprop(self, input_values):
-        output, stats = self.test_fprop(self.input_var)
-        f = theano.function([self.input_var], output, on_unused_input='warn', allow_input_downcast=True)
-        return f(input_values)
+        return self.fprop_layers(input_values)
 
 
-    def fprop_layers(self, input_values, layers):
+    def fprop_layers(self, input_values, layers=None):
         output, stats = self.test_fprop(self.input_var, layers)
         f = theano.function([self.input_var], output, on_unused_input='warn', allow_input_downcast=True)
         return f(input_values)
-        
+
 
     def get_layers(self):
         return self.layers
