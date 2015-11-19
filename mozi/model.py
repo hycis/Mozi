@@ -28,9 +28,11 @@ class Sequential(object):
     def pop(self, index):
         return self.layers.pop(index)
 
-    def test_fprop(self, input_state):
+    def test_fprop(self, input_state, layers=None):
         test_layers_stats = []
-        for i in xrange(len(self.layers)):
+        if layers is None:
+            layers = xrange(len(self.layers))
+        for i in layers:
             layer_output = self.layers[i]._test_fprop(input_state)
             stats = self.layers[i]._layer_stats(input_state, layer_output)
             input_state = layer_output
@@ -41,9 +43,11 @@ class Sequential(object):
         return input_state, test_layers_stats
 
 
-    def train_fprop(self, input_state):
+    def train_fprop(self, input_state, layers=None):
         train_layers_stats = []
-        for i in xrange(len(self.layers)):
+        if layers is None:
+            layers = xrange(len(self.layers))
+        for i in layers:
             layer_output = self.layers[i]._train_fprop(input_state)
             stats = self.layers[i]._layer_stats(input_state, layer_output)
             input_state = layer_output
@@ -58,6 +62,13 @@ class Sequential(object):
         output, stats = self.test_fprop(self.input_var)
         f = theano.function([self.input_var], output, on_unused_input='warn', allow_input_downcast=True)
         return f(input_values)
+
+
+    def fprop_layers(self, input_values, layers):
+        output, stats = self.test_fprop(self.input_var, layers)
+        f = theano.function([self.input_var], output, on_unused_input='warn', allow_input_downcast=True)
+        return f(input_values)
+        
 
     def get_layers(self):
         return self.layers
