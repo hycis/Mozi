@@ -14,28 +14,7 @@ from mozi.train_object import TrainObject
 from mozi.cost import error, entropy
 from mozi.learning_method import SGD
 import os
-
-
-
-def setenv():
-    NNdir = os.path.dirname(os.path.realpath(__file__))
-    NNdir = os.path.dirname(NNdir)
-
-    # directory to save all the dataset
-    if not os.getenv('MOZI_DATA_PATH'):
-        os.environ['MOZI_DATA_PATH'] = NNdir + '/data'
-
-    # directory for saving the database that is used for logging the results
-    if not os.getenv('MOZI_DATABASE_PATH'):
-        os.environ['MOZI_DATABASE_PATH'] = NNdir + '/database'
-
-    # directory to save all the trained models and outputs
-    if not os.getenv('MOZI_SAVE_PATH'):
-        os.environ['MOZI_SAVE_PATH'] = NNdir + '/save'
-
-    print('MOZI_DATA_PATH = ' + os.environ['MOZI_DATA_PATH'])
-    print('MOZI_SAVE_PATH = ' + os.environ['MOZI_SAVE_PATH'])
-    print('MOZI_DATABASE_PATH = ' + os.environ['MOZI_DATABASE_PATH'])
+from mozi.env import setenv
 
 
 def train():
@@ -43,22 +22,15 @@ def train():
     data = Cifar10(batch_size=32, train_valid_test_ratio=[4,1,1])
 
     model = Sequential(input_var=T.tensor4(), output_var=T.matrix())
-    model.add(Convolution2D(input_channels=3, filters=32, kernel_size=(3,3), stride=(1,1), border_mode='full'))
+    model.add(Convolution2D(input_channels=3, filters=8, kernel_size=(3,3), stride=(1,1), border_mode='full'))
     model.add(RELU())
-    model.add(Convolution2D(input_channels=32, filters=32, kernel_size=(3,3), stride=(1,1)))
+    model.add(Convolution2D(input_channels=8, filters=16, kernel_size=(3,3), stride=(1,1)))
     model.add(RELU())
-    model.add(Pooling2D(poolsize=(2, 2), mode='max'))
-    model.add(Dropout(0.25))
-
-    model.add(Convolution2D(input_channels=32, filters=64, kernel_size=(3,3), stride=(1,1), border_mode='full'))
-    model.add(RELU())
-    model.add(Convolution2D(input_channels=64, filters=64, kernel_size=(3,3), stride=(1,1)))
-    model.add(RELU())
-    model.add(Pooling2D(poolsize=(2, 2), mode='max'))
+    model.add(Pooling2D(poolsize=(4, 4), stride=(4,4), mode='max'))
     model.add(Dropout(0.25))
 
     model.add(Flatten())
-    model.add(Linear(64*8*8, 512))
+    model.add(Linear(16*8*8, 512))
     model.add(RELU())
     model.add(Dropout(0.5))
 
@@ -69,9 +41,21 @@ def train():
     learning_method = SGD(learning_rate=0.01, momentum=0.9,
                           lr_decay_factor=0.9, decay_batch=5000)
 
+    # Build Logger
+    log = Log(experiment_name = 'cifar10_cnn',
+              description = 'This is a tutorial',
+              save_outputs = True, # log all the outputs from the screen
+              save_model = True, # save the best model
+              save_epoch_error = True, # log error at every epoch
+              save_to_database = {'name': 'hyperparam.sqlite3',
+                                  'records': {'Batch_Size': data.batch_size,
+                                              'Learning_Rate': learning_method.learning_rate,
+                                              'Momentum': learning_method.momentum}}
+             ) # end log
+
     # put everything into the train object
     train_object = TrainObject(model = model,
-                               log = None,
+                               log = log,
                                dataset = data,
                                train_cost = entropy,
                                valid_cost = error,
