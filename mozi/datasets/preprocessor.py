@@ -9,6 +9,7 @@ import logging
 import time
 import warnings
 import numpy as np
+import sklearn.preprocessing as preproc
 try:
     from scipy import linalg
 except ImportError:
@@ -333,4 +334,32 @@ class Scale(Preprocessor):
         X = scale * (X - self.scale_range[0] - self.buffer)
         X = X + self.min
 
+        return X
+
+
+class Normalize(Preprocessor):
+
+    """
+    normalize each data vector to unit length
+
+    Parameters
+    ----------
+    X : ndarray, 2-dimensional
+        numpy matrix with examples indexed on the first axis and
+        features indexed on the second.
+    norm : l1, l2 or max
+    """
+    def __init__(self, norm='l2', axis=1):
+        self.norm = norm
+        self.axis = axis
+
+
+    def apply(self, X):
+        if X.ndim > 2:
+            shape = X.shape
+            flattern_X = np.reshape(X, (shape[0], np.prod(shape[1:])))
+            preproc.normalize(flattern_X, norm=self.norm, axis=self.axis, copy=False)
+            return flattern_X.reshape(shape)
+
+        preproc.normalize(X, norm=self.norm, axis=self.axis, copy=False)
         return X
