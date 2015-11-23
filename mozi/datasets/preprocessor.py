@@ -358,8 +358,7 @@ class Normalize(Preprocessor):
         if X.ndim > 2:
             shape = X.shape
             flattern_X = np.reshape(X, (shape[0], np.prod(shape[1:])))
-            preproc.normalize(flattern_X, norm=self.norm, axis=self.axis, copy=False)
+            flattern_X = preproc.normalize(flattern_X, norm=self.norm, axis=self.axis, copy=True)
             return flattern_X.reshape(shape)
 
-        preproc.normalize(X, norm=self.norm, axis=self.axis, copy=False)
-        return X
+        return preproc.normalize(X, norm=self.norm, axis=self.axis, copy=True)
