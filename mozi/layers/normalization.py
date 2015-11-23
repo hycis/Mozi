@@ -39,12 +39,14 @@ class BatchNormalization(Template):
         std = T.std(state_below, axis=0)
         self.moving_mean += self.mem * miu + (1-self.mem) * self.moving_mean
         self.moving_std += self.mem * std + (1-self.mem) * self.moving_std
-        Z = (state_below - self.moving_mean) / (self.moving_std + self.epsilon)
+        denom = T.clip(self.moving_std, self.epsilon, self.moving_std)
+        Z = (state_below - self.moving_mean) / denom
         return self.gamma * Z + self.beta
 
 
     def _test_fprop(self, state_below):
-        Z = (state_below - self.moving_mean) / (self.moving_std + self.epsilon)
+        denom = T.clip(self.moving_std, self.epsilon, self.moving_std)
+        Z = (state_below - self.moving_mean) / denom
         return self.gamma * Z + self.beta
 
 
