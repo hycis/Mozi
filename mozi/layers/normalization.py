@@ -28,27 +28,22 @@ class BatchNormalization(Template):
         self.gamma = gamma_init(self.input_shape, name='gamma')
         self.beta = shared_zeros(self.input_shape, name='beta')
 
-        self.moving_mean = sharedX(self.epsilon)
-        self.moving_std = sharedX(self.epsilon)
+        self.moving_mean = 0
+        self.moving_std = 1
 
         self.params = [self.gamma, self.beta]
 
 
     def _train_fprop(self, state_below):
         miu = state_below.mean(axis=0)
-        # std = T.std(state_below, axis=0)
-        # var = (state_below ** 2).mean(axis=0) - miu ** 2
-        # std = T.sqrt(var)
         std = T.mean((state_below - miu) ** 2 + self.epsilon, axis=0) ** 0.5
         self.moving_mean += self.mem * miu + (1-self.mem) * self.moving_mean
         self.moving_std += self.mem * std + (1-self.mem) * self.moving_std
-        # denom = T.clip(self.moving_std, self.epsilon, self.moving_std)
         Z = (state_below - self.moving_mean) / self.moving_std
         return self.gamma * Z + self.beta
 
 
     def _test_fprop(self, state_below):
-        denom = T.clip(self.moving_std, self.epsilon, self.moving_std)
         Z = (state_below - self.moving_mean) / self.moving_std
         return self.gamma * Z + self.beta
 
