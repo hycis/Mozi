@@ -4,6 +4,7 @@ from __future__ import absolute_import
 import numpy as np
 
 import theano
+from theano.sandbox.cuda.fftconv import conv2d_fft
 import theano.tensor as T
 from theano.tensor.signal import downsample
 
@@ -91,8 +92,8 @@ class Pooling2D(Template):
 
 
 class ConvFFT2D(Template):
-    def __init__(self, input_channels, filters, kernel_size=(3,3),
-        stride=(1,1), W=None, b=None, weight_init=GaussianWeight(mean=0, std=0.1),
+    def __init__(self, input_channels, filters, stride, kernel_size=(3,3),
+        W=None, b=None, weight_init=GaussianWeight(mean=0, std=0.1),
         image_shape=None, border_mode='valid', pad_last_dim=False):
         '''
         PARAM:
@@ -105,7 +106,6 @@ class ConvFFT2D(Template):
         self.input_channels = input_channels
         self.filters = filters
         self.kernel_size = kernel_size
-        self.stride = stride
         self.border_mode = border_mode
         self.image_shape = image_shape
         self.pad_last_dim = pad_last_dim
@@ -123,9 +123,8 @@ class ConvFFT2D(Template):
 
 
     def _train_fprop(self, state_below):
-        conv_out = theano.sandbox.cuda.fftconv.conv2d_fft(state_below, self.W,
+        conv_out = conv2d_fft(state_below, self.W,
                                                   border_mode=self.border_mode,
-                                                  subsample=self.stride,
                                                   image_shape=self.image_shape,
                                                   pad_last_dim=self.pad_last_dim)
         return conv_out + self.b.dimshuffle('x', 0, 'x', 'x')
@@ -133,7 +132,7 @@ class ConvFFT2D(Template):
 
     def _test_fprop(self, state_below):
         return self._train_fprop(state_below)
-        
+
 
 class SpatialPyramidPooling(Template):
     def __init__(self, levels=[1,2,3], padding=None, ignore_border=False, mode='max'):

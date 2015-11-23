@@ -339,22 +339,30 @@ class Scale(Preprocessor):
 
 class Normalize(Preprocessor):
 
-    """
-    normalize each data vector to unit length
+    def __init__(self, norm='l2', axis=1, channelwise=False):
+        """
+        normalize each data vector to unit length
 
-    Parameters
-    ----------
-    X : ndarray, 2-dimensional
-        numpy matrix with examples indexed on the first axis and
-        features indexed on the second.
-    norm : l1, l2 or max
-    """
-    def __init__(self, norm='l2', axis=1):
+        Parameters
+        ----------
+        X : ndarray, 2-dimensional
+            numpy matrix with examples indexed on the first axis and
+            features indexed on the second.
+        norm : l1, l2 or max
+        channelwise: apply preprocessing channelwise
+        """
         self.norm = norm
         self.axis = axis
+        self.channelwise = channelwise
 
 
     def apply(self, X):
+        if X.ndim == 4 and self.channelwise:
+            shape = X.shape
+            flattern_X = np.reshape(X, (shape[0]*shape[1], shape[2]*shape[3]))
+            flattern_X = preproc.normalize(flattern_X, norm=self.norm, axis=1, copy=True)
+            return flattern_X.reshape(shape)
+
         if X.ndim > 2:
             shape = X.shape
             flattern_X = np.reshape(X, (shape[0], np.prod(shape[1:])))
