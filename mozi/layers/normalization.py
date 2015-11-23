@@ -21,7 +21,7 @@ class BatchNormalization(Template):
             epsilon:
                 denominator min value for preventing division by zero in computing std
         '''
-        self.epsilon = 1e-6
+        self.epsilon = 1.0
         self.input_shape = input_shape
         self.mem = short_memory
 
@@ -40,13 +40,13 @@ class BatchNormalization(Template):
         self.moving_mean += self.mem * miu + (1-self.mem) * self.moving_mean
         self.moving_std += self.mem * std + (1-self.mem) * self.moving_std
         denom = T.clip(self.moving_std, self.epsilon, self.moving_std)
-        Z = (state_below - self.moving_mean) / 1
+        Z = (state_below - self.moving_mean) / denom
         return self.gamma * Z + self.beta
 
 
     def _test_fprop(self, state_below):
         denom = T.clip(self.moving_std, self.epsilon, self.moving_std)
-        Z = (state_below - self.moving_mean) / 1
+        Z = (state_below - self.moving_mean) / denom
         return self.gamma * Z + self.beta
 
 
