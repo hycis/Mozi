@@ -1,6 +1,6 @@
 
 from mozi.layers.template import Template
-from mozi.utils.theano_utils import shared_zeros
+from mozi.utils.theano_utils import shared_zeros, sharedX
 from mozi.weight_init import UniformWeight
 import theano.tensor as T
 import theano
@@ -8,7 +8,7 @@ floatX = theano.config.floatX
 
 class BatchNormalization(Template):
 
-    def __init__(self, input_shape, epsilon=1e-4, mode=0, gamma_init=UniformWeight(), short_memory=0.9):
+    def __init__(self, input_shape, gamma_init=UniformWeight(), short_memory=0.9):
         '''
         REFERENCE:
             Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift
@@ -21,15 +21,15 @@ class BatchNormalization(Template):
             epsilon:
                 denominator min value for preventing division by zero in computing std
         '''
+        self.epsilon = 1e-6
         self.input_shape = input_shape
-        self.epsilon = epsilon
         self.mem = short_memory
 
         self.gamma = gamma_init(self.input_shape, name='gamma')
         self.beta = shared_zeros(self.input_shape, name='beta')
 
-        self.moving_mean = 0
-        self.moving_std = 0
+        self.moving_mean = sharedX(self.epsilon)
+        self.moving_std = sharedX(self.epsilon)
 
         self.params = [self.gamma, self.beta]
 
