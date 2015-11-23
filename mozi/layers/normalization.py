@@ -8,7 +8,7 @@ floatX = theano.config.floatX
 
 class BatchNormalization(Template):
 
-    def __init__(self, input_shape, epsilon=1e-6, mode=0, gamma_init=UniformWeight(), short_memory=0.9):
+    def __init__(self, input_shape, epsilon=1e-4, mode=0, gamma_init=UniformWeight(), short_memory=0.9):
         '''
         REFERENCE:
             Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift
