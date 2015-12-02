@@ -108,7 +108,7 @@ class SingleBlock(Dataset):
 
 
     def set_Xy(self, X, y):
-        num_examples = X.shape[0]
+        num_examples = len(X)
         total_ratio = sum(self.ratio)
         num_train = int(self.ratio[0] * 1.0 * num_examples / total_ratio)
         num_valid = int(self.ratio[1] * 1.0 * num_examples / total_ratio)
