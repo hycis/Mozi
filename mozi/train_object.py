@@ -15,8 +15,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 from mozi.log import Log
 from mozi.utils.theano_utils import shared_zeros
-from mozi.utils.utils import split_list, generate_shared_list, merge_lists, \
-                             get_shared_values, is_shared_var
+from mozi.utils.train_object_utils import split_list, generate_shared_list, merge_lists, \
+                             get_shared_values, is_shared_var, merge_var
 
 from mozi.utils.check_memory import get_mem_usage
 from mozi.utils.progbar import Progbar
@@ -82,7 +82,7 @@ class TrainObject():
         #-------------------------[ train functions ]-------------------------#
 
         self.log.info('..begin compiling functions')
-        self.training = theano.function(inputs=[self.model.input_var, self.model.output_var],
+        self.training = theano.function(inputs=merge_var(self.model.input_var, self.model.output_var),
                                         outputs=train_cost,
                                         updates=train_updates,
                                         on_unused_input='warn',
@@ -106,7 +106,7 @@ class TrainObject():
         test_stopping_error = self.valid_cost(self.model.output_var, test_y_pred).astype(floatX)
         test_cost = self.train_cost(self.model.output_var, test_y_pred).astype(floatX)
 
-        self.testing = theano.function(inputs=[self.model.input_var, self.model.output_var],
+        self.testing = theano.function(inputs=merge_var(self.model.input_var, self.model.output_var),
                                        outputs=(test_stopping_error, test_cost),
                                        updates=test_stats_updates,
                                        on_unused_input='warn',
@@ -175,7 +175,7 @@ class TrainObject():
                     progbar = Progbar(target=train_set.dataset_size)
                     blk_sz = 0
                     for idx in train_set:
-                        cost = self.training(train_set.X[idx], train_set.y[idx])
+                        cost = self.training(*train_set[idx])
                         total_train_cost += cost * len(idx)
                         num_train_examples += len(idx)
                         train_stats_values += len(idx) * get_shared_values(self.train_stats_shared)
@@ -196,7 +196,7 @@ class TrainObject():
                     progbar = Progbar(target=valid_set.dataset_size)
                     blk_sz = 0
                     for idx in valid_set:
-                        stopping_cost, cost = self.testing(valid_set.X[idx], valid_set.y[idx])
+                        stopping_cost, cost = self.testing(*valid_set[idx])
                         total_valid_cost += cost * len(idx)
                         total_valid_stopping_cost += stopping_cost * len(idx)
                         num_valid_examples += len(idx)
