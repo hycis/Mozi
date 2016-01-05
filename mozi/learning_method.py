@@ -24,21 +24,15 @@ class LearningMethod(object):
         return float(self.mom.get_value())
 
 
-class SGD(LearningMethod):
+class DecayLearning(LearningMethod):
 
-    def __init__(self, learning_rate=0.01, momentum=0.9, lr_decay_factor=0.9, decay_batch=10000):
-        self.lr = sharedX(learning_rate)
-        self.mom = sharedX(momentum)
+    def __init__(self, lr_decay_factor=0.9, decay_batch=10000):
         self.batch = sharedX(0)
         self.decay_batch = sharedX(decay_batch)
         self.lr_decay_factor = asfloatX(lr_decay_factor)
 
-    def update(self, deltas, params, gparams):
+    def decay(self):
         updates = []
-        for delta, param, gparam in zip(deltas, params, gparams):
-            updates.append((delta, self.mom * delta - self.lr * gparam))
-            updates.append((param, param+delta))
-
         new_batch = ifelse(T.gt(self.batch, self.decay_batch), sharedX(0), self.batch+1)
         new_lr = ifelse(T.gt(self.batch, self.decay_batch), self.lr*self.lr_decay_factor, self.lr)
         updates.append((self.batch, new_batch))
@@ -46,13 +40,31 @@ class SGD(LearningMethod):
         return updates
 
 
-class AdaGrad(LearningMethod):
+class SGD(DecayLearning):
 
-    def __init__(self, learning_rate=0.9, momentum=0., k=1.0, lr_decay_factor=0.9, decay_batch=10000):
+    def __init__(self, learning_rate=0.01, momentum=0.9, **kwargs):
+        super(SGD, self).__init__(**kwargs)
+        self.lr = sharedX(learning_rate)
+        self.mom = sharedX(momentum)
+
+    def update(self, deltas, params, gparams):
+        updates = []
+        for delta, param, gparam in zip(deltas, params, gparams):
+            updates.append((delta, self.mom * delta - self.lr * gparam))
+            updates.append((param, param+delta))
+
+        updates += self.decay()
+        return updates
+
+
+class AdaGrad(DecayLearning):
+
+    def __init__(self, learning_rate=0.9, momentum=0., k=1.0, **kwargs):
         """
         dx = -learning_rate / sqrt(k + sum(gparam^2)) * gparam
         ref : Chris Dyer : Notes on AdaGrad
         """
+        super(AdaGrad, self).__init__(**kwargs)
         self.lr = sharedX(learning_rate)
         self.mom = sharedX(momentum)
         self.k = sharedX(k)
@@ -64,6 +76,7 @@ class AdaGrad(LearningMethod):
             updates.append((eps, eps + gparam ** 2))
             updates.append((delta, self.mom * delta - self.lr * gparam / T.sqrt(eps)))
             updates.append((param, param+delta))
+        updates += self.decay()
         return updates
 
 
@@ -91,9 +104,10 @@ class AdaDelta(LearningMethod):
         return updates
 
 
-class RMSprop(LearningMethod):
+class RMSprop(DecayLearning):
 
-    def __init__(self, learning_rate=0.01, eps=1e-6, rho=0.9):
+    def __init__(self, learning_rate=0.01, eps=1e-6, rho=0.9, **kwargs):
+        super(RMSprop, self).__init__(**kwargs)
         self.lr = sharedX(learning_rate)
         self.eps = sharedX(eps)
         self.rho = sharedX(rho)
@@ -105,12 +119,14 @@ class RMSprop(LearningMethod):
             new_param = param - self.lr * gparam / T.sqrt(new_delta + self.eps)
             updates.append((delta, new_delta))
             updates.append((param, new_param))
+        updates += self.decay()
         return updates
 
 
 class Adam(LearningMethod):
 
-    def __init__(self, learning_rate=0.001, beta_1=0.9, beta_2=0.999, eps=1e-8):
+    def __init__(self, learning_rate=0.001, beta_1=0.9, beta_2=0.999, eps=1e-8, **kwargs):
+        super(Adam, self).__init__(**kwargs)
         self.lr = sharedX(learning_rate)
         self.iter = sharedX(0)
         self.beta_1 = sharedX(beta_1)
@@ -130,4 +146,5 @@ class Adam(LearningMethod):
             updates.append((m, m_t))
             updates.append((v, v_t))
             updates.append((param, param_t))
+        updates += self.decay()
         return updates
