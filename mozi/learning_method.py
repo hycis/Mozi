@@ -1,6 +1,7 @@
 
 import theano
 import theano.tensor as T
+from theano.ifelse import ifelse
 floatX = theano.config.floatX
 
 import numpy as np
@@ -8,7 +9,7 @@ from mozi.utils.theano_utils import sharedX, asfloatX
 
 class LearningMethod(object):
 
-    def update(self, delta, gparam):
+    def update(self, deltas, params, gparams):
         """
         Return a list of tuples
         """
@@ -22,6 +23,7 @@ class LearningMethod(object):
     def momentum(self):
         return float(self.mom.get_value())
 
+
 class SGD(LearningMethod):
 
     def __init__(self, learning_rate=0.01, momentum=0.9, lr_decay_factor=0.9, decay_batch=10000):
@@ -31,13 +33,17 @@ class SGD(LearningMethod):
         self.decay_batch = sharedX(decay_batch)
         self.lr_decay_factor = asfloatX(lr_decay_factor)
 
-    def update(self, delta, gparam):
-        self.batch += 1
-        if T.gt(self.batch, self.decay_batch):
-            self.lr.set_value(self.lr.get_value() * self.lr_decay_factor)
-            self.batch = sharedX(0)
+    def update(self, deltas, params, gparams):
+        updates = []
+        for delta, param, gparam in zip(deltas, params, gparams):
+            updates.append((delta, self.mom * delta - self.lr * gparam))
+            updates.append((param, param+delta))
 
-        return [(delta, self.mom * delta - self.lr * gparam)]
+        new_batch = ifelse(T.gt(self.batch, self.decay_batch), sharedX(0), self.batch+1)
+        new_lr = ifelse(T.gt(self.batch, self.decay_batch), self.lr*self.lr_decay_factor, self.lr)
+        updates.append((self.batch, new_batch))
+        updates.append((self.lr, new_lr))
+        return updates
 
 
 class AdaGrad(LearningMethod):
@@ -51,12 +57,15 @@ class AdaGrad(LearningMethod):
         self.mom = sharedX(momentum)
         self.k = sharedX(k)
 
-    def update(self, delta, gparam):
-        rlist = []
-        eps = theano.shared(self.k.get_value() * np.ones_like(delta.get_value(borrow=True, return_internal_type=True)))
-        rlist.append((eps, eps + gparam ** 2))
-        rlist.append((delta, self.mom * delta - self.lr * gparam / T.sqrt(eps)))
-        return rlist
+    def update(self, deltas, params, gparams):
+        updates = []
+        for delta, param, gparam in zip(deltas, params, gparams):
+            eps = theano.shared(self.k.get_value() * np.ones_like(delta.get_value(borrow=True, return_internal_type=True)))
+            updates.append((eps, eps + gparam ** 2))
+            updates.append((delta, self.mom * delta - self.lr * gparam / T.sqrt(eps)))
+            updates.append((param, param+delta))
+        return updates
+        
 
 class AdaDelta(LearningMethod):
 
@@ -70,11 +79,13 @@ class AdaDelta(LearningMethod):
         self.eps = sharedX(eps)
         self.rho = sharedX(rho)
 
-    def update(self, delta, gparam):
-        rlist = []
-        gparam_mean = theano.shared(np.zeros_like(delta.get_value(borrow=True, return_internal_type=True)))
-        rlist.append((gparam_mean, self.rho * gparam_mean + (1-self.rho) * gparam**2))
-        delta_mean = theano.shared(np.zeros_like(delta.get_value(borrow=True, return_internal_type=True)))
-        rlist.append((delta_mean, self.rho * delta_mean + (1-self.rho) * delta**2))
-        rlist.append((delta, -T.sqrt(delta_mean+self.eps) / T.sqrt(gparam_mean+self.eps) * gparam))
-        return rlist
+    def update(self, deltas, params, gparams):
+        updates = []
+        for delta, param, gparam in zip(deltas, params, gparams):
+            gparam_mean = theano.shared(np.zeros_like(delta.get_value(borrow=True, return_internal_type=True)))
+            updates.append((gparam_mean, self.rho * gparam_mean + (1-self.rho) * gparam**2))
+            delta_mean = theano.shared(np.zeros_like(delta.get_value(borrow=True, return_internal_type=True)))
+            updates.append((delta_mean, self.rho * delta_mean + (1-self.rho) * delta**2))
+            updates.append((delta, -T.sqrt(delta_mean+self.eps) / T.sqrt(gparam_mean+self.eps) * gparam))
+            updates.append((param, param+delta))
+        return updates

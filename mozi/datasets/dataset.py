@@ -238,20 +238,29 @@ class MultiInputsData(SingleBlock):
         """
         DESCRIPTION:
             This class is used for multitask learning where we have multiple data
-            inputs and one output.
+            inputs and multiple data output.
         PARAM:
-            datasets (tuple of arrays): If our input is X1 and X2, both with same number
-            of rows, then X = (X1, X2)
-            labels (tuple of arrays): label of same number of rows as input data
+            datasets (tuple of arrays or just one array of X): If our input is X1 and X2, both
+            with same number of rows, then X = (X1, X2)
+            labels (tuple of arrays or just one array of y): label of same number of rows as
+            input data
         """
 
-        assert isinstance(datasets, tuple), "dataset is not a tuple of arrays"
-        assert isinstance(labels, tuple), "labels is not a tuple of arrays"
-        self.num_examples = len(datasets[0])
-        for dataset in datasets:
-            assert len(dataset) == self.num_examples, 'number of rows for different datasets is not the same'
-        for label in labels:
-            assert len(label) == self.num_examples, 'number of rows for different labels is not the same'
+        if isinstance(datasets, tuple) or isinstance(datasets, list):
+            self.num_examples = len(datasets[0])
+            for dataset in datasets:
+                assert len(dataset) == self.num_examples, 'number of rows for different datasets is not the same'
+        else:
+            self.num_examples = len(datasets)
+            datasets = [datasets]
+
+        if isinstance(labels, tuple) or isinstance(labels, list):
+            for label in labels:
+                assert len(label) == self.num_examples, 'number of rows for different labels is not the same'
+        else:
+            assert len(labels) == self.num_examples, 'number of rows for labels is not the same as input features'
+            labels = [labels]
+
         super(MultiInputsData, self).__init__(train_valid_test_ratio, log, **kwargs)
 
         self.train = IterDatasets(None, None, **kwargs)

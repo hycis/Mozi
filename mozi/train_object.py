@@ -64,12 +64,8 @@ class TrainObject():
         self.log.info("..update params: " + str(params))
         train_y_pred, train_layers_stats = self.model.train_fprop(self.model.input_var)
         train_cost = self.train_cost(self.model.output_var, train_y_pred).astype(floatX)
-
-        train_updates = []
         gparams = T.grad(train_cost, params)
-        for delta, param, gparam in zip(deltas, params, gparams):
-            train_updates += self.learning_method.update(delta, gparam)
-            train_updates += [(param, param+delta)]
+        train_updates = self.learning_method.update(deltas, params, gparams)
 
         #----[ append updates of stats from each layer to train updates ]-----#
 
