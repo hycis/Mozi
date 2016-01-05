@@ -38,7 +38,7 @@ def train():
                               lr_decay_factor=0.9, decay_batch=10000)
 
     # Build Logger
-    log = Log(experiment_name = 'MLP',
+    log = Log(experiment_name = 'MLP2',
               description = 'This is a tutorial',
               save_outputs = True, # log all the outputs from the screen
               save_model = True, # save the best model
