@@ -123,7 +123,7 @@ class RMSprop(DecayLearning):
         return updates
 
 
-class Adam(LearningMethod):
+class Adam(DecayLearning):
 
     def __init__(self, learning_rate=0.001, beta_1=0.9, beta_2=0.999, eps=1e-8, **kwargs):
         super(Adam, self).__init__(**kwargs)
