@@ -26,7 +26,7 @@ class LearningMethod(object):
 
 class DecayLearning(LearningMethod):
 
-    def __init__(self, lr_decay_factor=0.9, decay_batch=10000):
+    def __init__(self, lr_decay_factor=1.0, decay_batch=10000):
         self.batch = sharedX(0)
         self.decay_batch = sharedX(decay_batch)
         self.lr_decay_factor = asfloatX(lr_decay_factor)

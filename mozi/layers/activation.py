@@ -3,6 +3,7 @@ import theano
 import theano.tensor as T
 from theano.sandbox.rng_mrg import MRG_RandomStreams
 from mozi.layers.template import Template
+from mozi.utils.theano_utils import sharedX
 
 floatX = theano.config.floatX
 theano_rand = MRG_RandomStreams()
@@ -36,6 +37,19 @@ class PRELU(Template):
         alpha = alpha * np.ones(shape=self.dim, dtype=floatX)
         self.alpha = theano.shared(value=alpha, name='PRELU_gradient', borrow=True)
         self.params += [self.alpha]
+
+    def _test_fprop(self, state_below):
+        return self._train_fprop(state_below)
+
+    def _train_fprop(self, state_below):
+        return state_below * (state_below >= 0) \
+        + self.alpha * state_below * (state_below < 0)
+
+
+class LeakyRELU(Template):
+    def __init__(self, alpha=0.01, **kwargs):
+        self.alpha = sharedX(alpha)
+        self.params = []
 
     def _test_fprop(self, state_below):
         return self._train_fprop(state_below)

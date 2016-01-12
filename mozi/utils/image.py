@@ -11,7 +11,7 @@ def scale_to_unit_interval(ndar, eps=1e-8):
     ndar -= ndar.min()
     ndar *= 1.0 / (ndar.max() + eps)
     return ndar
-    
+
 def tile_raster_images(X, img_shape, tile_shape, tile_spacing=(0, 0),
                        scale_rows_to_unit_interval=True,
                        output_pixel_vals=True):
@@ -61,7 +61,7 @@ def tile_raster_images(X, img_shape, tile_shape, tile_spacing=(0, 0),
     out_shape = [(ishp + tsp) * tshp - tsp for ishp, tshp, tsp
                         in zip(img_shape, tile_shape, tile_spacing)]
 
-    if isinstance(X, tuple):
+    if isinstance(X, (list, tuple)):
         assert len(X) == 4
         # Create an output numpy ndarray to store the image
         if output_pixel_vals:

@@ -16,8 +16,9 @@ def accuracy(y, y_pred):
     return T.sum(L) / y.shape[0].astype(floatX)
 
 def mse(y, y_pred):
-    L = T.sum(T.sqr(y - y_pred), axis=1)
-    return T.mean(L)
+    # L = T.sum(T.sqr(y - y_pred), axis=1)
+    # return T.mean(L)
+    return T.mean(T.sqr(y-y_pred))
 
 def entropy(y, y_pred):
     y_pred = T.clip(y_pred, epsilon, 1.0 - epsilon)
@@ -42,12 +43,13 @@ def f1(y, y_pred):
     return 2 * p * r / (p + r)
 
 def abs(y, y_pred):
-    L = T.sum(T.abs_(y - y_pred, axis=1))
-    return T.mean(L)
+    # L = T.sum(T.abs_(y - y_pred, axis=1))
+    # return T.mean(L)
+    return T.mean(T.abs_(y-y_pred))
 
 def SGVB_bin(y, y_pred):
     '''
-    This cost function for variational autoencoder for binary inputs
+    This cost function is for variational autoencoder with binary inputs
     '''
     ypred, miu_e, logsig_e = y_pred
     ypred = T.clip(ypred, epsilon, 1.0 - epsilon)

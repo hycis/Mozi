@@ -3,6 +3,7 @@
 import mozi.datasets.iterator as iterators
 import numpy as np
 import theano
+from multiprocessing import Process
 floatX = theano.config.floatX
 
 import logging
@@ -207,24 +208,57 @@ class DataBlocks(Dataset):
                             example [(X_path1, y_path1),(X_path2, y_path2)]
         """
         super(DataBlocks, self).__init__(train_valid_test_ratio, log, **kwargs)
-        assert isinstance(data_paths, list), "data_paths is not a list"
+        assert isinstance(data_paths, (list,tuple)), "data_paths is not a list"
         self.data_paths = data_paths
         self.single_block = SingleBlock(None, None, train_valid_test_ratio, log, **kwargs)
+        self.buffer_block = SingleBlock(None, None, train_valid_test_ratio, log, **kwargs)
+        self.lastblock = False
+        self.q = Queue()
 
     def __iter__(self):
         self.files = iter(self.data_paths)
+        bufile = next(self.files)
+        print 'processing file', bufile
+        self.load_Xy(bufile)
+        # self.buffer_block.set_Xy(self.load_Xy(bufile))
+
         return self
 
     def next(self):
-        file = next(self.files)
+        # import pdb; pdb.set_trace()
+        print '..buffer block', self.buffer_block.train.X[0][:10]
+        if self.lastblock:
+            raise StopIteration
 
-        assert isinstance(file, tuple) or isintance(file, list), str(type(file)) + "is not a tuple or list"
-        with open(file[0], 'rb') as X_fin, open(file[1], 'rb') as y_fin:
+        try:
+            self.single_block.set_train(self.buffer_block.train.X, self.buffer_block.train.y)
+            self.single_block.set_valid(self.buffer_block.valid.X, self.buffer_block.valid.y)
+            self.single_block.set_test(self.buffer_block.test.X, self.buffer_block.test.y)
+
+            bufile = next(self.files)
+            print 'processing file', bufile
+            p = Process(target=self.load_Xy, args=(bufile, self.buffer_block, self.q))
+            p.start()
+            p.join()
+            print '..single block', self.single_block.train.X[0][:10]
+            print '..buffer block', self.buffer_block.train.X[0][:10]
+            print
+            # import pdb; pdb.set_trace()
+
+        except:
+            self.lastblock = True
+
+        return self.single_block
+
+    def load_Xy(self, paths):
+        assert isinstance(paths, (list,tuple)), str(type(paths)) + "is not a tuple or list"
+        print '..loading:', paths
+        with open(paths[0], 'rb') as X_fin, open(paths[1], 'rb') as y_fin:
             X = np.load(X_fin)
             y = np.load(y_fin)
 
-        self.single_block.set_Xy(X=X, y=y)
-        return self.single_block
+        self.buffer_block.set_Xy(X,y)
+        # q.put(buffer_block)
 
     @property
     def nblocks(self):
@@ -246,7 +280,7 @@ class MultiInputsData(SingleBlock):
             input data
         """
 
-        if isinstance(datasets, tuple) or isinstance(datasets, list):
+        if isinstance(datasets, (list,tuple)):
             self.num_examples = len(datasets[0])
             for dataset in datasets:
                 assert len(dataset) == self.num_examples, 'number of rows for different datasets is not the same'
@@ -254,7 +288,7 @@ class MultiInputsData(SingleBlock):
             self.num_examples = len(datasets)
             datasets = [datasets]
 
-        if isinstance(labels, tuple) or isinstance(labels, list):
+        if isinstance(labels, (list,tuple)):
             for label in labels:
                 assert len(label) == self.num_examples, 'number of rows for different labels is not the same'
         else:
