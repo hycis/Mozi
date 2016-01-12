@@ -3,7 +3,7 @@
 import mozi.datasets.iterator as iterators
 import numpy as np
 import theano
-from multiprocessing import Process
+from multiprocessing import Process, Queue
 floatX = theano.config.floatX
 
 import logging
@@ -256,7 +256,7 @@ class DataBlocks(Dataset):
         with open(paths[0], 'rb') as X_fin, open(paths[1], 'rb') as y_fin:
             X = np.load(X_fin)
             y = np.load(y_fin)
-
+        print '..loaded:', paths
         self.buffer_block.set_Xy(X,y)
         # q.put(buffer_block)
 
