@@ -51,10 +51,12 @@ def stacksize(since=0.0):
 
 
 def get_mem_usage():
-    rstr = 'virtual memory: ' + str(memory()/1024/1024) + ' MB\n'
-    rstr += 'peak virtual memory: ' + str(peak_Vm()/1024/1024) + ' MB\n'
-    rstr += 'resident memory: ' + str(resident()/1024/1024) + ' MB\n'
-    rstr += 'peak resident memory: ' + str(peak_resident()/1024/1024) + ' MB\n'
-    rstr += 'stacksize: ' + str(resident()/1024/1024) + ' MB\n'
+    denom = 1024 * 1024 * 1024
+    unit = 'GB'
+    rstr = 'virtual memory: ' + str(memory()/denom) + ' {}\n'.format(unit)
+    rstr += 'peak virtual memory: ' + str(peak_Vm()/denom) + ' {}\n'.format(unit)
+    rstr += 'resident memory: ' + str(resident()/denom) + ' {}\n'.format(unit)
+    rstr += 'peak resident memory: ' + str(peak_resident()/denom) + ' {}\n'.format(unit)
+    rstr += 'stacksize: ' + str(resident()/denom) + ' {}\n'.format(unit)
 
     return rstr

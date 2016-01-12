@@ -4,6 +4,7 @@ import mozi.datasets.iterator as iterators
 import numpy as np
 import theano
 from multiprocessing import Process, Queue
+import time
 floatX = theano.config.floatX
 
 import logging
@@ -195,7 +196,7 @@ class SingleBlock(Dataset):
 
 class DataBlocks(Dataset):
 
-    def __init__(self, data_paths, train_valid_test_ratio=[8,1,1], log=None, **kwargs):
+    def __init__(self, data_paths, train_valid_test_ratio=[8,1,1], log=None, allow_preload=True, **kwargs):
 
         """
         DESCRIPTION:
@@ -206,59 +207,60 @@ class DataBlocks(Dataset):
                             list of tuples whereby the first element of the tuple
                             is the X path, and the second is the y path.
                             example [(X_path1, y_path1),(X_path2, y_path2)]
+            allow_preload(bool): by allowing preload, it will preload the next data block
+                            while training at the same time on the current datablock,
+                            this will reduce time but the cost using more memory.
+
         """
         super(DataBlocks, self).__init__(train_valid_test_ratio, log, **kwargs)
         assert isinstance(data_paths, (list,tuple)), "data_paths is not a list"
         self.data_paths = data_paths
         self.single_block = SingleBlock(None, None, train_valid_test_ratio, log, **kwargs)
         self.buffer_block = SingleBlock(None, None, train_valid_test_ratio, log, **kwargs)
-        self.lastblock = False
+        self.allow_preload = allow_preload
         self.q = Queue()
 
     def __iter__(self):
         self.files = iter(self.data_paths)
-        bufile = next(self.files)
-        print 'processing file', bufile
-        self.load_Xy(bufile)
-        # self.buffer_block.set_Xy(self.load_Xy(bufile))
-
+        if self.allow_preload:
+            self.lastblock = False
+            bufile = next(self.files)
+            self.load_Xy(bufile, self.q)
         return self
 
     def next(self):
-        # import pdb; pdb.set_trace()
-        print '..buffer block', self.buffer_block.train.X[0][:10]
-        if self.lastblock:
-            raise StopIteration
+        if self.allow_preload:
+            if self.lastblock:
+                raise StopIteration
 
-        try:
-            self.single_block.set_train(self.buffer_block.train.X, self.buffer_block.train.y)
-            self.single_block.set_valid(self.buffer_block.valid.X, self.buffer_block.valid.y)
-            self.single_block.set_test(self.buffer_block.test.X, self.buffer_block.test.y)
-
-            bufile = next(self.files)
-            print 'processing file', bufile
-            p = Process(target=self.load_Xy, args=(bufile, self.buffer_block, self.q))
-            p.start()
-            p.join()
-            print '..single block', self.single_block.train.X[0][:10]
-            print '..buffer block', self.buffer_block.train.X[0][:10]
-            print
-            # import pdb; pdb.set_trace()
-
-        except:
-            self.lastblock = True
+            try:
+                X, y = self.q.get(block=True, timeout=None)
+                self.single_block.set_Xy(X,y)
+                bufile = next(self.files)
+                p = Process(target=self.load_Xy, args=(bufile, self.q))
+                p.start()
+            except:
+                self.lastblock = True
+        else:
+            fpaths = next(self.files)
+            X,y = self.openfile(fpaths)
+            self.single_block.set_Xy(X=X, y=y)
 
         return self.single_block
 
-    def load_Xy(self, paths):
+    @staticmethod
+    def openfile(paths):
         assert isinstance(paths, (list,tuple)), str(type(paths)) + "is not a tuple or list"
-        print '..loading:', paths
         with open(paths[0], 'rb') as X_fin, open(paths[1], 'rb') as y_fin:
             X = np.load(X_fin)
             y = np.load(y_fin)
+        return X,y
+
+    def load_Xy(self, paths, q):
+        print '..loading:', paths
+        X,y = self.openfile(paths)
         print '..loaded:', paths
-        self.buffer_block.set_Xy(X,y)
-        # q.put(buffer_block)
+        q.put((X,y))
 
     @property
     def nblocks(self):

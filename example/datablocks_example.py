@@ -38,20 +38,20 @@ def setenv():
 
 def train():
     # create a fake dataset
-    X1 = np.random.rand(1000000, 1000)
-    y1 = np.random.rand(1000000, 10)
+    X1 = np.random.rand(100000, 1000)
+    y1 = np.random.rand(100000, 10)
     with open('X1.npy', 'wb') as xin, open('y1.npy', 'wb') as yin:
         np.save(xin, X1)
         np.save(yin, y1)
 
-    X2 = np.random.rand(1000000, 1000)
-    y2 = np.random.rand(1000000, 10)
+    X2 = np.random.rand(100000, 1000)
+    y2 = np.random.rand(100000, 10)
     with open('X2.npy', 'wb') as xin, open('y2.npy', 'wb') as yin:
         np.save(xin, X2)
         np.save(yin, y2)
 
-    X3 = np.random.rand(1000000, 1000)
-    y3 = np.random.rand(1000000, 10)
+    X3 = np.random.rand(100000, 1000)
+    y3 = np.random.rand(100000, 10)
     with open('X3.npy', 'wb') as xin, open('y3.npy', 'wb') as yin:
         np.save(xin, X3)
         np.save(yin, y3)
