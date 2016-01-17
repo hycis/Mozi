@@ -5,8 +5,8 @@ import theano.tensor as T
 
 class LSTM(Template):
 
-    def __init__(self, input_dim, output_dim, weight_init=Orthogonal(mean=0, std=0.1),
-                 inner_init=Gaussian(mean=0, std=0.1)):
+    def __init__(self, input_dim, output_dim, truncate_gradient=-1, return_sequences=True,
+                weight_init=Orthogonal(mean=0, std=0.1), inner_init=Gaussian(mean=0, std=0.1)):
 
         self.input_dim = input_dim
         self.output_dim = output_dim
@@ -82,9 +82,9 @@ class BiLSTM(Template):
     Bidirection LSTM
     '''
 
-    def __init__(self, input_dim, output_dim=128, weight_init=Orthogonal(mean=0, std=0.1),
+    def __init__(self, input_dim, output_dim, weight_init=Orthogonal(mean=0, std=0.1),
                  inner_init=Gaussian(mean=0, std=0.1), truncate_gradient=-1,
-                 output_mode='sum', return_sequences=False):
+                 output_mode='concat', return_sequences=False):
 
         super(BiDirectionLSTM,self).__init__()
         self.input_dim = input_dim

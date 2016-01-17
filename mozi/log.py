@@ -46,6 +46,8 @@ class Log:
             self.logger = logging.getLogger(__name__)
             self.logger.setLevel(logging.DEBUG)
 
+        # self.logger.info('exp_id: ' + self.exp_id)
+
         if save_outputs:
             ch = logging.FileHandler(filename=self.exp_dir+'/outputs.log')
             ch.setLevel(logging.INFO)
@@ -57,8 +59,6 @@ class Log:
             self.epoch_error_path = self.exp_dir+'/epoch_error.csv'
             with open(self.epoch_error_path, 'wb') as epoch_file:
                 epoch_file.write('Epoch,Error\n')
-
-        self.logger.info('exp_id: ' + self.exp_id)
 
         if description is not None:
             self.logger.info('Description: ' + self.description)

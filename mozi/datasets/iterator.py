@@ -26,7 +26,7 @@ from theano import config
 
 
 class SubsetIterator(object):
-    def __init__(self, dataset_size, batch_size, num_batches, rng=None):
+    def __init__(self, dataset_size, batch_size, num_batches, rng):
         """
             rng: either a seed value for a numpy RandomState or
             numpy RandomState workalike
@@ -66,7 +66,7 @@ class SubsetIterator(object):
         return False
 
 class SequentialSubsetIterator(SubsetIterator):
-    def __init__(self, dataset_size, batch_size, num_batches, rng=None):
+    def __init__(self, dataset_size, batch_size, num_batches=None, rng=None):
         if rng is not None:
             raise ValueError("non-None rng argument not supported for "
                              "sequential batch iteration")
@@ -131,7 +131,7 @@ class ShuffledSequentialSubsetIterator(SequentialSubsetIterator):
     stochastic = True
     fancy = True
 
-    def __init__(self, dataset_size, batch_size, num_batches, rng=None):
+    def __init__(self, dataset_size, batch_size, num_batches=None, rng=None):
         super(ShuffledSequentialSubsetIterator, self).__init__(
             dataset_size,
             batch_size,
@@ -158,4 +158,23 @@ class ShuffledSequentialSubsetIterator(SequentialSubsetIterator):
             rval = self._shuffled[self._idx: self._idx + self._batch_size]
             self._idx += self._batch_size
             self._batch += 1
+            return rval
+
+class SequentialContinuousIterator(SubsetIterator):
+    '''
+    The is for continous sequence with fix step at a time.
+    '''
+    def __init__(self, dataset_size, batch_size, step_size=1):
+        self.step_size = step_size
+        self.batch_size = batch_size
+        self.dataset_size = dataset_size
+        self.idx = 0
+        self.indices = np.arange(self.dataset_size)
+
+    def next(self):
+        if self.idx + self.batch_size > self.dataset_size:
+            raise StopIteration()
+        else:
+            rval = self.indices[self.idx:self.idx+self.batch_size]
+            self.idx += self.step_size
             return rval

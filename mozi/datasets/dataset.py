@@ -16,21 +16,17 @@ from mozi.log import Log
 class IterMatrix(object):
 
     def __init__(self, X, y, iter_class='SequentialSubsetIterator',
-                batch_size=100, num_batches=None, rng=None):
-
+                batch_size=100, **kwargs):
         self.X = X
         self.y = y
         self.batch_size = batch_size
-        self.num_batches = num_batches
         self.iter_class = iter_class
-        self.rng = rng
+        self.kwargs = kwargs
         self.iterator = getattr(iterators, self.iter_class)
 
     def __iter__(self):
         return self.iterator(dataset_size=self.dataset_size,
-                            batch_size=self.batch_size,
-                            num_batches=self.num_batches,
-                            rng=self.rng)
+                            batch_size=self.batch_size, **self.kwargs)
 
     def set_iterator(self, iterator):
         self.iterator = iterator
@@ -46,21 +42,17 @@ class IterMatrix(object):
 class IterDatasets(object):
 
     def __init__(self, datasets, labels, iter_class='SequentialSubsetIterator',
-                batch_size=100, num_batches=None, rng=None):
-
+                batch_size=100, **kwargs):
         self.datasets = datasets
         self.labels = labels
         self.batch_size = batch_size
-        self.num_batches = num_batches
         self.iter_class = iter_class
-        self.rng = rng
+        self.kwargs = kwargs
         self.iterator = getattr(iterators, self.iter_class)
 
     def __iter__(self):
         return self.iterator(dataset_size=self.dataset_size,
-                            batch_size=self.batch_size,
-                            num_batches=self.num_batches,
-                            rng=self.rng)
+                            batch_size=self.batch_size, **self.kwargs)
 
     def set_iterator(self, iterator):
         self.iterator = iterator
@@ -76,14 +68,19 @@ class IterDatasets(object):
 
     @property
     def dataset_size(self):
-        return len(self.datasets[0]) if self.datasets is not None else -1
+        if isinstance(datasets, (list, tuple)):
+            dsize = len(self.datasets[0])
+        elif datasets is None:
+            dsize = -1
+        else:
+            dsize = len(self.datasets)
+        return dsize
 
 
 class Dataset(object):
 
     def __init__(self, train_valid_test_ratio=[8,1,1], log=None, batch_size=100,
                  num_batches=None, iter_class='SequentialSubsetIterator', rng=None):
-
         assert len(train_valid_test_ratio) == 3, 'the size of list is not 3'
         self.ratio = train_valid_test_ratio
         self.iter_class = iter_class
@@ -139,7 +136,6 @@ class SingleBlock(Dataset):
     @property
     def nblocks(self):
         return 1
-
 
     def set_Xy(self, X, y):
         num_examples = len(X)
@@ -216,7 +212,6 @@ class DataBlocks(Dataset):
         assert isinstance(data_paths, (list,tuple)), "data_paths is not a list"
         self.data_paths = data_paths
         self.single_block = SingleBlock(None, None, train_valid_test_ratio, log, **kwargs)
-        self.buffer_block = SingleBlock(None, None, train_valid_test_ratio, log, **kwargs)
         self.allow_preload = allow_preload
         self.q = Queue()
 
@@ -269,7 +264,7 @@ class DataBlocks(Dataset):
 
 class MultiInputsData(SingleBlock):
 
-    def __init__(self, datasets, labels, train_valid_test_ratio=[8,1,1], log=None, **kwargs):
+    def __init__(self, datasets=None, labels=None, train_valid_test_ratio=[8,1,1], log=None, **kwargs):
 
         """
         DESCRIPTION:
@@ -281,22 +276,6 @@ class MultiInputsData(SingleBlock):
             labels (tuple of arrays or just one array of y): label of same number of rows as
             input data
         """
-
-        if isinstance(datasets, (list,tuple)):
-            self.num_examples = len(datasets[0])
-            for dataset in datasets:
-                assert len(dataset) == self.num_examples, 'number of rows for different datasets is not the same'
-        else:
-            self.num_examples = len(datasets)
-            datasets = [datasets]
-
-        if isinstance(labels, (list,tuple)):
-            for label in labels:
-                assert len(label) == self.num_examples, 'number of rows for different labels is not the same'
-        else:
-            assert len(labels) == self.num_examples, 'number of rows for labels is not the same as input features'
-            labels = [labels]
-
         super(MultiInputsData, self).__init__(train_valid_test_ratio, log, **kwargs)
 
         self.train = IterDatasets(None, None, **kwargs)
@@ -306,6 +285,27 @@ class MultiInputsData(SingleBlock):
 
 
     def set(self, datasets, labels):
+        if isinstance(datasets, (list,tuple)):
+            self.num_examples = len(datasets[0])
+            for dataset in datasets:
+                assert len(dataset) == self.num_examples, 'number of rows for different datasets is not the same'
+        elif datasets is None:
+            self.num_examples = 0
+            datasets = []
+        else:
+            self.num_examples = len(datasets)
+            datasets = [datasets]
+
+        if isinstance(labels, (list,tuple)):
+            for label in labels:
+                assert len(label) == self.num_examples, 'number of rows for different labels is not the same'
+        elif labels is None:
+            labels = []
+            assert self.num_examples == 0
+        else:
+            assert len(labels) == self.num_examples, 'number of rows for labels is not the same as input features'
+            labels = [labels]
+
         total_ratio = sum(self.ratio)
         num_train = int(float(self.ratio[0]) * self.num_examples / total_ratio)
         num_valid = int(float(self.ratio[1]) * self.num_examples / total_ratio)
