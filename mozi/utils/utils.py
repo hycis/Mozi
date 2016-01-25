@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from theano.compile.ops import as_op
 from mozi.utils.progbar import Progbar
+from mozi.utils.train_object_utils import is_shared_var
 
 import tarfile, inspect, os
 from six.moves.urllib.request import urlretrieve
