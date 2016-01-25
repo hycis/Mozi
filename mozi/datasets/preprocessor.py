@@ -370,3 +370,12 @@ class Normalize(Preprocessor):
             return flattern_X.reshape(shape)
 
         return preproc.normalize(X, norm=self.norm, axis=self.axis, copy=True)
+
+
+class Sigmoid(Preprocessor):
+
+    def apply(self, X):
+        return 1 / (1 + np.exp(-X))
+
+    def invert(self, X):
+        return np.log(X / (1-X + 1e-9))

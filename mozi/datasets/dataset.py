@@ -39,60 +39,45 @@ class IterMatrix(object):
         return self.X.shape[0] if self.X is not None else -1
 
 
-class IterDatasets(object):
+class IterDatasets(IterMatrix):
 
-    def __init__(self, datasets, labels, iter_class='SequentialSubsetIterator',
+    def __init__(self, X, y, iter_class='SequentialSubsetIterator',
                 batch_size=100, **kwargs):
-        self.datasets = datasets
-        self.labels = labels
+        self.X = X
+        self.y = y
         self.batch_size = batch_size
         self.iter_class = iter_class
         self.kwargs = kwargs
         self.iterator = getattr(iterators, self.iter_class)
 
-    def __iter__(self):
-        return self.iterator(dataset_size=self.dataset_size,
-                            batch_size=self.batch_size, **self.kwargs)
-
-    def set_iterator(self, iterator):
-        self.iterator = iterator
-
     def __getitem__(self, key):
         Xslice = []
         yslice = []
-        for dataset in self.datasets:
+        for dataset in self.X:
             Xslice.append(dataset[key])
-        for label in self.labels:
+        for label in self.y:
             yslice.append(label[key])
         return Xslice + yslice
 
     @property
     def dataset_size(self):
-        if isinstance(datasets, (list, tuple)):
-            dsize = len(self.datasets[0])
-        elif datasets is None:
+        if isinstance(self.X, (list, tuple)):
+            dsize = len(self.y[0])
+        elif X is None:
             dsize = -1
         else:
-            dsize = len(self.datasets)
+            dsize = len(self.X)
         return dsize
 
 
 class Dataset(object):
 
-    def __init__(self, train_valid_test_ratio=[8,1,1], log=None, batch_size=100,
-                 num_batches=None, iter_class='SequentialSubsetIterator', rng=None):
-        assert len(train_valid_test_ratio) == 3, 'the size of list is not 3'
-        self.ratio = train_valid_test_ratio
-        self.iter_class = iter_class
-        self.batch_size = batch_size
-        self.num_batches = num_batches
-        self.rng = rng
-
+    def __init__(self, log):
         self.log = log
-
         if self.log is None:
             # use default Log setting, using the internal logger
             self.log = Log(logger=internal_logger)
+
 
     def __iter__(self):
         raise NotImplementedError(str(type(self))+" does not implement the __iter__ method.")
@@ -111,8 +96,8 @@ class SingleBlock(Dataset):
         '''
         All the data is loaded into memory for one go training
         '''
-        super(SingleBlock, self).__init__(train_valid_test_ratio, log, **kwargs)
-
+        super(SingleBlock, self).__init__(log)
+        self.ratio = train_valid_test_ratio
         self.train = IterMatrix(X=None, y=None, **kwargs)
         self.valid = IterMatrix(X=None, y=None, **kwargs)
         self.test = IterMatrix(X=None, y=None, **kwargs)
@@ -128,6 +113,7 @@ class SingleBlock(Dataset):
 
     def next(self):
         if self.iter:
+            # only one iteration since there is only one data block
             self.iter = False
             return self
         else:
@@ -205,7 +191,7 @@ class DataBlocks(Dataset):
                             example [(X_path1, y_path1),(X_path2, y_path2)]
             allow_preload(bool): by allowing preload, it will preload the next data block
                             while training at the same time on the current datablock,
-                            this will reduce time but the cost using more memory.
+                            this will reduce time but will also cost more memory.
 
         """
         super(DataBlocks, self).__init__(train_valid_test_ratio, log, **kwargs)
@@ -252,9 +238,9 @@ class DataBlocks(Dataset):
         return X,y
 
     def load_Xy(self, paths, q):
-        print '..loading:', paths
+        self.log.info('..loading: ' + paths)
         X,y = self.openfile(paths)
-        print '..loaded:', paths
+        self.log.info('..loaded: ' + paths)
         q.put((X,y))
 
     @property
@@ -264,47 +250,48 @@ class DataBlocks(Dataset):
 
 class MultiInputsData(SingleBlock):
 
-    def __init__(self, datasets=None, labels=None, train_valid_test_ratio=[8,1,1], log=None, **kwargs):
+    def __init__(self, X=None, y=None, train_valid_test_ratio=[8,1,1], log=None, **kwargs):
 
         """
         DESCRIPTION:
             This class is used for multitask learning where we have multiple data
             inputs and multiple data output.
         PARAM:
-            datasets (tuple of arrays or just one array of X): If our input is X1 and X2, both
+            X (tuple of arrays or just one array of X): If our input is X1 and X2, both
             with same number of rows, then X = (X1, X2)
-            labels (tuple of arrays or just one array of y): label of same number of rows as
+            y (tuple of arrays or just one array of y): label of same number of rows as
             input data
         """
-        super(MultiInputsData, self).__init__(train_valid_test_ratio, log, **kwargs)
+        super(MultiInputsData, self).__init__(train_valid_test_ratio=train_valid_test_ratio,
+                                              log=log, **kwargs)
 
         self.train = IterDatasets(None, None, **kwargs)
         self.valid = IterDatasets(None, None, **kwargs)
         self.test = IterDatasets(None, None, **kwargs)
-        self.set(datasets, labels)
+        self.set(X, y)
 
 
-    def set(self, datasets, labels):
-        if isinstance(datasets, (list,tuple)):
-            self.num_examples = len(datasets[0])
-            for dataset in datasets:
+    def set(self, X, y):
+        if isinstance(X, (list,tuple)):
+            self.num_examples = len(X[0])
+            for dataset in X:
                 assert len(dataset) == self.num_examples, 'number of rows for different datasets is not the same'
-        elif datasets is None:
+        elif X is None:
             self.num_examples = 0
-            datasets = []
+            X = []
         else:
-            self.num_examples = len(datasets)
-            datasets = [datasets]
+            self.num_examples = len(X)
+            X = [X]
 
-        if isinstance(labels, (list,tuple)):
-            for label in labels:
-                assert len(label) == self.num_examples, 'number of rows for different labels is not the same'
-        elif labels is None:
-            labels = []
+        if isinstance(y, (list,tuple)):
+            for label in y:
+                assert len(label) == self.num_examples, 'number of rows for different y is not the same'
+        elif y is None:
+            y = []
             assert self.num_examples == 0
         else:
-            assert len(labels) == self.num_examples, 'number of rows for labels is not the same as input features'
-            labels = [labels]
+            assert len(y) == self.num_examples, 'number of rows for y is not the same as input features'
+            y = [y]
 
         total_ratio = sum(self.ratio)
         num_train = int(float(self.ratio[0]) * self.num_examples / total_ratio)
@@ -313,7 +300,7 @@ class MultiInputsData(SingleBlock):
         trainset = []
         validset = []
         testset = []
-        for dataset in datasets:
+        for dataset in X:
             trainset.append(dataset[:num_train])
             validset.append(dataset[num_train:num_train+num_valid])
             testset.append(dataset[num_train+num_valid:])
@@ -321,20 +308,20 @@ class MultiInputsData(SingleBlock):
         trainlbl = []
         validlbl = []
         testlbl = []
-        for label in labels:
+        for label in y:
             trainlbl.append(label[:num_train])
             validlbl.append(label[num_train:num_train+num_valid])
             testlbl.append(label[num_train+num_valid:])
 
-        self.train.datasets = trainset
-        self.train.labels = trainlbl
+        self.train.X = trainset
+        self.train.y = trainlbl
 
         if self.ratio[1] == 0:
             self.log.info('Valid set is empty! It is needed for early stopping and saving best model')
-        self.valid.datasets = validset
-        self.valid.labels = validlbl
+        self.valid.X = validset
+        self.valid.y = validlbl
 
         if self.ratio[2] == 0:
             self.log.info('Test set is empty! It is needed for testing the best model')
-        self.test.datasets = testset
-        self.test.labels = testlbl
+        self.test.X = testset
+        self.test.y = testlbl

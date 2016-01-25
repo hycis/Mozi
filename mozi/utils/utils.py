@@ -101,6 +101,7 @@ def get_file(fpath, origin, untar=False):
         urlretrieve(origin, fpath, dl_progress)
         progbar = None
 
+    dirname = ""
     if untar:
         tfile = tarfile.open(fpath, 'r:*')
         names = tfile.getnames()
@@ -149,3 +150,39 @@ def gpu_to_cpu_model(model):
                 layer.params[i] = T._shared(np.array(layer.params[i].get_value(), floatX),
                                           name=layer.params[i].name, borrow=False)
     return model
+
+
+def pad_sequences(sequences, maxlen=None, dtype='int32', padding='pre', truncating='pre', value=0.):
+    """
+        Pad each sequence to the same length:
+        the length of the longuest sequence.
+
+        If maxlen is provided, any sequence longer
+        than maxlen is truncated to maxlen. Truncation happens off either the beginning (default) or
+        the end of the sequence.
+
+        Supports post-padding and pre-padding (default).
+
+    """
+    lengths = [len(s) for s in sequences]
+
+    nb_samples = len(sequences)
+    if maxlen is None:
+        maxlen = np.max(lengths)
+
+    x = (np.ones((nb_samples, maxlen)) * value).astype(dtype)
+    for idx, s in enumerate(sequences):
+        if truncating == 'pre':
+            trunc = s[-maxlen:]
+        elif truncating == 'post':
+            trunc = s[:maxlen]
+        else:
+            raise ValueError("Truncating type '%s' not understood" % padding)
+
+        if padding == 'post':
+            x[idx, :len(trunc)] = trunc
+        elif padding == 'pre':
+            x[idx, -len(trunc):] = trunc
+        else:
+            raise ValueError("Padding type '%s' not understood" % padding)
+    return x

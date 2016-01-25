@@ -35,9 +35,9 @@ def train():
     model.add(Softmax())
 
     # build learning method
-    decay_batch = int(data.train.X.shape[0] * 5 / batch_size)
+    decay_batch = int(data.train.X.shape[0] * 2 / batch_size)
     learning_method = SGD(learning_rate=0.1, momentum=0.9,
-                          lr_decay_factor=1.0, decay_batch=decay_batch)
+                          lr_decay_factor=0.9, decay_batch=decay_batch)
 
     # Build Logger
     log = Log(experiment_name = 'MLP',
@@ -46,7 +46,7 @@ def train():
               save_model = True, # save the best model
               save_epoch_error = True, # log error at every epoch
               save_to_database = {'name': 'Example.sqlite3',
-                                  'records': {'Batch_Size': data.batch_size,
+                                  'records': {'Batch_Size': batch_size,
                                               'Learning_Rate': learning_method.learning_rate,
                                               'Momentum': learning_method.momentum}}
              ) # end log

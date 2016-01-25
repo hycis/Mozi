@@ -18,8 +18,8 @@ from mozi.env import setenv
 
 
 def train():
-
-    data = Cifar10(batch_size=32, train_valid_test_ratio=[4,1,1])
+    batch_size = 32
+    data = Cifar10(batch_size=batch_size, train_valid_test_ratio=[4,1,1])
 
     model = Sequential(input_var=T.tensor4(), output_var=T.matrix())
     model.add(Convolution2D(input_channels=3, filters=8, kernel_size=(3,3), stride=(1,1), border_mode='full'))
@@ -48,7 +48,7 @@ def train():
               save_model = True, # save the best model
               save_epoch_error = True, # log error at every epoch
               save_to_database = {'name': 'hyperparam.sqlite3',
-                                  'records': {'Batch_Size': data.batch_size,
+                                  'records': {'Batch_Size': batch_size,
                                               'Learning_Rate': learning_method.learning_rate,
                                               'Momentum': learning_method.momentum}}
              ) # end log

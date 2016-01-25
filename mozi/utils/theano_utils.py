@@ -11,8 +11,8 @@ from keras
 def asfloatX(X):
     return np.asarray(X, dtype=floatX)
 
-def sharedX(X, dtype=floatX, name=None):
-    return theano.shared(np.asarray(X, dtype=dtype), name=name)
+def sharedX(value, dtype=floatX, name=None, borrow=False):
+    return theano.shared(np.asarray(value, dtype=dtype), name=name, borrow=borrow)
 
 def shared_zeros(shape, dtype=floatX, name=None):
     return sharedX(np.zeros(shape), dtype=dtype, name=name)

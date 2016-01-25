@@ -1,23 +1,4 @@
 
-"""
-Adapted from pylearn2 reference http://deeplearning.net/software/pylearn2/
-
-Iterators providing indices for different kinds of iteration over
-datasets.
-
-Presets:
-    sequential: iterates through fixed slices of the dataset in sequence
-    shuffled_sequential: iterates through a shuffled version of the dataset
-                 in sequence
-    random_slice: on each call to next, returns a slice of the dataset,
-                  chosen uniformly at random over contiguous slices
-                  samples with replacement, but still reports that
-                  container is empty after num_examples / batch_size calls
-    random_uniform: on each call to next, returns a random subset of the
-                  dataset.
-                  samples with replacement, but still reports that
-                  container is empty after num_examples / batch_size calls
-"""
 # from __future__ import division
 import warnings
 import numpy
@@ -26,17 +7,22 @@ from theano import config
 
 
 class SubsetIterator(object):
-    def __init__(self, dataset_size, batch_size, num_batches, rng):
+    def __init__(self, dataset_size, batch_size=64, num_batches=None, rng=None):
         """
             rng: either a seed value for a numpy RandomState or
             numpy RandomState workalike
         """
-        raise NotImplementedError()
+        self.dataset_size = dataset_size
+        self.batch_size = batch_size
+        self.num_batches = num_batches
+        self.rng = rng
+        self.idx = 0
 
     def next(self):
         raise NotImplementedError()
 
     def __iter__(self):
+        self.idx = 0
         return self
 
     # Class-level attributes that might hint the behaviour of
@@ -50,14 +36,6 @@ class SubsetIterator(object):
     stochastic = False
 
     @property
-    def batch_size(self):
-        return self._batch_size
-
-    @property
-    def num_batches(self):
-        return self._num_batches
-
-    @property
     def num_examples(self):
         return self.batch_size * self.num_batches
 
@@ -65,53 +43,52 @@ class SubsetIterator(object):
     def uneven(self):
         return False
 
+
 class SequentialSubsetIterator(SubsetIterator):
     def __init__(self, dataset_size, batch_size, num_batches=None, rng=None):
         if rng is not None:
             raise ValueError("non-None rng argument not supported for "
                              "sequential batch iteration")
         assert num_batches is None or num_batches >= 0
-        self._dataset_size = dataset_size
         if batch_size is None:
             if num_batches is not None:
-                batch_size = int(numpy.ceil(self._dataset_size / num_batches))
+                batch_size = int(numpy.ceil(dataset_size / num_batches))
             else:
                 raise ValueError("need one of batch_size, num_batches "
                                  "for sequential batch iteration")
         elif batch_size is not None:
             if num_batches is not None:
-                max_num_batches = numpy.ceil(self._dataset_size / batch_size)
+                max_num_batches = numpy.ceil(dataset_size / batch_size)
                 if num_batches > max_num_batches:
                     raise ValueError("dataset of %d examples can only provide "
                                      "%d batches with batch_size %d, but %d "
                                      "batches were requested" %
-                                     (self._dataset_size, max_num_batches,
+                                     (dataset_size, max_num_batches,
                                       batch_size, num_batches))
             else:
-                num_batches = numpy.ceil(self._dataset_size / batch_size)
-        self._batch_size = batch_size
-        self._num_batches = num_batches
-        self._next_batch_no = 0
-        self._idx = 0
-        self._batch = 0
-        self._indices = np.arange(self._dataset_size)
+                num_batches = numpy.ceil(dataset_size / batch_size)
+        self.next_batch_no = 0
+        self.batch = 0
+        super(SequentialSubsetIterator, self).__init__(dataset_size, batch_size, num_batches)
+        self.idx = 0
+        self.indices = np.arange(self.dataset_size)
 
 
     def next(self):
-        if self._batch >= self.num_batches or self._idx >= self._dataset_size:
+        if self.batch >= self.num_batches or self.idx >= self.dataset_size:
             raise StopIteration()
 
         # this fix the problem where dataset_size % batch_size != 0
-        elif (self._idx + self._batch_size) > self._dataset_size:
-            self._last = self._indices[self._idx : self._dataset_size]
-            self._idx = self._dataset_size
-            return self._last
+        elif (self.idx + self.batch_size) > self.dataset_size:
+            self.last = self.indices[self.idx : self.dataset_size]
+            self.idx = self.dataset_size
+            return self.last
 
         else:
-            self._last = self._indices[self._idx : self._idx + self._batch_size]
-            self._idx += self._batch_size
-            self._batch += 1
-            return self._last
+            self.last = self.indices[self.idx : self.idx + self.batch_size]
+            self.idx += self.batch_size
+            self.batch += 1
+            return self.last
 
     fancy = False
     stochastic = False
@@ -119,11 +96,11 @@ class SequentialSubsetIterator(SubsetIterator):
     @property
     def num_examples(self):
         product = self.batch_size * self.num_batches
-        return min(product, self._dataset_size)
+        return min(product, self.dataset_size)
 
     @property
     def uneven(self):
-        return self.batch_size * self.num_batches > self._dataset_size
+        return self.batch_size * self.num_batches > self.dataset_size
 
 
 class ShuffledSequentialSubsetIterator(SequentialSubsetIterator):
@@ -138,43 +115,92 @@ class ShuffledSequentialSubsetIterator(SequentialSubsetIterator):
             num_batches,
             None
         )
+        self.idx = 0
+        self.indices = np.arange(self.dataset_size)
         if rng is not None and hasattr(rng, 'random_integers'):
-            self._rng = rng
+            self.rng = rng
         else:
-            self._rng = numpy.random.RandomState(rng)
-        self._shuffled = numpy.arange(self._dataset_size)
-        self._rng.shuffle(self._shuffled)
+            self.rng = numpy.random.RandomState(rng)
+        self.shuffled = numpy.arange(self.dataset_size)
+        self.rng.shuffle(self.shuffled)
 
     def next(self):
-        if self._batch >= self.num_batches or self._idx >= self._dataset_size:
+        if self.batch >= self.num_batches or self.idx >= self.dataset_size:
             raise StopIteration()
 
         # this fix the problem where dataset_size % batch_size != 0
-        elif (self._idx + self._batch_size) > self._dataset_size:
-            rval = self._shuffled[self._idx: self._dataset_size]
-            self._idx = self._dataset_size
+        elif (self.idx + self.batch_size) > self.dataset_size:
+            rval = self.shuffled[self.idx: self.dataset_size]
+            self.idx = self.dataset_size
             return rval
         else:
-            rval = self._shuffled[self._idx: self._idx + self._batch_size]
-            self._idx += self._batch_size
-            self._batch += 1
+            rval = self.shuffled[self.idx: self.idx + self.batch_size]
+            self.idx += self.batch_size
+            self.batch += 1
             return rval
 
+
 class SequentialContinuousIterator(SubsetIterator):
-    '''
-    The is for continous sequence with fix step at a time.
-    '''
+
     def __init__(self, dataset_size, batch_size, step_size=1):
-        self.step_size = step_size
-        self.batch_size = batch_size
-        self.dataset_size = dataset_size
+        '''
+        The is for continous sequence with fix step at a time.
+        '''
+        super(SequentialRecurrentIterator, self).__init__(datast_size, batch_size)
         self.idx = 0
         self.indices = np.arange(self.dataset_size)
+        self.step_size = step_size
+        assert self.step_size > 0
 
     def next(self):
         if self.idx + self.batch_size > self.dataset_size:
             raise StopIteration()
-        else:
-            rval = self.indices[self.idx:self.idx+self.batch_size]
-            self.idx += self.step_size
-            return rval
+
+        rval = self.indices[self.idx:self.idx+self.batch_size]
+        self.idx += self.step_size
+        return rval
+
+
+class SequentialRecurrentIterator(SubsetIterator):
+
+    def __init__(self, dataset_size, batch_size, seq_len):
+        '''
+        This is for generating sequences of equal len (seq_len) with (batch_size)
+        number of sequences. example of seq_len 2 and batch_size 3 will generate
+        [0, 1, 1, 2, 2, 3]
+        '''
+        super(SequentialRecurrentIterator, self).__init__(dataset_size, batch_size)
+        self.seq_len = seq_len
+        self.ridx = [np.arange(seq_len) + i for i in range(batch_size)]
+        self.ridx = np.concatenate(self.ridx)
+        self.lastidx = self.seq_len + self.batch_size - 1
+        self.first = True
+        self.stop = False
+
+    def __iter__(self):
+        self.first = True
+        self.stop = False
+        self.ridx = [np.arange(seq_len) + i for i in range(batch_size)]
+        self.ridx = np.concatenate(self.ridx)
+        self.lastidx = self.seq_len + self.batch_size - 1
+
+    def next(self):
+        if self.stop:
+            raise StopIteration()
+
+        print 'lastidx', self.lastidx
+        if self.lastidx > self.dataset_size:
+            self.ridx += self.batch_size
+            last = self.lastidx - self.dataset_size
+            self.stop = True
+            if len(self.ridx[:-last*self.seq_len]) == 0:
+                raise StopIteration()
+            return self.ridx[:-last*self.seq_len]
+
+        self.lastidx += self.batch_size
+        if self.first:
+            self.first = False
+            return self.ridx
+
+        self.ridx += self.batch_size
+        return self.ridx
