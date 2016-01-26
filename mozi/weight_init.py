@@ -59,3 +59,14 @@ class OrthogonalWeight(WeightInitialization):
         q = u if u.shape == flat_shape else v
         q = q.reshape(dim)
         return sharedX(name=name, value=self.scale * q[:dim[0],:dim[1]], borrow=True)
+
+
+class Identity(WeightInitialization):
+    def __init__(self, scale=1):
+        self.scale = scale
+
+    def __call__(self, dim, name='W'):
+        if len(dim) != 2 or dim[0] != dim[1]:
+            raise Exception("Identity matrix initialization can only be used for 2D square matrices")
+        else:
+            return sharedX(self.scale * np.identity(dim[0]))

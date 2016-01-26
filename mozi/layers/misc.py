@@ -6,6 +6,7 @@ Functionality : Define the noise that is to be added to each layer
 import theano
 import theano.tensor as T
 from mozi.layers.template import Template
+import numpy as np
 
 class Flatten(Template):
 
@@ -24,12 +25,12 @@ class Reshape(Template):
         self.params = []
         self.dims = dims
 
-    def _test_fprop(self, state_below):
-        return self._train_fprop(state_below)
-
     def _train_fprop(self, state_below):
         nshape = (state_below.shape[0],) + self.dims
         return T.reshape(state_below, nshape)
+
+    def _test_fprop(self, state_below):
+        return self._train_fprop(state_below)
 
 
 class Transform(Template):
