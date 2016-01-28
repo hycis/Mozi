@@ -66,7 +66,7 @@ class SequentialSubsetIterator(SubsetIterator):
                                      (dataset_size, max_num_batches,
                                       batch_size, num_batches))
             else:
-                num_batches = numpy.ceil(dataset_size / batch_size)
+                num_batches = numpy.ceil(dataset_size / float(batch_size))
         self.next_batch_no = 0
         self.batch = 0
         super(SequentialSubsetIterator, self).__init__(dataset_size, batch_size, num_batches)
