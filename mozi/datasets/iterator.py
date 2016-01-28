@@ -183,9 +183,6 @@ class SequentialRecurrentIterator(SubsetIterator):
             if len(self.ridx[:-last*self.seq_len]) == 0:
                 raise StopIteration()
             ridx = np.copy(self.ridx)
-            print 'ridx[0],ridx[-1], len(ridx)', ridx[0], ridx[-1], len(ridx)
-            print 'dataset size', self.dataset_size
-            print
             self.ridx += self.batch_size
             return ridx[:-last*self.seq_len]
         else:
