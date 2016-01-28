@@ -26,17 +26,15 @@ class RELU(Template):
 
 
 class PRELU(Template):
-    def __init__(self, alpha=0.2, **kwargs):
+    def __init__(self, dim, alpha=0.2):
         '''
         y = wx + b
         if y > 0 then z = y else z = alpha * y
         return z
         alpha: the gradient of the slope which is updated by backpropagation
         '''
-        super(PRELU, self).__init__(**kwargs)
-        alpha = alpha * np.ones(shape=self.dim, dtype=floatX)
-        self.alpha = theano.shared(value=alpha, name='PRELU_gradient', borrow=True)
-        self.params += [self.alpha]
+        self.alpha = sharedX(np.ones(dim) * alpha, name='PRELU_gradient')
+        self.params = [self.alpha]
 
     def _test_fprop(self, state_below):
         return self._train_fprop(state_below)
@@ -47,7 +45,7 @@ class PRELU(Template):
 
 
 class LeakyRELU(Template):
-    def __init__(self, alpha=0.01, **kwargs):
+    def __init__(self, alpha=0.01):
         self.alpha = sharedX(alpha)
         self.params = []
 

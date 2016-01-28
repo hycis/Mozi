@@ -170,36 +170,25 @@ class SequentialRecurrentIterator(SubsetIterator):
         [0, 1, 1, 2, 2, 3]
         '''
         super(SequentialRecurrentIterator, self).__init__(dataset_size, batch_size)
+        assert dataset_size >= seq_len, 'size of dataset has to be at least larger than sequence length'
         self.seq_len = seq_len
-        self.ridx = [np.arange(seq_len) + i for i in range(batch_size)]
-        self.ridx = np.concatenate(self.ridx)
-        self.lastidx = self.seq_len + self.batch_size - 1
-        self.first = True
-        self.stop = False
+        self.ridx = np.concatenate([np.arange(seq_len) + i for i in range(batch_size)])
 
     def __iter__(self):
-        self.first = True
-        self.stop = False
-        self.ridx = [np.arange(seq_len) + i for i in range(batch_size)]
-        self.ridx = np.concatenate(self.ridx)
-        self.lastidx = self.seq_len + self.batch_size - 1
+        self.ridx = np.concatenate([np.arange(seq_len) + i for i in range(batch_size)])
 
     def next(self):
-        if self.stop:
-            raise StopIteration()
-
-        if self.lastidx > self.dataset_size:
-            self.ridx += self.batch_size
-            last = self.lastidx - self.dataset_size
-            self.stop = True
+        if self.ridx[-1] >= self.dataset_size:
+            last = self.ridx[-1] - self.dataset_size + 1
             if len(self.ridx[:-last*self.seq_len]) == 0:
                 raise StopIteration()
-            return self.ridx[:-last*self.seq_len]
-
-        self.lastidx += self.batch_size
-        if self.first:
-            self.first = False
-            return self.ridx
-
-        self.ridx += self.batch_size
-        return self.ridx
+            ridx = np.copy(self.ridx)
+            print 'ridx[0],ridx[-1], len(ridx)', ridx[0], ridx[-1], len(ridx)
+            print 'dataset size', self.dataset_size
+            print
+            self.ridx += self.batch_size
+            return ridx[:-last*self.seq_len]
+        else:
+            ridx = np.copy(self.ridx)
+            self.ridx += self.batch_size
+            return ridx
