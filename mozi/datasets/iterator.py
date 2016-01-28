@@ -188,7 +188,6 @@ class SequentialRecurrentIterator(SubsetIterator):
         if self.stop:
             raise StopIteration()
 
-        print 'lastidx', self.lastidx
         if self.lastidx > self.dataset_size:
             self.ridx += self.batch_size
             last = self.lastidx - self.dataset_size

@@ -166,7 +166,6 @@ class TrainObject():
 
                 #====================[ Training Progress ]====================#
                 if train_set.dataset_size > 0:
-
                     self.log.info('..training '+ self.dataset.__class__.__name__
                                 + ' block %s/%s'%(blk, self.dataset.nblocks))
 

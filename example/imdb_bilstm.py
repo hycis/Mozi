@@ -41,9 +41,11 @@ def train():
     maxseqlen = 100 # cut texts after this number of words (among top max_features most common words)
     batch_size = 16
     word_vec_len = 256
+    iter_class = 'SequentialRecurrentIterator'
+    seq_len = 10
 
     data = IMDB(pad_zero=True, maxlen=100, nb_words=max_features, batch_size=batch_size,
-                train_valid_test_ratio=[8,2,0])
+                train_valid_test_ratio=[8,2,0], iter_class=iter_class, seq_len=seq_len)
 
     print('Build model...')
     model = Sequential(input_var=T.matrix(), output_var=T.matrix())

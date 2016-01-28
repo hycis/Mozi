@@ -51,3 +51,23 @@ class Transform(Template):
     def _train_fprop(self, state_below):
         first_dim = T.prod(state_below.shape) / np.prod(self.dims)
         return T.reshape(state_below, (first_dim,)+self.dims)
+
+
+class Parallel(Template):
+
+    def __init__(self, *models):
+        self.models = models
+        self.params = []
+        for model in self.models:
+            for layer in model.layers:
+                self.params += layer.params
+
+    def _train_fprop(self, state_below):
+        rstate = []
+        for model, state in zip(self.models, state_below):
+            out, _ = model.train_fprop(state)
+            rstate.append(out)
+        return rstate
+
+    def _test_fprop(self, state_below):
+        return self._train_fprop(state_below)
