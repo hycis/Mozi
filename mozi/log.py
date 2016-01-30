@@ -112,8 +112,11 @@ class Log:
                 elif type(v) is float:
                     query += k + ' REAL,'
                 else:
-                    raise Exception("Error: The input types for records '{}' of {}".format(k, type(v))
-                                    + " is not primitive types (str, int, float).")
+                    try:
+                        query += str(k) + ' TEXT,'
+                    except:
+                        raise Exception("Error: The input types for records '{}' of {}".format(k, type(v))
+                                    + " is not primitive types (str, int, float) and not castable as str.")
 
             query += 'epoch INT, train_cost REAL, valid_cost REAL, best_valid_error REAL);'
 
