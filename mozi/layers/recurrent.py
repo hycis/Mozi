@@ -201,9 +201,9 @@ class BiLSTM(Template):
     def _train_fprop(self, state_below):
         forward = self.get_forward_output(state_below)
         backward = self.get_backward_output(state_below)
-        if self.output_mode is 'sum':
+        if self.output_mode == 'sum':
             output = forward + backward
-        elif self.output_mode is 'concat':
+        elif self.output_mode == 'concat':
             output = T.concatenate([forward, backward], axis=2)
         else:
             raise Exception('output mode is not sum or concat')

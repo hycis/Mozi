@@ -13,17 +13,19 @@ else:
 
 def accuracy(y, y_pred):
     L = T.eq(y_pred.argmax(axis=1), y.argmax(axis=1))
-    return T.sum(L) / y.shape[0].astype(floatX)
+    return T.mean(L)
+    # L = T.eq(y_pred.argmax(axis=1), y.argmax(axis=1))
+    # return T.sum(L) / y.shape[0].astype(floatX)
 
 def mse(y, y_pred):
-    # L = T.sum(T.sqr(y - y_pred), axis=1)
-    # return T.mean(L)
     return T.mean(T.sqr(y-y_pred))
 
 def entropy(y, y_pred):
     y_pred = T.clip(y_pred, epsilon, 1.0 - epsilon)
-    L = - T.sum(y * T.log(y_pred) + (1-y) * T.log(1-y_pred), axis=1)
+    L = -(y * T.log(y_pred) + (1-y) * T.log(1-y_pred))
     return T.mean(L)
+    # L = - T.sum(y * T.log(y_pred) + (1-y) * T.log(1-y_pred), axis=1)
+    # return T.mean(L)
 
 def error(y, y_pred):
     L = T.neq(y_pred.argmax(axis=1), y.argmax(axis=1))
@@ -43,8 +45,6 @@ def f1(y, y_pred):
     return 2 * p * r / (p + r)
 
 def abs(y, y_pred):
-    # L = T.sum(T.abs_(y - y_pred, axis=1))
-    # return T.mean(L)
     return T.mean(T.abs_(y-y_pred))
 
 def SGVB_bin(y, y_pred):
