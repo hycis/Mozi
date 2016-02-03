@@ -16,6 +16,8 @@ except ImportError:
     warnings.warn("Could not import scipy.linalg")
 from theano import function
 import theano.tensor as T
+import theano
+import scipy
 
 log = logging.getLogger(__name__)
 
@@ -100,7 +102,7 @@ class Standardize(ExamplewisePreprocessor):
     Adapted from pylearn2
     Subtracts the mean and divides by the standard deviation.
     """
-    def __init__(self, global_mean=False, global_std=False, std_eps=1e-4, can_fit=True):
+    def __init__(self, global_mean=None, global_std=None, std_eps=1e-4):
         """
         Initialize a Standardize preprocessor.
 
@@ -121,21 +123,15 @@ class Standardize(ExamplewisePreprocessor):
             from causing the feature values to blow up too much.
             Default is `1e-4`.
         """
-        self._global_mean = global_mean
-        self._global_std = global_std
         self._std_eps = std_eps
-        self._mean = None
-        self._std = None
-        self.can_fit = can_fit
+        self._mean = global_mean
+        self._std = global_std
 
     def apply(self, X):
-        if self.can_fit:
-            self._mean = X.mean() if self._global_mean else X.mean(axis=0)
-            self._std = X.std() if self._global_std else X.std(axis=0)
-        else:
-            if self._mean is None or self._std is None:
-                raise ValueError("can_fit is False, but Standardize object "
-                                 "has no stored mean or standard deviation")
+        if self._mean is None:
+            self._mean = X.mean(axis=0)
+        if self._std is None:
+            self._std = X.std(axis=0)
         X = (X - self._mean) / (self._std_eps + self._std)
         return X
 
@@ -177,7 +173,7 @@ class GCN(Preprocessor):
         do not apply it. Defaults to `1e-8`.
     """
 
-    def __init__(self, scale=1., subtract_mean=False, use_std=False,
+    def __init__(self, scale=1., subtract_mean=True, use_std=True,
                 sqrt_bias=0., min_divisor=1e-8):
 
         self.scale = scale
@@ -209,10 +205,10 @@ class GCN(Preprocessor):
         # to subtract this without worrying about whether the current
         # object is the train, valid, or test set.
         if self.subtract_mean:
-            self.mean = X.mean(axis=1)[:, np.newaxis]
             X = X - self.mean  # Makes a copy.
         else:
             X = X.copy()
+
         if self.use_std:
             # ddof=1 simulates MATLAB's var() behaviour, which is what Adam
             # Coates' code does.
@@ -379,3 +375,331 @@ class Sigmoid(Preprocessor):
 
     def invert(self, X):
         return np.log(X / (1-X + 1e-9))
+
+
+class ZCA(Preprocessor):
+
+    """
+    from pylearn2
+    Performs ZCA whitening.
+    .. TODO::
+        WRITEME properly
+        add reference
+    Parameters
+    ----------
+    n_components : integer, optional
+        Keeps the n_components biggest eigenvalues and corresponding
+        eigenvectors of covariance matrix.
+    n_drop_components : integer, optional
+        Drops the n_drop_components smallest eigenvalues and corresponding
+        eigenvectors of covariance matrix. Will only drop components
+        when n_components is not set i.e. n_components has preference over
+        n_drop_components.
+    filter_bias : float, optional
+        TODO: verify that default of 0.1 is what was used in the
+        Coates and Ng paper, add reference
+    store_inverse : bool, optional
+        When self.apply(dataset, can_fit=True) store not just the
+        preprocessing matrix, but its inverse. This is necessary when
+        using this preprocessor to instantiate a ZCA_Dataset.
+    """
+
+    def __init__(self, n_components=None, n_drop_components=None,
+                 filter_bias=0.1, store_inverse=True):
+        warnings.warn("This ZCA preprocessor class is known to yield very "
+                      "different results on different platforms. If you plan "
+                      "to conduct experiments with this preprocessing on "
+                      "multiple machines, it is probably a good idea to do "
+                      "the preprocessing on a single machine and copy the "
+                      "preprocessed datasets to the others, rather than "
+                      "preprocessing the data independently in each "
+                      "location.")
+        # TODO: test to see if differences across platforms
+        # e.g., preprocessing STL-10 patches in LISA lab versus on
+        # Ian's Ubuntu 11.04 machine
+        # are due to the problem having a bad condition number or due to
+        # different version numbers of scipy or something
+        self.n_components = n_components
+        self.n_drop_components = n_drop_components
+        self.copy = True
+        self.filter_bias = np.cast[theano.config.floatX](filter_bias)
+        self.has_fit_ = False
+        self.store_inverse = store_inverse
+        self.P_ = None  # set by fit()
+        self.inv_P_ = None  # set by fit(), if self.store_inverse is True
+
+        # Analogous to DenseDesignMatrix.design_loc. If not None, the
+        # matrices P_ and inv_P_ will be saved together in <save_path>
+        # (or <save_path>.npz, if the suffix is omitted).
+        self.matrices_save_path = None
+
+    @staticmethod
+    def _gpu_matrix_dot(matrix_a, matrix_b, matrix_c=None):
+        """
+        Performs matrix multiplication.
+        Attempts to use the GPU if it's available. If the matrix multiplication
+        is too big to fit on the GPU, this falls back to the CPU after throwing
+        a warning.
+        Parameters
+        ----------
+        matrix_a : WRITEME
+        matrix_b : WRITEME
+        matrix_c : WRITEME
+        """
+        if not hasattr(ZCA._gpu_matrix_dot, 'theano_func'):
+            ma, mb = T.matrices('A', 'B')
+            mc = T.dot(ma, mb)
+            ZCA._gpu_matrix_dot.theano_func = \
+                theano.function([ma, mb], mc, allow_input_downcast=True)
+
+        theano_func = ZCA._gpu_matrix_dot.theano_func
+
+        try:
+            if matrix_c is None:
+                return theano_func(matrix_a, matrix_b)
+            else:
+                matrix_c[...] = theano_func(matrix_a, matrix_b)
+                return matrix_c
+        except MemoryError:
+            warnings.warn('Matrix multiplication too big to fit on GPU. '
+                          'Re-doing with CPU. Consider using '
+                          'THEANO_FLAGS="device=cpu" for your next '
+                          'preprocessor run')
+            return np.dot(matrix_a, matrix_b, matrix_c)
+
+    @staticmethod
+    def _gpu_mdmt(mat, diags):
+        """
+        Performs the matrix multiplication M * D * M^T.
+        First tries to do this on the GPU. If this throws a MemoryError, it
+        falls back to the CPU, with a warning message.
+        Parameters
+        ----------
+        mat : WRITEME
+        diags : WRITEME
+        """
+
+        floatX = theano.config.floatX
+
+        # compile theano function
+        if not hasattr(ZCA._gpu_mdmt, 'theano_func'):
+            t_mat = T.matrix('M')
+            t_diags = T.vector('D')
+            result = T.dot(t_mat * t_diags, t_mat.T)
+            ZCA._gpu_mdmt.theano_func = theano.function(
+                [t_mat, t_diags],
+                result,
+                allow_input_downcast=True)
+
+        try:
+            # function()-call above had to downcast the data. Emit warnings.
+            if str(mat.dtype) != floatX:
+                warnings.warn('Implicitly converting mat from dtype=%s to '
+                              '%s for gpu' % (mat.dtype, floatX))
+            if str(diags.dtype) != floatX:
+                warnings.warn('Implicitly converting diag from dtype=%s to '
+                              '%s for gpu' % (diags.dtype, floatX))
+
+            return ZCA._gpu_mdmt.theano_func(mat, diags)
+
+        except MemoryError:
+            # fall back to cpu
+            warnings.warn('M * D * M^T was too big to fit on GPU. '
+                          'Re-doing with CPU. Consider using '
+                          'THEANO_FLAGS="device=cpu" for your next '
+                          'preprocessor run')
+            return np.dot(mat * diags, mat.T)
+
+    def set_matrices_save_path(self, matrices_save_path):
+        """
+        Analogous to DenseDesignMatrix.use_design_loc().
+        If a matrices_save_path is set, when this ZCA is pickled, the internal
+        parameter matrices will be saved separately to `matrices_save_path`, as
+        a numpy .npz archive. This uses half the memory that a normal pickling
+        does.
+        Parameters
+        ----------
+        matrices_save_path : WRITEME
+        """
+        if matrices_save_path is not None:
+            assert isinstance(matrices_save_path, str)
+            matrices_save_path = os.path.abspath(matrices_save_path)
+
+            if os.path.isdir(matrices_save_path):
+                raise IOError('Matrix save path "%s" must not be an existing '
+                              'directory.')
+
+            assert matrices_save_path[-1] not in ('/', '\\')
+            if not os.path.isdir(os.path.split(matrices_save_path)[0]):
+                raise IOError('Couldn\'t find parent directory:\n'
+                              '\t"%s"\n'
+                              '\t of matrix path\n'
+                              '\t"%s"')
+
+        self.matrices_save_path = matrices_save_path
+
+    def __getstate__(self):
+        """
+        Used by pickle.  Returns a dictionary to pickle in place of
+        self.__dict__.
+        If self.matrices_save_path is set, this saves the matrices P_ and
+        inv_P_ separately in matrices_save_path as a .npz archive, which uses
+        much less space & memory than letting pickle handle them.
+        """
+        result = copy.copy(self.__dict__)  # shallow copy
+        if self.matrices_save_path is not None:
+            matrices = {'P_': self.P_}
+            if self.inv_P_ is not None:
+                matrices['inv_P_'] = self.inv_P_
+
+            np.savez(self.matrices_save_path, **matrices)
+
+            # Removes the matrices from the dictionary to be pickled.
+            for key, matrix in matrices.items():
+                del result[key]
+
+        return result
+
+    def __setstate__(self, state):
+        """
+        Used to unpickle.
+        Parameters
+        ----------
+        state : dict
+            The dictionary created by __setstate__, presumably unpickled
+            from disk.
+        """
+
+        # Patch old pickle files
+        if 'matrices_save_path' not in state:
+            state['matrices_save_path'] = None
+
+        if state['matrices_save_path'] is not None:
+            matrices = np.load(state['matrices_save_path'])
+
+            # puts matrices' items into state, overriding any colliding keys in
+            # state.
+            state = dict(state.items() + matrices.items())
+            del matrices
+
+        self.__dict__.update(state)
+
+        if not hasattr(self, "inv_P_"):
+            self.inv_P_ = None
+
+    def fit(self, X):
+        """
+        Fits this `ZCA` instance to a design matrix `X`.
+        Parameters
+        ----------
+        X : ndarray
+            A matrix where each row is a datum.
+        Notes
+        -----
+        Implementation details:
+        Stores result as `self.P_`.
+        If self.store_inverse is true, this also computes `self.inv_P_`.
+        """
+
+        assert X.dtype in ['float32', 'float64']
+        assert not np.any(np.isnan(X))
+        assert len(X.shape) == 2
+        n_samples = X.shape[0]
+        if self.copy:
+            X = X.copy()
+        # Center data
+        self.mean_ = np.mean(X, axis=0)
+        X -= self.mean_
+
+        log.info('computing zca of a {0} matrix'.format(X.shape))
+        t1 = time.time()
+
+        bias = self.filter_bias * scipy.sparse.identity(X.shape[1],
+                                                        theano.config.floatX)
+
+        covariance = ZCA._gpu_matrix_dot(X.T, X) / X.shape[0] + bias
+        t2 = time.time()
+        log.info("cov estimate took {0} seconds".format(t2 - t1))
+
+        t1 = time.time()
+        eigs, eigv = linalg.eigh(covariance)
+        t2 = time.time()
+
+        log.info("eigh() took {0} seconds".format(t2 - t1))
+        assert not np.any(np.isnan(eigs))
+        assert not np.any(np.isnan(eigv))
+        assert eigs.min() > 0
+
+        if self.n_components and self.n_drop_components:
+            raise ValueError('Either n_components or n_drop_components'
+                             'should be specified')
+
+        if self.n_components:
+            eigs = eigs[-self.n_components:]
+            eigv = eigv[:, -self.n_components:]
+
+        if self.n_drop_components:
+            eigs = eigs[self.n_drop_components:]
+            eigv = eigv[:, self.n_drop_components:]
+
+        t1 = time.time()
+
+        sqrt_eigs = np.sqrt(eigs)
+        try:
+            self.P_ = ZCA._gpu_mdmt(eigv, 1.0 / sqrt_eigs)
+        except MemoryError:
+            warnings.warn()
+            self.P_ = np.dot(eigv * (1.0 / sqrt_eigs), eigv.T)
+
+        t2 = time.time()
+        assert not np.any(np.isnan(self.P_))
+        self.has_fit_ = True
+
+        if self.store_inverse:
+            self.inv_P_ = ZCA._gpu_mdmt(eigv, sqrt_eigs)
+        else:
+            self.inv_P_ = None
+
+    def apply(self, X, can_fit=True):
+        """
+        .. todo::
+            WRITEME
+        """
+        # Compiles apply.x_minus_mean_times_p(), a numeric Theano function that
+        # evauates dot(X - mean, P)
+        if not hasattr(ZCA, '_x_minus_mean_times_p'):
+            x_symbol = T.matrix('X')
+            mean_symbol = T.vector('mean')
+            p_symbol = T.matrix('P_')
+            new_x_symbol = T.dot(x_symbol - mean_symbol, p_symbol)
+            ZCA._x_minus_mean_times_p = theano.function([x_symbol,
+                                                         mean_symbol,
+                                                         p_symbol],
+                                                        new_x_symbol)
+
+        assert X.dtype in ['float32', 'float64']
+        if not self.has_fit_:
+            assert can_fit
+            self.fit(X)
+
+        new_X = ZCA._gpu_matrix_dot(X - self.mean_, self.P_)
+        return new_X
+
+    def invert(self, X):
+        """
+        .. todo::
+            WRITEME
+        """
+        assert X.ndim == 2
+
+        if self.inv_P_ is None:
+            warnings.warn("inv_P_ was None. Computing "
+                          "inverse of P_ now. This will take "
+                          "some time. For efficiency, it is recommended that "
+                          "in the future you compute the inverse in ZCA.fit() "
+                          "instead, by passing it store_inverse=True.")
+            log.info('inverting...')
+            self.inv_P_ = np.linalg.inv(self.P_)
+            log.info('...done inverting')
+
+        return self._gpu_matrix_dot(X, self.inv_P_) + self.mean_

@@ -113,6 +113,7 @@ class Log:
                     query += k + ' REAL,'
                 else:
                     try:
+                        self.save_to_database['records'][k] = str(v)
                         query += str(k) + ' TEXT,'
                     except:
                         raise Exception("Error: The input types for records '{}' of {}".format(k, type(v))
