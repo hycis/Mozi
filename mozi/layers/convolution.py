@@ -15,9 +15,8 @@ from mozi.utils.theano_utils import shared_zeros
 floatX = theano.config.floatX
 
 class Convolution2D(Template):
-    def __init__(self, input_channels, filters, kernel_size=(3,3),
-        stride=(1,1), W=None, b=None, weight_init=GaussianWeight(mean=0, std=0.1),
-        image_shape=None, border_mode='valid'):
+    def __init__(self, input_channels, filters, kernel_size=(3,3), stride=(1,1),
+                 W=None, b=None, weight_init=GaussianWeight(mean=0, std=0.1), border_mode='valid'):
         '''
         PARAM:
             border_mode: (from theano)
@@ -31,7 +30,6 @@ class Convolution2D(Template):
         self.kernel_size = kernel_size
         self.stride = stride
         self.border_mode = border_mode
-        self.image_shape = image_shape
 
         self.W_shape = (self.filters, self.input_channels) + self.kernel_size
         self.W = W
@@ -48,8 +46,7 @@ class Convolution2D(Template):
     def _train_fprop(self, state_below):
         conv_out = theano.tensor.nnet.conv.conv2d(state_below, self.W,
                                                   border_mode=self.border_mode,
-                                                  subsample=self.stride,
-                                                  image_shape=self.image_shape)
+                                                  subsample=self.stride)
         return conv_out + self.b.dimshuffle('x', 0, 'x', 'x')
 
 

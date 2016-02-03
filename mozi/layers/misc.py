@@ -1,8 +1,4 @@
 
-"""
-Functionality : Define the noise that is to be added to each layer
-"""
-
 import theano
 import theano.tensor as T
 from mozi.layers.template import Template
