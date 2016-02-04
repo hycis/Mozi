@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 import theano.tensor as T
 
@@ -9,48 +10,47 @@ from mozi.layers.noise import Dropout
 from mozi.layers.activation import *
 from mozi.layers.convolution import *
 from mozi.layers.misc import Flatten
+from mozi.layers.normalization import *
 from mozi.log import Log
 from mozi.train_object import TrainObject
 from mozi.cost import error, entropy
-from mozi.learning_method import SGD
-import os
+from mozi.learning_method import *
 from mozi.env import setenv
-
+from mozi.utils.cnn_utils import valid, full
 
 def train():
-    batch_size = 32
+    batch_size = 128
     data = Cifar10(batch_size=batch_size, train_valid_test_ratio=[4,1,1])
+    _, c, h, w = data.train.X.shape
 
     model = Sequential(input_var=T.tensor4(), output_var=T.matrix())
-    model.add(Convolution2D(input_channels=3, filters=8, kernel_size=(3,3), stride=(1,1), border_mode='full'))
+    model.add(Convolution2D(input_channels=c, filters=8, kernel_size=(3,3), stride=(1,1), border_mode='full'))
+    h, w = full(h, w, kernel=3, stride=1)
     model.add(RELU())
-    model.add(Convolution2D(input_channels=8, filters=16, kernel_size=(3,3), stride=(1,1)))
+    model.add(Convolution2D(input_channels=8, filters=16, kernel_size=(3,3), stride=(1,1), border_mode='valid'))
+    h, w = valid(h, w, kernel=3, stride=1)
     model.add(RELU())
     model.add(Pooling2D(poolsize=(4, 4), stride=(4,4), mode='max'))
-    model.add(Dropout(0.25))
-
+    h, w = valid(h, w, kernel=4, stride=4)
     model.add(Flatten())
-    model.add(Linear(16*8*8, 512))
+    model.add(Linear(16*h*w, 512))
+    model.add(BatchNormalization((512,), short_memory=0.9))
     model.add(RELU())
-    model.add(Dropout(0.5))
 
     model.add(Linear(512, 10))
     model.add(Softmax())
 
-    # build learning method
-    learning_method = SGD(learning_rate=0.01, momentum=0.9,
-                          lr_decay_factor=0.9, decay_batch=5000)
+    learning_method = RMSprop(learning_rate=0.01)
 
     # Build Logger
-    log = Log(experiment_name = 'cifar10_cnn',
+    log = Log(experiment_name = 'cifar10_cnn_example',
               description = 'This is a tutorial',
               save_outputs = True, # log all the outputs from the screen
               save_model = True, # save the best model
               save_epoch_error = True, # log error at every epoch
               save_to_database = {'name': 'hyperparam.sqlite3',
                                   'records': {'Batch_Size': batch_size,
-                                              'Learning_Rate': learning_method.learning_rate,
-                                              'Momentum': learning_method.momentum}}
+                                              'Learning_Rate': learning_method.learning_rate}}
              ) # end log
 
     # put everything into the train object

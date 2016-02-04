@@ -40,5 +40,9 @@ class Cifar10(SingleBlock):
         X_npy = np.array(X, dtype=floatX)
         X_npy /= 255.0
         y_npy = make_one_hot(y, onehot_size=self.n_classes)
+        ridx = np.arange(len(X_npy))
+        np.random.shuffle(ridx)
+        X_npy = X_npy[ridx]
+        y_npy = y_npy[ridx]
 
         super(Cifar10, self).__init__(X=X_npy, y=y_npy, **kwargs)

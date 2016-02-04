@@ -29,30 +29,31 @@ class BatchNormalization(Template):
         self.beta = shared_zeros(self.input_shape, name='beta')
 
         self.moving_mean = 0
-        self.moving_std = 1
+        self.moving_var = 1
 
         self.params = [self.gamma, self.beta]
 
 
     def _train_fprop(self, state_below):
         miu = state_below.mean(axis=0)
-        std = T.mean((state_below - miu) ** 2 + self.epsilon, axis=0) ** 0.5
+        var = T.mean((state_below - miu) ** 2, axis=0)
         self.moving_mean += self.mem * miu + (1-self.mem) * self.moving_mean
-        self.moving_std += self.mem * std + (1-self.mem) * self.moving_std
-        Z = (state_below - self.moving_mean) / self.moving_std
+        self.moving_var += self.mem * var + (1-self.mem) * self.moving_var
+        Z = (state_below - self.moving_mean) / T.sqrt(self.moving_var + self.epsilon)
         return self.gamma * Z + self.beta
 
 
     def _test_fprop(self, state_below):
-        Z = (state_below - self.moving_mean) / self.moving_std
+        Z = (state_below - self.moving_mean) / T.sqrt(self.moving_var + self.epsilon)
         return self.gamma * Z + self.beta
 
 
     def _layer_stats(self, state_below, layer_output):
         return [('moving_mean', T.mean(self.moving_mean)),
-                ('moving_std', T.mean(self.moving_std)),
+                ('moving_var', T.mean(self.moving_var)),
                 ('gamma_mean', T.mean(self.gamma)),
-                ('beta_mean', T.mean(self.beta))]
+                ('beta_mean', T.mean(self.beta)),
+                ('memory', sharedX(self.mem))]
 
 
 class LRN(Template):
