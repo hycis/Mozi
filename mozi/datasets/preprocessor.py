@@ -140,6 +140,9 @@ class Standardize(ExamplewisePreprocessor):
 
 
 
+
+
+
 class GCN(Preprocessor):
 
     """
@@ -173,7 +176,7 @@ class GCN(Preprocessor):
         do not apply it. Defaults to `1e-8`.
     """
 
-    def __init__(self, scale=1., subtract_mean=True, use_std=True,
+    def __init__(self, scale=1., subtract_mean=True, use_std=False,
                 sqrt_bias=0., min_divisor=1e-8):
 
         self.scale = scale
@@ -205,7 +208,8 @@ class GCN(Preprocessor):
         # to subtract this without worrying about whether the current
         # object is the train, valid, or test set.
         if self.subtract_mean:
-            X = X - self.mean  # Makes a copy.
+            self.mean = np.mean(X, axis=1)
+            X = X - self.mean[:, np.newaxis]  # Makes a copy.
         else:
             X = X.copy()
 
@@ -217,7 +221,7 @@ class GCN(Preprocessor):
             self.normalizers = np.sqrt(self.sqrt_bias + (X ** 2).sum(axis=1)) / scale
         # Don't normalize by anything too small.
         self.normalizers[self.normalizers < self.min_divisor] = 1.
-        X /= self.normalizers[:, np.newaxis]  # Does not make a copy.
+        X = X / self.normalizers[:, np.newaxis]  # Does not make a copy.
         return X
 
     def invert(self, X):
@@ -230,6 +234,22 @@ class GCN(Preprocessor):
             print 'apply() needs to be used before invert()'
         except:
             print "Unexpected error:", sys.exc_info()[0]
+
+
+class GCN_IMG(GCN):
+
+    def apply(self, X):
+        assert X.ndim == 4, 'img dimension should be 4 of (b, c, h, w)'
+        b, c, h, w = X.shape
+        newX = super(GCN_IMG, self).apply(X.reshape((b*c, h*w)))
+        return newX.reshape((b,c,h,w))
+
+    def invert(self, X):
+        assert X.ndim == 4, 'img dimension should be 4 of (b, c, h, w)'
+        b, c, h, w = X.shape
+        newX = super(GCN_IMG, self).invert(X.reshape((b*c, h*w)))
+        return newX.reshape((b,c,h,w))
+
 
 class LogGCN(GCN):
 
@@ -332,6 +352,23 @@ class Scale(Preprocessor):
 
         return X
 
+
+class Pipeline(Preprocessor):
+
+    def __init__(self, preprocessors):
+        self.preprocessors = preprocessors
+
+    def apply(self, X):
+        newX = X.copy()
+        for proc in self.preprocessors:
+            newX = proc.apply(newX)
+        return newX
+
+    def invert(self, X):
+        newX = X.copy()
+        for proc in self.preprocessors:
+            newX = proc.invert(newX)
+        return newX
 
 class Normalize(Preprocessor):
 
