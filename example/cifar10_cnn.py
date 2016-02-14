@@ -20,29 +20,32 @@ from mozi.utils.cnn_utils import valid, full
 
 def train():
     batch_size = 128
+    short_memory = 0.9
     data = Cifar10(batch_size=batch_size, train_valid_test_ratio=[4,1,1])
     _, c, h, w = data.train.X.shape
 
     model = Sequential(input_var=T.tensor4(), output_var=T.matrix())
+    # model.add(BatchNormalization((3,h,w), short_memory=short_memory))
     model.add(Convolution2D(input_channels=c, filters=8, kernel_size=(3,3), stride=(1,1), border_mode='full'))
     h, w = full(h, w, kernel=3, stride=1)
-    # model.add(BatchNormalization((8,h,w), short_memory=0.9))
+    # model.add(BatchNormalization((8,h,w), short_memory=short_memory))
     model.add(RELU())
     model.add(Convolution2D(input_channels=8, filters=16, kernel_size=(3,3), stride=(1,1), border_mode='valid'))
     h, w = valid(h, w, kernel=3, stride=1)
-    # model.add(BatchNormalization((16,h,w), short_memory=0.9))
+    model.add(BatchNormalization((16,h,w), short_memory=short_memory))
     model.add(RELU())
     model.add(Pooling2D(poolsize=(4, 4), stride=(4,4), mode='max'))
     h, w = valid(h, w, kernel=4, stride=4)
     model.add(Flatten())
     model.add(Linear(16*h*w, 512))
-    model.add(BatchNormalization((512,), short_memory=0.9))
+    model.add(BatchNormalization((512,), short_memory=short_memory))
     model.add(RELU())
 
     model.add(Linear(512, 10))
     model.add(Softmax())
 
-    learning_method = RMSprop(learning_rate=0.01)
+    learning_method = RMSprop(learning_rate=0.001)
+    # learning_method = SGD(learning_rate=0.001)
 
     # Build Logger
     log = Log(experiment_name = 'cifar10_cnn_example',
