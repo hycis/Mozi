@@ -62,7 +62,10 @@ class IterDatasets(IterMatrix):
     @property
     def dataset_size(self):
         if isinstance(self.X, (list, tuple)):
-            dsize = len(self.y[0])
+            if len(self.X) == 0:
+                dsize = -1
+            else:
+                dsize = len(self.y[0])
         elif X is None:
             dsize = -1
         else:

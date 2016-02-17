@@ -46,7 +46,7 @@ class Log:
             self.logger = logging.getLogger(__name__)
             self.logger.setLevel(logging.DEBUG)
 
-        # self.logger.info('exp_id: ' + self.exp_id)
+        self.logger.info('exp_id: ' + experiment_name)
 
         if save_outputs:
             ch = logging.FileHandler(filename=self.exp_dir+'/outputs.log')

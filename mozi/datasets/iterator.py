@@ -146,7 +146,7 @@ class SequentialContinuousIterator(SubsetIterator):
         '''
         The is for continous sequence with fix step at a time.
         '''
-        super(SequentialRecurrentIterator, self).__init__(datast_size, batch_size)
+        super(SequentialRecurrentIterator, self).__init__(dataset_size, batch_size)
         self.idx = 0
         self.indices = np.arange(self.dataset_size)
         self.step_size = step_size
@@ -171,11 +171,12 @@ class SequentialRecurrentIterator(SubsetIterator):
         '''
         super(SequentialRecurrentIterator, self).__init__(dataset_size, batch_size)
         assert dataset_size >= seq_len, 'size of dataset has to be at least larger than sequence length'
+        # self.seq_len = seq_len if seq_len <= dataset_size else dataset_size
         self.seq_len = seq_len
-        self.ridx = np.concatenate([np.arange(seq_len) + i for i in range(batch_size)])
+        self.ridx = np.concatenate([np.arange(self.seq_len) + i for i in range(batch_size)])
 
     def __iter__(self):
-        self.ridx = np.concatenate([np.arange(seq_len) + i for i in range(batch_size)])
+        self.ridx = np.concatenate([np.arange(self.seq_len) + i for i in range(batch_size)])
 
     def next(self):
         if self.ridx[-1] >= self.dataset_size:
