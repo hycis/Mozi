@@ -180,10 +180,6 @@ class TrainObject():
                         progbar.update(blk_sz)
                     print
 
-                    #-------[ Update train best cost and error values ]-------#
-                    train_cost = total_train_cost / num_train_examples
-                    train_stats_values /= num_train_examples
-
                 #===================[ Validating Progress ]===================#
                 if valid_set.dataset_size > 0:
 
@@ -202,29 +198,35 @@ class TrainObject():
                         progbar.update(blk_sz)
                     print
 
-                    #-------[ Update valid best cost and error values ]-------#
-                    valid_error = total_valid_stopping_cost / num_valid_examples
-                    valid_cost = total_valid_cost / num_valid_examples
-                    valid_stats_values /= num_valid_examples
-
-                    if valid_error < best_valid_error:
-                        best_valid_error = valid_error
-                        self.log.info('..best validation error so far')
-                        if self.log.save_model:
-                            self.log._save_model(self.model)
-                            self.log.info('..model saved')
-
-                    if valid_error < self.best_valid_last_update:
-                        error_dcr = self.best_valid_last_update - valid_error
-                    else:
-                        error_dcr = 0
-
                 self.log.info('block time: %0.2fs'%(time.time()-block_time))
                 self.log.info(get_mem_usage())
 
+            #-------[ Update train best cost and error values ]-------#
+            if num_train_examples > 0:
+                train_cost = total_train_cost / num_train_examples
+                train_stats_values /= num_train_examples
+
+            #-------[ Update valid best cost and error values ]-------#
+            if num_valid_examples > 0:
+                valid_error = total_valid_stopping_cost / num_valid_examples
+                valid_cost = total_valid_cost / num_valid_examples
+                valid_stats_values /= num_valid_examples
+
+                if valid_error < best_valid_error:
+                    best_valid_error = valid_error
+                    self.log.info('..best validation error so far')
+                    if self.log.save_model:
+                        self.log._save_model(self.model)
+                        self.log.info('..model saved')
+
+                if valid_error < self.best_valid_last_update:
+                    error_dcr = self.best_valid_last_update - valid_error
+                else:
+                    error_dcr = 0
+
             #==============[ save to database, save epoch error]==============#
             if self.log.save_to_database:
-                self.log._save_to_database(epoch, train_cost, valid_cost, best_valid_error)
+                self.log._save_to_database(epoch, train_cost, valid_error, best_valid_error)
                 self.log.info('..sent to database: %s:%s' % (self.log.save_to_database['name'],
                                                              self.log.experiment_name))
 

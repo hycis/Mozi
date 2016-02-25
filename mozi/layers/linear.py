@@ -73,7 +73,6 @@ class Linear(Template):
         RETURN:
             A list of tuples of [('name_a', var_a), ('name_b', var_b)] whereby var is scalar
         """
-
         w_len = T.sqrt((self.W ** 2).sum(axis=0))
         max_length = T.max(w_len)
         mean_length = T.mean(w_len)

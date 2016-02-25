@@ -1,11 +1,16 @@
 
-import numpy as np
 import theano
-import theano.tensor as T
 
-floatX = theano.config.floatX
 
-class Sequential(object):
+class Model(object):
+
+    def test_fprop(self, input_state):
+        pass
+
+    def train_fprop(self, input_state):
+        pass
+
+class Sequential(Model):
 
     def __init__(self, input_var, output_var):
         """

@@ -96,7 +96,7 @@ class Log:
         with open(self.epoch_error_path, 'ab') as epoch_file:
             epoch_file.write('{},{}\n'.format(epoch, valid_error))
 
-    def _save_to_database(self, epoch, train_cost, valid_cost, best_valid_error):
+    def _save_to_database(self, epoch, train_cost, valid_error, best_valid_error):
         conn = sqlite3.connect(os.environ['MOZI_DATABASE_PATH'] + '/' + self.save_to_database['name'])
         cur = conn.cursor()
 
@@ -119,7 +119,7 @@ class Log:
                         raise Exception("Error: The input types for records '{}' of {}".format(k, type(v))
                                     + " is not primitive types (str, int, float) and not castable as str.")
 
-            query += 'epoch INT, train_cost REAL, valid_cost REAL, best_valid_error REAL);'
+            query += 'epoch INT, train_cost REAL, valid_error REAL, best_valid_error REAL);'
 
             cur.execute(query)
 
@@ -130,7 +130,7 @@ class Log:
                     query += '?,'
                     ls.append(v)
                 query += '?,?,?,?,?);'
-                ls.extend([epoch, train_cost, valid_cost, best_valid_error])
+                ls.extend([epoch, train_cost, valid_error, best_valid_error])
                 cur.execute(query, ls)
                 self.first_time_record = False
 
@@ -145,12 +145,12 @@ class Log:
             cur.execute('UPDATE ' + self.experiment_name + ' SET ' +
                         'epoch = ?, ' +
                         'train_cost = ?,' +
-                        'valid_cost = ?,' +
+                        'valid_error = ?,' +
                         'best_valid_error = ?' +
                         "WHERE exp_id='%s'"%self.exp_id,
                         [epoch,
                         train_cost,
-                        valid_cost,
+                        valid_error,
                         best_valid_error])
         conn.commit()
         conn.close()
