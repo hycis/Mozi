@@ -44,6 +44,11 @@ def f1(y, y_pred):
     p = precision(y, y_pred)
     return 2 * p * r / (p + r)
 
+def hingeloss(y, y_pred):
+    y_pred = T.clip(y_pred, 0., 1.0)
+    L = T.max(0, 1 - y * y_pred)
+    return T.mean(L)
+
 def abs(y, y_pred):
     return T.mean(T.abs_(y-y_pred))
 

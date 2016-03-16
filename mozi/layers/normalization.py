@@ -7,52 +7,72 @@ import theano
 
 class BatchNormalization(Template):
 
-    def __init__(self, input_shape, gamma_init=UniformWeight(), short_memory=0.1):
+    def __init__(self, dim, layer_type, gamma_init=UniformWeight(), short_memory=0.1):
         '''
         REFERENCE:
             Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift
-                                 http://arxiv.org/pdf/1502.03167v3.pdf
         PARAMS:
             short_memory: short term memory
                 y_t is the latest value, the moving average x_tp1 is calculated as
                 x_tp1 = memory * y_t + (1-memory) * x_t, the larger the short term
                 memory, the more weight is put on contempory.
+            layer_type: fc or conv
             epsilon:
                 denominator min value for preventing division by zero in computing std
+            dim: for fc layers, shape is the layer dimension, for conv layers,
+                shape is the number of feature maps
         '''
-        # assert len(input_shape) == 2
+
+        assert layer_type in ['fc', 'conv']
+        self.layer_type = layer_type
         self.epsilon = 1e-6
-        self.input_shape = input_shape
+        self.dim = dim
         self.mem = short_memory
 
-        self.gamma = gamma_init(self.input_shape, name='gamma')
-        self.beta = shared_zeros(self.input_shape, name='beta')
+        if self.layer_type == 'fc':
+            input_shape = (1, dim)
+            self.broadcastable = (True, False)
+        elif self.layer_type == 'conv':
+            input_shape = (1, dim, 1, 1)
+            self.broadcastable = (True, False, True, True)
 
+        self.gamma = gamma_init(input_shape, name='gamma')
+        self.beta = shared_zeros(input_shape, name='beta')
+        self.params = [self.gamma, self.beta]
         self.moving_mean = 0
         self.moving_var = 1
 
-        self.params = [self.gamma, self.beta]
 
 
     def _train_fprop(self, state_below):
-        miu = state_below.mean(axis=0)
-        var = T.mean((state_below - miu)**2, axis=0)
+        if self.layer_type == 'fc':
+            miu = state_below.mean(axis=0)
+            var = T.mean((state_below - miu)**2, axis=0)
+        elif self.layer_type == 'conv':
+            miu = state_below.mean(axis=(0,2,3), keepdims=True)
+            var = T.mean((state_below - miu)**2, axis=(0,2,3), keepdims=True)
+
         self.moving_mean += self.mem * miu + (1-self.mem) * self.moving_mean
         self.moving_var += self.mem * var + (1-self.mem) * self.moving_var
         Z = (state_below - self.moving_mean) / T.sqrt(self.moving_var + self.epsilon)
-        return self.gamma * Z + self.beta
+        gamma = T.patternbroadcast(self.gamma, self.broadcastable)
+        beta = T.patternbroadcast(self.beta, self.broadcastable)
+        return gamma * Z + beta
 
 
     def _test_fprop(self, state_below):
         Z = (state_below - self.moving_mean) / T.sqrt(self.moving_var + self.epsilon)
-        return self.gamma * Z + self.beta
+        gamma = T.patternbroadcast(self.gamma, self.broadcastable)
+        beta = T.patternbroadcast(self.beta, self.broadcastable)
+        return gamma * Z + beta
 
 
     def _layer_stats(self, state_below, layer_output):
         return [('moving_mean', T.mean(self.moving_mean)),
                 ('moving_std', T.mean(self.moving_var)),
                 ('gamma_mean', T.mean(self.gamma)),
-                ('beta_mean', T.mean(self.beta))]
+                ('beta_mean', T.mean(self.beta)),
+                ('gamma_max', T.max(self.gamma))]
 
 
 # class LRN(Template):

@@ -55,10 +55,10 @@ def train():
     model.add(Transform((word_vec_len,))) # transform from 3d dimensional input to 2d input for mlp
     model.add(Linear(word_vec_len, 100))
     model.add(RELU())
-    model.add(BatchNormalization((100,)))
+    model.add(BatchNormalization(dim=100, layer_type='fc'))
     model.add(Linear(100,100))
     model.add(RELU())
-    model.add(BatchNormalization((100,)))
+    model.add(BatchNormalization(dim=100, layer_type='fc'))
     model.add(Linear(100, word_vec_len))
     model.add(RELU())
     model.add(Transform((maxseqlen, word_vec_len))) # transform back from 2d to 3d for recurrent input
@@ -70,7 +70,7 @@ def train():
 
     # MLP layers
     model.add(Reshape((24 * maxseqlen,)))
-    model.add(BatchNormalization((24 * maxseqlen,)))
+    model.add(BatchNormalization(dim=24 * maxseqlen, layer_type='fc'))
     model.add(Linear(24 * maxseqlen, 50))
     model.add(RELU())
     model.add(Dropout(0.2))

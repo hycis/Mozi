@@ -87,14 +87,14 @@ class BiLSTM(Template):
 
     def __init__(self, input_dim, output_dim, weight_init=OrthogonalWeight(),
                  inner_init=GaussianWeight(mean=0, std=0.1), truncate_gradient=-1,
-                 output_mode='concat', return_sequences=False):
+                 output_mode='concat', return_sequences=False, return_idx=-1):
 
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.truncate_gradient = truncate_gradient
         self.output_mode = output_mode # output_mode is either sum or concatenate
         self.return_sequences = return_sequences
-
+        self.return_idx = return_idx
         # forward weights
         self.W_i = weight_init((self.input_dim, self.output_dim))
         self.U_i = inner_init((self.output_dim, self.output_dim))
@@ -208,7 +208,7 @@ class BiLSTM(Template):
         else:
             raise Exception('output mode is not sum or concat')
         if self.return_sequences==False:
-            return output[:,-1,:]
+            return output[:,self.return_idx,:]
         elif self.return_sequences==True:
             return output
         else:

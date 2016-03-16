@@ -355,11 +355,14 @@ class Scale(Preprocessor):
 
 class Pipeline(Preprocessor):
 
-    def __init__(self, preprocessors):
+    def __init__(self, preprocessors, inplace=False):
         self.preprocessors = preprocessors
+        self.inplace = inplace
 
     def apply(self, X):
-        newX = X.copy()
+        newX = X
+        if not self.inplace:
+            newX = X.copy()
         for proc in self.preprocessors:
             newX = proc.apply(newX)
         return newX
