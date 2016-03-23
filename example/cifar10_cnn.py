@@ -19,8 +19,9 @@ from mozi.env import setenv
 from mozi.utils.cnn_utils import valid, full
 
 def train():
-    batch_size = 128
-    short_memory = 0.1
+    batch_size = 256
+    short_memory = 0.9
+    learning_rate = 0.005
     data = Cifar10(batch_size=batch_size, train_valid_test_ratio=[4,1,1])
     _, c, h, w = data.train.X.shape
 
@@ -43,7 +44,8 @@ def train():
     model.add(Linear(512, 10))
     model.add(Softmax())
 
-    learning_method = RMSprop(learning_rate=0.05)
+    # learning_method = RMSprop(learning_rate=learning_rate)
+    learning_method = Adam(learning_rate=learning_rate)
     # learning_method = SGD(learning_rate=0.001)
 
     # Build Logger
@@ -64,8 +66,8 @@ def train():
                                train_cost = entropy,
                                valid_cost = error,
                                learning_method = learning_method,
-                               stop_criteria = {'max_epoch' : 30,
-                                                'epoch_look_back' : 5,
+                               stop_criteria = {'max_epoch' : 100,
+                                                'epoch_look_back' : 10,
                                                 'percent_decrease' : 0.01}
                                )
     # finally run the code

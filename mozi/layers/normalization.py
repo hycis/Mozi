@@ -1,6 +1,6 @@
 
 from mozi.layers.template import Template
-from mozi.utils.theano_utils import shared_zeros, sharedX
+from mozi.utils.theano_utils import shared_zeros, sharedX, shared_ones
 from mozi.weight_init import UniformWeight
 import theano.tensor as T
 import theano
@@ -39,10 +39,10 @@ class BatchNormalization(Template):
         self.gamma = gamma_init(input_shape, name='gamma')
         self.beta = shared_zeros(input_shape, name='beta')
         self.params = [self.gamma, self.beta]
+        # self.moving_mean = shared_zeros(input_shape, broadcastable=self.broadcastable)
+        # self.moving_var = shared_ones(input_shape, broadcastable=self.broadcastable)
         self.moving_mean = 0
         self.moving_var = 1
-
-
 
     def _train_fprop(self, state_below):
         if self.layer_type == 'fc':
@@ -51,9 +51,12 @@ class BatchNormalization(Template):
         elif self.layer_type == 'conv':
             miu = state_below.mean(axis=(0,2,3), keepdims=True)
             var = T.mean((state_below - miu)**2, axis=(0,2,3), keepdims=True)
+        # new_moving_mean = self.mem * miu + (1-self.mem) * self.moving_mean
+        # new_moving_var = self.mem * var + (1-self.mem) * self.moving_var
+        # self.updates = [(self.moving_mean, new_moving_mean), (self.moving_var, new_moving_var)]
+        self.moving_mean = self.mem * miu + (1-self.mem) * self.moving_mean
+        self.moving_var = self.mem * var + (1-self.mem) * self.moving_var
 
-        self.moving_mean += self.mem * miu + (1-self.mem) * self.moving_mean
-        self.moving_var += self.mem * var + (1-self.mem) * self.moving_var
         Z = (state_below - self.moving_mean) / T.sqrt(self.moving_var + self.epsilon)
         gamma = T.patternbroadcast(self.gamma, self.broadcastable)
         beta = T.patternbroadcast(self.beta, self.broadcastable)

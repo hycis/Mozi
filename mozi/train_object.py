@@ -24,7 +24,7 @@ from mozi.utils.progbar import Progbar
 
 class TrainObject():
 
-    def __init__(self, model, dataset, train_cost, valid_cost, learning_method, stop_criteria, log=None):
+    def __init__(self, model, dataset, train_cost, valid_cost, learning_method, stop_criteria, log=None, verbose=True):
         self.model = model
         self.dataset = dataset
         self.train_cost = train_cost
@@ -32,6 +32,8 @@ class TrainObject():
         self.learning_method = learning_method
         self.stop_criteria = stop_criteria
         self.log = log
+        self.verbose = verbose
+
 
         if self.log is None:
             # use default Log setting
@@ -52,14 +54,19 @@ class TrainObject():
         deltas = []
 
         for i, layer in enumerate(self.model.layers):
-            for param in layer.params:
-                # checked that the param to be updated is shared variable
-                if is_shared_var(param):
-                    if param.name is None:
-                        param.name = ''
-                    param.name += '_' + layer.__class__.__name__ + '_' + str(i)
-                    params += [param]
-                    deltas += [shared_zeros(shape=param.shape.eval())]
+            layer_name = "{}_{}".format(layer.__class__.__name__, i)
+            if hasattr(layer, 'params'):
+                # self.log.info("..{}: has params for training".format(layer_name))
+                for param in layer.params:
+                    # checked that the param to be updated is shared variable
+                    if is_shared_var(param):
+                        if param.name is None:
+                            param.name = ''
+                        param.name += '_' + layer.__class__.__name__ + '_' + str(i)
+                        params += [param]
+                        deltas += [shared_zeros(shape=param.shape.eval())]
+            # else:
+            #     self.log.info("..{}: no params for training".format(layer_name))
 
         #=====================[ training params updates ]=====================#
 
@@ -69,13 +76,24 @@ class TrainObject():
         gparams = T.grad(train_cost, params)
         train_updates = self.learning_method.update(deltas, params, gparams)
 
+        #=================[ append updates from each layer ]==================#
+
+        for i, layer in enumerate(self.model.layers):
+            layer_name = "{}_{}".format(layer.__class__.__name__, i)
+            if hasattr(layer, 'updates') and len(layer.updates) > 0:
+                self.log.info("..{}: has shared variable updates".format(layer_name))
+                train_updates += layer.updates
+            # else:
+            #     self.log.info("..{}: no shared variable updates".format(layer_name))
+
         #----[ append updates of stats from each layer to train updates ]-----#
 
         self.train_stats_names, train_stats_vars = split_list(train_layers_stats)
         train_stats_vars = [var.astype(floatX) for var in train_stats_vars]
         self.train_stats_shared = generate_shared_list(train_stats_vars)
         train_stats_updates = merge_lists(self.train_stats_shared, train_stats_vars)
-        train_updates += train_stats_updates
+        if self.verbose:
+            train_updates += train_stats_updates
 
         #-------------------------[ train functions ]-------------------------#
 
@@ -97,7 +115,9 @@ class TrainObject():
         self.test_stats_names, test_stats_vars = split_list(test_layers_stats)
         test_stats_vars = [var.astype(floatX) for var in test_stats_vars]
         self.test_stats_shared = generate_shared_list(test_stats_vars)
-        test_stats_updates = merge_lists(self.test_stats_shared, test_stats_vars)
+        test_stats_updates = []
+        if self.verbose:
+            test_stats_updates = merge_lists(self.test_stats_shared, test_stats_vars)
 
         #-------------------------[ test functions ]--------------------------#
 

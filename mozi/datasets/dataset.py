@@ -263,7 +263,7 @@ class MultiInputsData(SingleBlock):
             X (tuple of arrays or just one array of X): If our input is X1 and X2, both
             with same number of rows, then X = (X1, X2)
             y (tuple of arrays or just one array of y): label of same number of rows as
-            input data
+            input data X
         """
         super(MultiInputsData, self).__init__(train_valid_test_ratio=train_valid_test_ratio,
                                               log=log, **kwargs)

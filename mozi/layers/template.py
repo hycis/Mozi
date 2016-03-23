@@ -10,8 +10,10 @@ class Template(object):
         FIELDS:
             self.params: any params from the layer that needs to be updated
                          by backpropagation can be put inside self.params
+            self.updates: use for updating any shared variables
         '''
         self.params = []
+        self.updates = []
 
     def _test_fprop(self, state_below):
         '''
