@@ -39,8 +39,6 @@ class BatchNormalization(Template):
         self.gamma = gamma_init(input_shape, name='gamma')
         self.beta = shared_zeros(input_shape, name='beta')
         self.params = [self.gamma, self.beta]
-        # self.moving_mean = shared_zeros(input_shape, broadcastable=self.broadcastable)
-        # self.moving_var = shared_ones(input_shape, broadcastable=self.broadcastable)
         self.moving_mean = 0
         self.moving_var = 1
 
@@ -51,9 +49,6 @@ class BatchNormalization(Template):
         elif self.layer_type == 'conv':
             miu = state_below.mean(axis=(0,2,3), keepdims=True)
             var = T.mean((state_below - miu)**2, axis=(0,2,3), keepdims=True)
-        # new_moving_mean = self.mem * miu + (1-self.mem) * self.moving_mean
-        # new_moving_var = self.mem * var + (1-self.mem) * self.moving_var
-        # self.updates = [(self.moving_mean, new_moving_mean), (self.moving_var, new_moving_var)]
         self.moving_mean = self.mem * miu + (1-self.mem) * self.moving_mean
         self.moving_var = self.mem * var + (1-self.mem) * self.moving_var
 

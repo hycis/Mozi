@@ -251,7 +251,7 @@ class TrainObject():
                                                              self.log.experiment_name))
 
             if self.log.save_epoch_error:
-                self.log._save_epoch_error(epoch, valid_error)
+                self.log._save_epoch_error(epoch, train_cost, valid_cost, valid_error)
                 self.log.info('..epoch error saved')
 
             end_time = time.time()

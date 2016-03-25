@@ -58,7 +58,7 @@ class Log:
         if save_epoch_error:
             self.epoch_error_path = self.exp_dir+'/epoch_error.csv'
             with open(self.epoch_error_path, 'wb') as epoch_file:
-                epoch_file.write('Epoch,Error\n')
+                epoch_file.write('Epoch,Train_Cost,Valid_Cost,Valid_Error\n')
 
         if description is not None:
             self.logger.info('Description: ' + self.description)
@@ -92,9 +92,9 @@ class Log:
         with open(self.exp_dir+'/model.pkl', 'wb') as pkl_file:
             cPickle.dump(model, pkl_file)
 
-    def _save_epoch_error(self, epoch, valid_error):
+    def _save_epoch_error(self, epoch, train_cost, valid_cost, valid_error):
         with open(self.epoch_error_path, 'ab') as epoch_file:
-            epoch_file.write('{},{}\n'.format(epoch, valid_error))
+            epoch_file.write('{},{},{},{}\n'.format(epoch, train_cost, valid_cost, valid_error))
 
     def _save_to_database(self, epoch, train_cost, valid_error, best_valid_error):
         conn = sqlite3.connect(os.environ['MOZI_DATABASE_PATH'] + '/' + self.save_to_database['name'])
