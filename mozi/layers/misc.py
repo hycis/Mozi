@@ -41,12 +41,25 @@ class Transform(Template):
         self.params = []
         self.dims = dims
 
-    def _test_fprop(self, state_below):
-        return self._train_fprop(state_below)
-
     def _train_fprop(self, state_below):
         first_dim = T.prod(state_below.shape) / np.prod(self.dims)
         return T.reshape(state_below, (first_dim,)+self.dims)
+
+    def _test_fprop(self, state_below):
+        return self._train_fprop(state_below)
+
+
+class Crop(Template):
+    def __init__(self, border):
+        self.border = border
+        assert len(self.border) == 2
+
+    def _train_fprop(self, state_below):
+        w, h = self.border
+        return state_below[:,:,h:-h,w:-w]
+
+    def _test_fprop(self, state_below):
+        return self._train_fprop(state_below)
 
 
 class Parallel(Template):
