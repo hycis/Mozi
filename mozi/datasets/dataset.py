@@ -61,12 +61,12 @@ class IterDatasets(IterMatrix):
 
     @property
     def dataset_size(self):
-        if isinstance(self.X, (list, tuple)):
+        if isinstance(self.X, tuple):
             if len(self.X) == 0:
                 dsize = -1
             else:
                 dsize = len(self.y[0])
-        elif X is None:
+        elif self.X is None:
             dsize = -1
         else:
             dsize = len(self.X)
@@ -275,7 +275,7 @@ class MultiInputsData(SingleBlock):
 
 
     def set(self, X, y):
-        if isinstance(X, (list,tuple)):
+        if isinstance(X, tuple):
             self.num_examples = len(X[0])
             for dataset in X:
                 assert len(dataset) == self.num_examples, 'number of rows for different datasets is not the same'
@@ -286,7 +286,7 @@ class MultiInputsData(SingleBlock):
             self.num_examples = len(X)
             X = [X]
 
-        if isinstance(y, (list,tuple)):
+        if isinstance(y, tuple):
             for label in y:
                 assert len(label) == self.num_examples, 'number of rows for different y is not the same'
         elif y is None:
