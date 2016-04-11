@@ -278,7 +278,6 @@ class MultiInputsData(SingleBlock):
 
 
     def set(self, X, y):
-        # import pdb; pdb.set_trace()
         if isinstance(X, tuple):
             self.num_examples = len(X[0])
             for dataset in X:
