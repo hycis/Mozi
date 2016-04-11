@@ -53,6 +53,18 @@ class Convolution2D(Template):
         return self._train_fprop(state_below)
 
 
+    def _layer_stats(self, state_below, layer_output):
+        w_max = self.W.max()
+        w_min = self.W.min()
+        w_mean = self.W.mean()
+        w_std = self.W.std()
+        return[('filter_max', w_max),
+               ('filter_min', w_min),
+               ('filter_mean', w_mean),
+               ('filter_std', w_std)]
+
+
+
 class Pooling2D(Template):
     def __init__(self, poolsize=(2, 2), stride=None, padding=(0,0),
                  ignore_border=True, mode='max'):

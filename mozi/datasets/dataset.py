@@ -59,6 +59,9 @@ class IterDatasets(IterMatrix):
             yslice.append(label[key])
         return Xslice + yslice
 
+    def __len__(self):
+        return self.dataset_size
+
     @property
     def dataset_size(self):
         if isinstance(self.X, tuple):
@@ -275,46 +278,47 @@ class MultiInputsData(SingleBlock):
 
 
     def set(self, X, y):
+        # import pdb; pdb.set_trace()
         if isinstance(X, tuple):
             self.num_examples = len(X[0])
             for dataset in X:
                 assert len(dataset) == self.num_examples, 'number of rows for different datasets is not the same'
         elif X is None:
             self.num_examples = 0
-            X = []
+            X = ()
         else:
             self.num_examples = len(X)
-            X = [X]
+            X = (X,)
 
         if isinstance(y, tuple):
             for label in y:
                 assert len(label) == self.num_examples, 'number of rows for different y is not the same'
         elif y is None:
-            y = []
+            y = ()
             assert self.num_examples == 0
         else:
             assert len(y) == self.num_examples, 'number of rows for y is not the same as input features'
-            y = [y]
+            y = (y,)
 
         total_ratio = sum(self.ratio)
         num_train = int(float(self.ratio[0]) * self.num_examples / total_ratio)
         num_valid = int(float(self.ratio[1]) * self.num_examples / total_ratio)
 
-        trainset = []
-        validset = []
-        testset = []
+        trainset = ()
+        validset = ()
+        testset = ()
         for dataset in X:
-            trainset.append(dataset[:num_train])
-            validset.append(dataset[num_train:num_train+num_valid])
-            testset.append(dataset[num_train+num_valid:])
+            trainset += (dataset[:num_train],)
+            validset += (dataset[num_train:num_train+num_valid],)
+            testset += (dataset[num_train+num_valid:],)
 
-        trainlbl = []
-        validlbl = []
-        testlbl = []
+        trainlbl = ()
+        validlbl = ()
+        testlbl = ()
         for label in y:
-            trainlbl.append(label[:num_train])
-            validlbl.append(label[num_train:num_train+num_valid])
-            testlbl.append(label[num_train+num_valid:])
+            trainlbl += (label[:num_train],)
+            validlbl += (label[num_train:num_train+num_valid],)
+            testlbl += (label[num_train+num_valid:],)
 
         self.train.X = trainset
         self.train.y = trainlbl

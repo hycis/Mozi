@@ -56,17 +56,13 @@ class TrainObject():
         for i, layer in enumerate(self.model.layers):
             layer_name = "{}_{}".format(layer.__class__.__name__, i)
             if hasattr(layer, 'params'):
-                # self.log.info("..{}: has params for training".format(layer_name))
                 for param in layer.params:
                     # checked that the param to be updated is shared variable
                     if is_shared_var(param):
-                        if param.name is None:
-                            param.name = ''
-                        param.name += '_' + layer.__class__.__name__ + '_' + str(i)
+                        param.name = str(i) + '_' + str(param.name)
+                        param.name += '_' + layer.__class__.__name__
                         params += [param]
                         deltas += [shared_zeros(shape=param.shape.eval())]
-            # else:
-            #     self.log.info("..{}: no params for training".format(layer_name))
 
         #=====================[ training params updates ]=====================#
 
@@ -83,8 +79,6 @@ class TrainObject():
             if hasattr(layer, 'updates') and len(layer.updates) > 0:
                 self.log.info("..{}: has shared variable updates".format(layer_name))
                 train_updates += layer.updates
-            # else:
-            #     self.log.info("..{}: no shared variable updates".format(layer_name))
 
         #----[ append updates of stats from each layer to train updates ]-----#
 

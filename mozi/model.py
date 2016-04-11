@@ -12,7 +12,7 @@ class Model(object):
 
 class Sequential(Model):
 
-    def __init__(self, input_var, output_var):
+    def __init__(self, input_var, output_var, verbose=True):
         """
         PARAM:
             input_var (T.vector() | T.matrix() | T.tensor3() | T.tensor4()):
@@ -21,11 +21,14 @@ class Sequential(Model):
             input_var (T.vector() | T.matrix() | T.tensor3() | T.tensor4()):
                     The tensor variable output from the model that corresponds to
                     the number of dimensions of the output y of dataset
+            verbose (bool):
+                    print out the layer stats from each layer if True
 
         """
         self.input_var = input_var
         self.output_var = output_var
         self.layers = []
+        self.verbose = verbose
 
     def add(self, layer):
         self.layers.append(layer)
@@ -39,7 +42,9 @@ class Sequential(Model):
             layers = xrange(len(self.layers))
         for i in layers:
             layer_output = self.layers[i]._test_fprop(input_state)
-            stats = self.layers[i]._layer_stats(input_state, layer_output)
+            stats = []
+            if self.verbose:
+                stats = self.layers[i]._layer_stats(input_state, layer_output)
             input_state = layer_output
             class_name = self.layers[i].__class__.__name__
             stats = [(str(i)+'_'+class_name+'_'+a, b) for (a,b) in stats]
@@ -54,7 +59,9 @@ class Sequential(Model):
             layers = xrange(len(self.layers))
         for i in layers:
             layer_output = self.layers[i]._train_fprop(input_state)
-            stats = self.layers[i]._layer_stats(input_state, layer_output)
+            stats = []
+            if self.verbose:
+                stats = self.layers[i]._layer_stats(input_state, layer_output)
             input_state = layer_output
             class_name = self.layers[i].__class__.__name__
             stats = [(str(i)+'_'+class_name+'_'+a, b) for (a,b) in stats]
@@ -68,7 +75,7 @@ class Sequential(Model):
 
 
     def fprop_layers(self, input_values, layers=None):
-        output, stats = self.test_fprop(self.input_var, layers)
+        output, stats = self.test_fprop(layers)
         if isinstance(self.input_var, tuple):
             f = theano.function(self.input_var, output, on_unused_input='warn', allow_input_downcast=True)
         else:
