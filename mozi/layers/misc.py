@@ -6,9 +6,6 @@ import numpy as np
 
 class Flatten(Template):
 
-    def _test_fprop(self, state_below):
-        return self._train_fprop(state_below)
-
     def _train_fprop(self, state_below):
         size = T.prod(state_below.shape) / state_below.shape[0]
         nshape = (state_below.shape[0], size)
@@ -24,9 +21,6 @@ class Reshape(Template):
     def _train_fprop(self, state_below):
         nshape = (state_below.shape[0],) + self.dims
         return T.reshape(state_below, nshape)
-
-    def _test_fprop(self, state_below):
-        return self._train_fprop(state_below)
 
 
 class Transform(Template):
@@ -45,9 +39,6 @@ class Transform(Template):
         first_dim = T.prod(state_below.shape) / np.prod(self.dims)
         return T.reshape(state_below, (first_dim,)+self.dims)
 
-    def _test_fprop(self, state_below):
-        return self._train_fprop(state_below)
-
 
 class Crop(Template):
     def __init__(self, border):
@@ -57,9 +48,6 @@ class Crop(Template):
     def _train_fprop(self, state_below):
         w, h = self.border
         return state_below[:,:,h:-h,w:-w]
-
-    def _test_fprop(self, state_below):
-        return self._train_fprop(state_below)
 
 
 class Parallel(Template):
@@ -77,6 +65,3 @@ class Parallel(Template):
             out, _ = model.train_fprop(state)
             rstate.append(out)
         return rstate
-
-    def _test_fprop(self, state_below):
-        return self._train_fprop(state_below)

@@ -8,19 +8,7 @@ from mozi.layers.template import Template
 floatX = theano.config.floatX
 theano_rand = MRG_RandomStreams()
 
-class Noise(Template):
-
-    def _test_fprop(self, state_below):
-        return state_below
-
-    def _train_fprop(self, state_below):
-        raise NotImplementedError(str(type(self))+" does not implement _train_fprop.")
-
-    def _layer_stats(self, state_below, layer_output):
-        return []
-
-
-class Dropout(Noise):
+class Dropout(Template):
 
     def __init__(self, dropout_below=0.5):
         '''
@@ -50,7 +38,7 @@ class Dropout(Noise):
                                     dtype=floatX) * state_below
 
 
-class MaskOut(Noise):
+class MaskOut(Template):
 
     """
     This noise masked out a portion of the dimension from each example
@@ -69,7 +57,7 @@ class MaskOut(Noise):
         return state_below * theano_rand.binomial(size=state_below.shape, n=1, p=(1-self.ratio), dtype=floatX)
 
 
-class Gaussian(Noise):
+class Gaussian(Template):
     """
     Applies gaussian noise to each value of X
     """
@@ -83,7 +71,7 @@ class Gaussian(Noise):
         return state_below + theano_rand.normal(avg=self.mean, std=self.std, size=state_below.shape, dtype=floatX)
 
 
-class BlackOut(Noise):
+class BlackOut(Template):
     """
     This noise masked out a random example in a dataset,
     adding noise in the time dimension
@@ -103,7 +91,7 @@ class BlackOut(Noise):
         return state_below * T.shape_padright(rd)
 
 
-class BatchOut(Noise):
+class BatchOut(Template):
     """
     This noise masked out a random batch in an epoch,
     adding noise in the time dimension

@@ -10,17 +10,11 @@ theano_rand = MRG_RandomStreams()
 
 
 class Sigmoid(Template):
-    def _test_fprop(self, state_below):
-        return T.nnet.sigmoid(state_below)
-
     def _train_fprop(self, state_below):
         return T.nnet.sigmoid(state_below)
 
 
 class RELU(Template):
-    def _test_fprop(self, state_below):
-        return state_below * (state_below > 0.)
-
     def _train_fprop(self, state_below):
         return state_below * (state_below > 0.)
 
@@ -48,9 +42,6 @@ class LeakyRELU(Template):
     def __init__(self, alpha=0.01):
         self.alpha = sharedX(alpha)
         self.params = []
-
-    def _test_fprop(self, state_below):
-        return self._train_fprop(state_below)
 
     def _train_fprop(self, state_below):
         return state_below * (state_below >= 0) \
@@ -99,24 +90,15 @@ class Noisy_RELU(Template):
 
 
 class Softmax(Template):
-    def _test_fprop(self, state_below):
-        return T.nnet.softmax(state_below)
-
     def _train_fprop(self, state_below):
         return T.nnet.softmax(state_below)
 
 
 class Tanh(Template):
-    def _test_fprop(self, state_below):
-        return T.tanh(state_below)
-
     def _train_fprop(self, state_below):
         return T.tanh(state_below)
 
 
 class Softplus(Template):
-    def _test_fprop(self, state_below):
-        return T.nnet.softplus(state_below)
-
     def _train_fprop(self, state_below):
         return T.nnet.softplus(state_below)

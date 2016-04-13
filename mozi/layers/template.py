@@ -22,8 +22,7 @@ class Template(object):
         PARAM:
             state_below: the input to layer
         '''
-        raise NotImplementedError(str(type(self))+" does not implement _test_fprop.")
-
+        return self._train_fprop(state_below)
 
     def _train_fprop(self, state_below):
         '''
@@ -33,7 +32,7 @@ class Template(object):
         PARAM:
             state_below: the input to layer
         '''
-        raise NotImplementedError(str(type(self))+" does not implement _train_fprop.")
+        raise NotImplementedError()
 
 
     def _layer_stats(self, state_below, layer_output):

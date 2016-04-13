@@ -49,10 +49,6 @@ class Convolution2D(Template):
         return conv_out + self.b.dimshuffle('x', 0, 'x', 'x')
 
 
-    def _test_fprop(self, state_below):
-        return self._train_fprop(state_below)
-
-
     def _layer_stats(self, state_below, layer_output):
         w_max = self.W.max()
         w_min = self.W.min()
@@ -95,10 +91,6 @@ class Pooling2D(Template):
                                       mode=self.mode)
 
 
-    def _test_fprop(self, state_below):
-        return self._train_fprop(state_below)
-
-
 class ConvFFT2D(Template):
     def __init__(self, input_channels, filters, stride, kernel_size=(3,3),
         W=None, b=None, weight_init=GaussianWeight(mean=0, std=0.1),
@@ -136,10 +128,6 @@ class ConvFFT2D(Template):
                                                   image_shape=self.image_shape,
                                                   pad_last_dim=self.pad_last_dim)
         return conv_out + self.b.dimshuffle('x', 0, 'x', 'x')
-
-
-    def _test_fprop(self, state_below):
-        return self._train_fprop(state_below)
 
 
 class SpatialPyramidPooling(Template):
@@ -180,7 +168,3 @@ class SpatialPyramidPooling(Template):
             layer_out.append(out.reshape((b, T.prod(out.shape)/b)))
 
         return T.concat(layer_out, axis=1)
-
-
-    def _test_fprop(self, state_below):
-        return self._train_fprop(state_below)

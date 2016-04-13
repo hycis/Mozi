@@ -45,10 +45,6 @@ class VariationalAutoencoder(Template):
         return y, miu_e, logsig_e
 
 
-    def _test_fprop(self, state_below):
-        return self._train_fprop(state_below)
-
-
     def _layer_stats(self, state_below, layer_output):
         y, miu, logsig = layer_output
         return [('W_miu', self.W_miu.mean()),

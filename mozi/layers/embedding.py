@@ -24,6 +24,3 @@ class Embedding(Template):
     def _train_fprop(self, state_below):
         state_below = state_below.astype('int32')
         return self.W[state_below]
-
-    def _test_fprop(self, state_below):
-        return self._train_fprop(state_below)

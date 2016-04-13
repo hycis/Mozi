@@ -75,11 +75,6 @@ class LSTM(Template):
         return outputs[-1]
 
 
-    def _test_fprop(self, state_below):
-        return self._train_fprop(state_below)
-
-
-
 class BiLSTM(Template):
     '''
     Bidirection LSTM
@@ -213,7 +208,3 @@ class BiLSTM(Template):
             return output
         else:
             raise Exception('Unexpected output shape for return_sequences')
-
-
-    def _test_fprop(self, state_below):
-        return self._train_fprop(state_below)
