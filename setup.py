@@ -1,14 +1,21 @@
-import os
-from setuptools import setup, find_packages
+from distutils.core import setup
+from setuptools import find_packages
+
 
 setup(
     name='mozi',
-    version='0.1',
+    version='2.0',
+    author=u'Wu Zhen Zhou',
+    author_email='hyciswu@gmail.com',
+    install_requires=['numpy>=1.7.1', 'scipy>=0.11',
+                      'six>=1.9.0', 'tensorflow>=0.8.0',
+                      'scikit-learn>=0.17', 'pandas>=0.17',
+                      'matplotlib>=1.5', 'scipy>=0.17'],
+    url='https://github.com/hycis/Mozi',
+    license='The MIT License (MIT), see LICENCE',
+    description='Deep learning package based on theano for building all kinds of models',
+    long_description=open('README.md').read(),
     packages=find_packages(),
-    description='A machine learning library build on top of Theano.',
-    license='MIT',
-    install_requires=['numpy>=1.5', 'theano'],
-    package_data={
-        '': ['*.txt', '*.rst', '*.cu', '*.cuh', '*.h'],
-    },
+    zip_safe=False,
+    include_package_data=True
 )
