@@ -9,13 +9,25 @@ Mozi is based on Theano with a clean and sharp design, the **design philosophy**
 4. **Logging System**: Mozi provides a full logging feature that allows user to log the training results and the hyperparameters to the database for paranormal overview. Also it allows automatic saving of best model and logging of all training outputs for easy aftermath analysis.
 
 ---
-### Set Environment
+### Install
 
-To use Mozi, first add Mozi to python path
+First you need to install [theano](https://github.com/Theano/Theano)
+
+Then install mozi via pip for bleeding edge version
 ```bash
+sudo pip install git+https://github.com/hycis/Mozi.git@master
+```
+or simply clone and add to `PYTHONPATH`.
+```bash
+git clone https://github.com/hycis/Mozi.git
 export PYTHONPATH=/path/to/Mozi:$PYTHONPATH
 ```
+in order for the install to persist via export `PYTHONPATH`. Add `PYTHONPATH=/path/to/TensorGraph:$PYTHONPATH` to your `.bashrc` for linux or
+`.bash_profile` for mac. While this method works, you will have to ensure that
+all the dependencies in [setup.py](setup.py) are installed.
 
+---
+### Set Environment
 In Mozi, we need to set three environment paths
 * *MOZI_DATA_PATH*
 * *MOZI_SAVE_PATH*
