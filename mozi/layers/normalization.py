@@ -7,11 +7,7 @@ import theano
 
 class BatchNormalization(Template):
 
-<<<<<<< HEAD
-    def __init__(self, dim, layer_type, gamma_init=UniformWeight(), short_memory=0.1):
-=======
     def __init__(self, dim, layer_type, gamma_init=UniformWeight(), short_memory=0.01):
->>>>>>> d523d7a08a5af77533ecf6845aa5a3fc83e883d2
         '''
         REFERENCE:
             Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift
