@@ -102,3 +102,11 @@ class Tanh(Template):
 class Softplus(Template):
     def _train_fprop(self, state_below):
         return T.nnet.softplus(state_below)
+
+
+class ELU(Template):
+    def __init__(self, alpha=1.0):
+        self.alpha = alpha
+
+    def _train_fprop(self, state_below):
+        return self.alpha*(T.exp(state_below)-1)*(state_below<0) + state_below*(state_below>=0)
