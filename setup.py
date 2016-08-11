@@ -4,7 +4,7 @@ from setuptools import find_packages
 
 setup(
     name='mozi',
-    version='2.0.2',
+    version='2.0.3',
     author=u'Wu Zhen Zhou',
     author_email='hyciswu@gmail.com',
     install_requires=['numpy>=1.7.1', 'scipy>=0.11',

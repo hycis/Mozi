@@ -59,7 +59,7 @@ def train():
     # now we can create the data by putting the paths
     # ('X1.npy', 'y1.npy') and ('X2.npy', 'y2.npy') into DataBlocks
     data = DataBlocks(data_paths=[('X1.npy', 'y1.npy'), ('X2.npy', 'y2.npy'), ('X3.npy', 'y3.npy')],
-                      batch_size=100, train_valid_test_ratio=[3,2,0])
+                      batch_size=100, train_valid_test_ratio=[3,2,0], allow_preload=False)
 
 
     model = Sequential(input_var=T.matrix(), output_var=T.matrix())
