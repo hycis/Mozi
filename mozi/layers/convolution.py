@@ -12,7 +12,7 @@ from mozi.weight_init import XavierUniformWeight, GaussianWeight
 from mozi.layers.template import Template
 from mozi.utils.theano_utils import shared_zeros
 from theano.tensor.nnet.conv import conv2d
-from theano.tensor.conv import conv2d
+from theano.tensor.nnet import conv2d
 # from theano.tensor.signal.conv import conv2d
 
 floatX = theano.config.floatX
