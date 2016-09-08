@@ -6,7 +6,8 @@ import numpy as np
 import theano
 from theano.sandbox.cuda.fftconv import conv2d_fft
 import theano.tensor as T
-from theano.tensor.signal import downsample
+# from theano.tensor.signal import downsample
+from theano.tensor.signal.pool import pool_2d
 from mozi.weight_init import XavierUniformWeight, GaussianWeight
 from mozi.layers.template import Template
 from mozi.utils.theano_utils import shared_zeros
@@ -87,10 +88,9 @@ class Pooling2D(Template):
 
 
     def _train_fprop(self, state_below):
-        return downsample.max_pool_2d(state_below, ds=self.poolsize,
-                                      st=self.stride, padding=self.padding,
-                                      ignore_border=self.ignore_border,
-                                      mode=self.mode)
+        return pool_2d(state_below, ds=self.poolsize, st=self.stride,
+                       padding=self.padding, ignore_border=self.ignore_border,
+                       mode=self.mode)
 
 
 class ConvFFT2D(Template):
@@ -126,9 +126,9 @@ class ConvFFT2D(Template):
 
     def _train_fprop(self, state_below):
         conv_out = conv2d_fft(state_below, self.W,
-                                                  border_mode=self.border_mode,
-                                                  image_shape=self.image_shape,
-                                                  pad_last_dim=self.pad_last_dim)
+                              border_mode=self.border_mode,
+                              image_shape=self.image_shape,
+                              pad_last_dim=self.pad_last_dim)
         return conv_out + self.b.dimshuffle('x', 0, 'x', 'x')
 
 

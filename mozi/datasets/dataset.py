@@ -102,7 +102,7 @@ class SingleBlock(Dataset):
         '''
         All the data is loaded into memory for one go training
         '''
-        super(SingleBlock, self).__init__(log)
+        super(SingleBlock, self).__init__(log=log)
         self.ratio = train_valid_test_ratio
         self.train = IterMatrix(X=None, y=None, **kwargs)
         self.valid = IterMatrix(X=None, y=None, **kwargs)
@@ -184,7 +184,7 @@ class SingleBlock(Dataset):
 
 class DataBlocks(Dataset):
 
-    def __init__(self, data_paths, train_valid_test_ratio=[8,1,1], log=None, allow_preload=True, **kwargs):
+    def __init__(self, data_paths, train_valid_test_ratio=[8,1,1], log=None, allow_preload=False, **kwargs):
 
         """
         DESCRIPTION:
@@ -200,7 +200,7 @@ class DataBlocks(Dataset):
                             this will reduce time but will also cost more memory.
 
         """
-        super(DataBlocks, self).__init__(train_valid_test_ratio, log, **kwargs)
+        super(DataBlocks, self).__init__(log=log)
         assert isinstance(data_paths, (list,tuple)), "data_paths is not a list"
         self.data_paths = data_paths
         self.single_block = SingleBlock(None, None, train_valid_test_ratio, log, **kwargs)
@@ -244,9 +244,8 @@ class DataBlocks(Dataset):
         return X,y
 
     def load_Xy(self, paths, q):
-        self.log.info('..loading: ' + paths)
+        self.log.info('..loading: ' + str(paths))
         X,y = self.openfile(paths)
-        self.log.info('..loaded: ' + paths)
         q.put((X,y))
 
     @property
