@@ -43,6 +43,7 @@ class Transform(Template):
 class Crop(Template):
     def __init__(self, border):
         self.border = border
+        self.params = []
         assert len(self.border) == 2
 
     def _train_fprop(self, state_below):
