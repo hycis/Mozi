@@ -13,7 +13,11 @@ Mozi is based on Theano with a clean and sharp design, the **design philosophy**
 
 First you need to install [theano](https://github.com/Theano/Theano)
 
-Then install mozi via pip for bleeding edge version
+You can simply install mozi via pip for latest stable version
+```
+sudo pip install mozi
+```
+or install via pip for bleeding edge version
 ```bash
 sudo pip install git+https://github.com/hycis/Mozi.git@master
 ```
